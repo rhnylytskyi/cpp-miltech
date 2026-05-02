@@ -29,7 +29,7 @@ int main(int argc, char** argv) {
     double theta = 0.0;
 
     // Змінні для зберігання даних попереднього кроку
-    long prev_ts, prev_fl, prev_fr, prev_bl, prev_br;
+    long prev_fl, prev_fr, prev_bl, prev_br;
     bool first_line = true;
 
     // Константа для переведення імпульсів у метри
@@ -39,7 +39,6 @@ int main(int argc, char** argv) {
     while (input_file >> ts >> fl >> fr >> bl >> br) {
         if (first_line) {
             // Зберігаємо початкові значення та пропускаємо перший крок (delta = 0)
-            prev_ts = ts;
             prev_fl = fl;
             prev_fr = fr;
             prev_bl = bl;
@@ -75,7 +74,6 @@ int main(int argc, char** argv) {
         std::cout << ts << " " << x << " " << y << " " << theta << "\n";
 
         // Оновлення значень для наступної ітерації
-        prev_ts = ts;
         prev_fl = fl;
         prev_fr = fr;
         prev_bl = bl;
