@@ -38,45 +38,72 @@ int split_line(char line[], char* fields[], int max_fields) {
     return count;
 }
 
-long parse_long(const char* text) {
+long parse_long(const char* text, int frame_count = -1) {
     char* end = nullptr;
     const long value = std::strtol(text, &end, 10);
 
     if (end == text) {
-        std::abort();
+        std::cerr << "error: invalid frame at line " << (frame_count + 1) << ": failed to parse long \"" << text << "\"\n";
+        std::exit(1);
     }
 
     return value;
 }
 
-int parse_int(const char* text) {
-    return static_cast<int>(parse_long(text));
+int parse_int(const char* text, int frame_count = -1) {
+    return static_cast<int>(parse_long(text, frame_count));
 }
 
-double parse_double(const char* text) {
+double parse_double(const char* text, int frame_count = -1) {
     char* end = nullptr;
     const double value = std::strtod(text, &end);
 
     if (end == text) {
-        std::abort();
+        std::cerr << "error: invalid frame at line " << (frame_count + 1) << ": failed to parse double \"" << text << "\"\n";
+        std::exit(1);
     }
 
     return value;
 }
 
-Frame parse_frame(char line[]) {
+Frame parse_frame(char line[], int frame_count = -1) {
     char* fields[EXPECTED_FIELD_COUNT] = {};
     const int field_count = split_line(line, fields, EXPECTED_FIELD_COUNT);
-    (void)field_count;
+    if (field_count != EXPECTED_FIELD_COUNT) {
+        std::cerr << "error: invalid frame at line " << (frame_count + 1) << ": expected "
+            << EXPECTED_FIELD_COUNT << " fields, but got " << field_count << "\n";
+        std::exit(1);
+    }
 
     Frame frame{};
-    frame.timestamp_ms = parse_long(fields[0]);
-    frame.seq = parse_int(fields[1]);
-    frame.voltage_v = parse_double(fields[2]);
-    frame.current_a = parse_double(fields[3]);
-    frame.temperature_c = parse_double(fields[4]);
-    frame.gps_fix = parse_int(fields[5]);
-    frame.satellites = parse_int(fields[6]);
+    frame.timestamp_ms = parse_long(fields[0], frame_count);
+    frame.seq = parse_int(fields[1], frame_count);
+    frame.voltage_v = parse_double(fields[2], frame_count);
+    frame.current_a = parse_double(fields[3], frame_count);
+    frame.temperature_c = parse_double(fields[4], frame_count);
+    frame.gps_fix = parse_int(fields[5], frame_count);
+    frame.satellites = parse_int(fields[6], frame_count);
+
+    if (frame.voltage_v <= 0.0) {
+        std::cerr << "error: invalid frame at line " << (frame_count + 1) << ": invalid voltage\n";
+        std::exit(1);
+    }
+
+    if (frame.temperature_c < -40.0 || frame.temperature_c > 120.0) {
+        std::cerr << "error: invalid frame at line " << (frame_count + 1) << ": invalid temperature\n";
+        std::exit(1);
+    }
+
+    if (frame.gps_fix != 0 && frame.gps_fix != 1) {
+        std::cerr << "error: invalid frame at line " << (frame_count + 1) << ": invalid GPS fix\n";
+        std::exit(1);
+    }
+
+    if (frame.satellites < 0) {
+        std::cerr << "error: invalid frame at line " << (frame_count + 1) << ": invalid satellite count\n";
+        std::exit(1);
+    }
+
     return frame;
 }
 
@@ -102,9 +129,27 @@ int read_frames(const char* path, Frame frames[], int max_frames) {
         }
 
         if (frame_count < max_frames) {
-            frames[frame_count] = parse_frame(line);
+            frames[frame_count] = parse_frame(line, frame_count);
+            
+            if (frame_count > 0) {
+                if (frames[frame_count].timestamp_ms <= frames[frame_count - 1].timestamp_ms) {
+                    std::cerr << "error: invalid frame at line " << (frame_count + 1) << ": non-increasing timestamp\n";
+                    std::exit(1);
+                }
+
+                if (frames[frame_count].seq != frames[frame_count - 1].seq + 1) {
+                    std::cerr << "error: invalid frame at line " << (frame_count + 1) << ": non-sequential sequence number\n";
+                    std::exit(1);
+                }
+            }
+
             ++frame_count;
         }
+    }
+
+    if (frame_count == 0) {
+        std::cerr << "error: no frames read from input file\n";
+        std::exit(1);
     }
 
     return frame_count;
