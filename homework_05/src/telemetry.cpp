@@ -3,11 +3,8 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
-
-// Debugging exercise notes:
-// this file intentionally contains four runtime defects.
-// The defects are related to malformed input shape, invalid numeric values,
-// unsafe time deltas, and empty logs. Exact locations are not marked on purpose.
+#include <stdexcept>
+#include <string>
 
 const int EXPECTED_FIELD_COUNT = 7;
 const int MAX_LINE_LENGTH = 256;
@@ -38,71 +35,50 @@ int split_line(char line[], char* fields[], int max_fields) {
     return count;
 }
 
-long parse_long(const char* text, int frame_count = -1) {
+long parse_long(const char* text) {
     char* end = nullptr;
     const long value = std::strtol(text, &end, 10);
-
-    if (end == text) {
-        std::cerr << "error: invalid frame at line " << (frame_count + 1) << ": failed to parse long \"" << text << "\"\n";
-        std::exit(1);
+    if (end == text || *end != '\0') {
+        throw std::runtime_error("failed to parse long value '" + std::string(text) + "'");
     }
 
     return value;
 }
 
-int parse_int(const char* text, int frame_count = -1) {
-    return static_cast<int>(parse_long(text, frame_count));
+int parse_int(const char* text) {
+    return static_cast<int>(parse_long(text));
 }
 
-double parse_double(const char* text, int frame_count = -1) {
+double parse_double(const char* text) {
     char* end = nullptr;
     const double value = std::strtod(text, &end);
-
-    if (end == text) {
-        std::cerr << "error: invalid frame at line " << (frame_count + 1) << ": failed to parse double \"" << text << "\"\n";
-        std::exit(1);
+    if (end == text || *end != '\0') {
+        throw std::runtime_error("failed to parse double value '" + std::string(text) + "'");
     }
 
     return value;
 }
 
-Frame parse_frame(char line[], int frame_count = -1) {
+Frame parse_frame(char line[]) {
     char* fields[EXPECTED_FIELD_COUNT] = {};
     const int field_count = split_line(line, fields, EXPECTED_FIELD_COUNT);
     if (field_count != EXPECTED_FIELD_COUNT) {
-        std::cerr << "error: invalid frame at line " << (frame_count + 1) << ": expected "
-            << EXPECTED_FIELD_COUNT << " fields, but got " << field_count << "\n";
-        std::exit(1);
+        throw std::runtime_error("expected " + std::to_string(EXPECTED_FIELD_COUNT) + " fields");
     }
 
     Frame frame{};
-    frame.timestamp_ms = parse_long(fields[0], frame_count);
-    frame.seq = parse_int(fields[1], frame_count);
-    frame.voltage_v = parse_double(fields[2], frame_count);
-    frame.current_a = parse_double(fields[3], frame_count);
-    frame.temperature_c = parse_double(fields[4], frame_count);
-    frame.gps_fix = parse_int(fields[5], frame_count);
-    frame.satellites = parse_int(fields[6], frame_count);
+    frame.timestamp_ms = parse_long(fields[0]);
+    frame.seq = parse_int(fields[1]);
+    frame.voltage_v = parse_double(fields[2]);
+    frame.current_a = parse_double(fields[3]);
+    frame.temperature_c = parse_double(fields[4]);
+    frame.gps_fix = parse_int(fields[5]);
+    frame.satellites = parse_int(fields[6]);
 
-    if (frame.voltage_v <= 0.0) {
-        std::cerr << "error: invalid frame at line " << (frame_count + 1) << ": invalid voltage\n";
-        std::exit(1);
-    }
-
-    if (frame.temperature_c < -40.0 || frame.temperature_c > 120.0) {
-        std::cerr << "error: invalid frame at line " << (frame_count + 1) << ": invalid temperature\n";
-        std::exit(1);
-    }
-
-    if (frame.gps_fix != 0 && frame.gps_fix != 1) {
-        std::cerr << "error: invalid frame at line " << (frame_count + 1) << ": invalid GPS fix\n";
-        std::exit(1);
-    }
-
-    if (frame.satellites < 0) {
-        std::cerr << "error: invalid frame at line " << (frame_count + 1) << ": invalid satellite count\n";
-        std::exit(1);
-    }
+    if (frame.voltage_v <= 0.0) throw std::runtime_error("invalid voltage");
+    if (frame.temperature_c < -40.0 || frame.temperature_c > 120.0) throw std::runtime_error("invalid temperature");
+    if (frame.gps_fix != 0 && frame.gps_fix != 1) throw std::runtime_error("invalid GPS fix");
+    if (frame.satellites < 0) throw std::runtime_error("invalid satellite count");
 
     return frame;
 }
@@ -115,42 +91,36 @@ double compute_frame_rate_hz(const Frame frames[], int frame_count) {
 
 int read_frames(const char* path, Frame frames[], int max_frames) {
     std::ifstream input{path};
-    if (!input) {
-        std::cerr << "error: failed to open input file: " << path << '\n';
-        return 0;
-    }
+    if (!input) throw std::runtime_error("could not open file: " + std::string(path));
 
     int frame_count = 0;
+    int line_num = 0;
     char line[MAX_LINE_LENGTH];
 
     while (input.getline(line, MAX_LINE_LENGTH)) {
-        if (line[0] == '\0') {
-            continue;
-        }
+        line_num++;
+        if (line[0] == '\0' || line[0] == '\n' || line[0] == '\r') continue;
 
-        if (frame_count < max_frames) {
-            frames[frame_count] = parse_frame(line, frame_count);
+        try {
+            if (frame_count >= max_frames) break;
+
+            Frame f = parse_frame(line);
             
             if (frame_count > 0) {
-                if (frames[frame_count].timestamp_ms <= frames[frame_count - 1].timestamp_ms) {
-                    std::cerr << "error: invalid frame at line " << (frame_count + 1) << ": non-increasing timestamp\n";
-                    std::exit(1);
+                if (f.timestamp_ms <= frames[frame_count - 1].timestamp_ms) {
+                    throw std::runtime_error("non-increasing timestamp");
                 }
-
-                if (frames[frame_count].seq != frames[frame_count - 1].seq + 1) {
-                    std::cerr << "error: invalid frame at line " << (frame_count + 1) << ": non-sequential sequence number\n";
-                    std::exit(1);
+                if (f.seq != frames[frame_count - 1].seq + 1) {
+                    throw std::runtime_error("non-sequential sequence number");
                 }
             }
-
-            ++frame_count;
+            frames[frame_count++] = f;
+        } catch (const std::exception& e) {
+            throw std::runtime_error("invalid frame at line " + std::to_string(line_num) + ": " + e.what());
         }
     }
 
-    if (frame_count == 0) {
-        std::cerr << "error: no frames read from input file\n";
-        std::exit(1);
-    }
+    if (frame_count == 0) throw std::runtime_error("empty telemetry log");
 
     return frame_count;
 }
