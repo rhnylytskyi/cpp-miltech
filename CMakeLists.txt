@@ -14,6 +14,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # paths, defines і flags, що й реальна CMake-збірка.
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# Вмикаємо підтримку CTest для автоматичного запуску тестів.
+enable_testing()
+
 # Домашні роботи. По мірі появи додаємо кожну окремим add_subdirectory.
 add_subdirectory(homework_04)
 add_subdirectory(homework_06)

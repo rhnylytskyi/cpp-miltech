@@ -1,0 +1,7 @@
+{
+    "cmake.buildDirectory": "${workspaceFolder}/build",
+    "cmake.ctestArgs": [
+        "--output-on-failure"
+    ],
+    "cmake.ctest.neverDebugTestsWithLaunchConfiguration": true
+}

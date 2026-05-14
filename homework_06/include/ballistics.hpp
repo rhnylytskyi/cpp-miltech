@@ -1,44 +1,69 @@
 #pragma once
 
-#include <string_view>
-
-// ==========================================================
-// Константи
-// ==========================================================
-inline constexpr int BOMB_COUNT = 5;
-inline constexpr float g_gravity = 9.81f;
-
-// ==========================================================
-// Параметри боєприпасів (масиви)
-// ==========================================================
-inline constexpr char  bombNames[BOMB_COUNT][15] = {"VOG-17", "M67", "RKG-3", "GLIDING-VOG", "GLIDING-RKG"};
-inline constexpr float bombM[BOMB_COUNT]         = {0.35f,   0.6f,  1.2f,    0.45f,         1.4f};
-inline constexpr float bombD[BOMB_COUNT]         = {0.07f,   0.10f, 0.10f,   0.10f,         0.10f};
-inline constexpr float bombL[BOMB_COUNT]         = {0.0f,    0.0f,  0.0f,    1.0f,          1.0f};
-
-// --- Пошук боєприпасу за назвою (цикл for) ---
-inline int findBombIndexByName(std::string_view name)
-{
-    for (int i = 0; i < BOMB_COUNT; i++)
-    {
-        // Сучасне порівняння рядків без std::strcmp
-        if (name == bombNames[i])
-        {
-            return i;
-        }
-    }
-    return -1;
-}
+#include <string>
+#include <array>
 
 // ------------------------------------------------------------
-// Балістика з ДЗ 1: час польоту (метод Кардано)
+// Константи та структури для балістики
+// ------------------------------------------------------------
+const float g_gravity = 9.81f;
+const int BOMB_COUNT = 5; // Кількість типів боєприпасів у каталозі
+
+struct AmmoParams {
+    std::string_view name;
+    float mass;  // маса (кг)
+    float drag;  // коефіцієнт опору
+    float lift;  // коефіцієнт підйому
+};
+
+// Каталог боєприпасів
+const std::array<AmmoParams, BOMB_COUNT> BOMB_CATALOG = {
+    AmmoParams{"VOG-17",      0.35f, 0.07f, 0.0f},
+    AmmoParams{"M67",         0.6f,  0.10f, 0.0f},
+    AmmoParams{"RKG-3",       1.2f,  0.10f, 0.0f},
+    AmmoParams{"GLIDING-VOG", 0.45f, 0.10f, 1.0f},
+    AmmoParams{"GLIDING-RKG", 1.4f,  0.10f, 1.0f}
+};
+
+// Структура для вхідних даних
+struct BallisticsInput {
+    float droneX, droneY, droneZ;
+    float targetX, targetY;
+    float attackSpeed;
+    float accelerationPath;
+    std::string ammoName;
+};
+
+// Структура для результатів розрахунку
+struct DropSolution {
+    float intermediateX = 0.0f;
+    float intermediateY = 0.0f;
+    float fireX = 0.0f;
+    float fireY = 0.0f;
+    bool hasIntermediate = false;
+};
+
+// ----------------------------------------------
+// Зчитування вхідних даних з файлу
+// ----------------------------------------------
+BallisticsInput readInputData(const std::string& filename);
+
+// ------------------------------------------------------------
+// Пошук параметрів бомби у каталозі
+// ------------------------------------------------------------
+AmmoParams getAmmoParams(std::string_view name);
+
+// ------------------------------------------------------------
+// Балістика: час польоту (метод Кардано)
 // ------------------------------------------------------------
 float calcTimeOfFall(float z0, float v0, float m, float d, float l);
 
 // ------------------------------------------------------------
-// Балістика з ДЗ 1: горизонтальна дистанція (степеневий ряд до t^5)
+// Балістика: горизонтальна дистанція (степеневий ряд до t^5)
 // ------------------------------------------------------------
 float calcHDistance(float t, float V0, float m, float d, float l);
 
-void getIntermediateAndDropPoint(float currentX, float currentY, float targetX, float targetY, float hDistance, float accelerationPath, float& outIntermediateX, float& outIntermediateY,
-                               float& outFireX, float& outFireY, bool& outHasIntermediate);
+// ------------------------------------------------------------
+// Розрахунок балістики
+// ------------------------------------------------------------
+DropSolution computeDropSolution(const BallisticsInput& input);
