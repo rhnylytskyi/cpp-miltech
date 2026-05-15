@@ -2,12 +2,15 @@
 
 #include <string>
 #include <array>
+#include <numbers>
 
 // ------------------------------------------------------------
 // Константи та структури для балістики
 // ------------------------------------------------------------
-const float g_gravity = 9.81f;
-const int BOMB_COUNT = 5;  // Кількість типів боєприпасів у каталозі
+const float g_gravity = 9.81F;
+const int BOMB_COUNT = 5;                      // Кількість типів боєприпасів у каталозі
+const float pi_f = std::numbers::pi_v<float>;  // Має тип float (запобігає narrowing conversions)
+const double pi = std::numbers::pi;            // Має тип double
 
 struct AmmoParams {
   std::string_view name;
@@ -17,27 +20,27 @@ struct AmmoParams {
 };
 
 // Каталог боєприпасів
-const std::array<AmmoParams, BOMB_COUNT> BOMB_CATALOG = {AmmoParams{"VOG-17", 0.35f, 0.07f, 0.0f},
-                                                         AmmoParams{"M67", 0.6f, 0.10f, 0.0f},
-                                                         AmmoParams{"RKG-3", 1.2f, 0.10f, 0.0f},
-                                                         AmmoParams{"GLIDING-VOG", 0.45f, 0.10f, 1.0f},
-                                                         AmmoParams{"GLIDING-RKG", 1.4f, 0.10f, 1.0f}};
+const std::array<AmmoParams, BOMB_COUNT> BOMB_CATALOG = {AmmoParams{"VOG-17", 0.35F, 0.07F, 0.0F},
+                                                         AmmoParams{"M67", 0.6F, 0.10F, 0.0F},
+                                                         AmmoParams{"RKG-3", 1.2F, 0.10F, 0.0F},
+                                                         AmmoParams{"GLIDING-VOG", 0.45F, 0.10F, 1.0F},
+                                                         AmmoParams{"GLIDING-RKG", 1.4F, 0.10F, 1.0F}};
 
 // Структура для вхідних даних
 struct BallisticsInput {
-  float droneX, droneY, droneZ;
-  float targetX, targetY;
-  float attackSpeed;
-  float accelerationPath;
+  float droneX{}, droneY{}, droneZ{};
+  float targetX{}, targetY{};
+  float attackSpeed{};
+  float accelerationPath{};
   std::string ammoName;
 };
 
 // Структура для результатів розрахунку
 struct DropSolution {
-  float intermediateX = 0.0f;
-  float intermediateY = 0.0f;
-  float fireX = 0.0f;
-  float fireY = 0.0f;
+  float intermediateX = 0.0F;
+  float intermediateY = 0.0F;
+  float fireX = 0.0F;
+  float fireY = 0.0F;
   bool hasIntermediate = false;
 };
 
