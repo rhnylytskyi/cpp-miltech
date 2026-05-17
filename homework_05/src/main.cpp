@@ -9,11 +9,16 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    Frame frames[MAX_TELEMETRY_FRAMES];
-    const int frame_count = read_frames(argv[1], frames, MAX_TELEMETRY_FRAMES);
+    try {   
+        Frame frames[MAX_TELEMETRY_FRAMES];
+        const int frame_count = read_frames(argv[1], frames, MAX_TELEMETRY_FRAMES);
 
-    const Summary summary = summarize(frames, frame_count);
-    print_summary(summary);
+        const Summary summary = summarize(frames, frame_count);
+        print_summary(summary);
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        return 1;
+    }
 
     return 0;
 }
