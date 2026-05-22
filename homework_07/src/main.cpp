@@ -1,9 +1,9 @@
-#include "ballistic_app/interfaces/IBallisticSolver.hpp"
-#include "ballistic_app/interfaces/ITargetProvider.hpp"
-#include "ballistic_app/interfaces/IConfigLoader.hpp"
+#include "ballistic_app/solvers/IBallisticSolver.hpp"
+#include "ballistic_app/providers/ITargetProvider.hpp"
+#include "ballistic_app/io/interfaces/IConfigLoader.hpp"
+#include "ballistic_app/io/interfaces/ISimulationExporter.hpp"
 #include "ballistic_app/Defines.hpp"
 #include "ballistic_app/Factory.hpp"
-#include "ballistic_app/utils/JsonExporter.hpp"
 #include "ballistic_app/utils/PathResolver.hpp"
 #include "ballistic_app/MissionProcessor.hpp"
 #include <cstring>
@@ -27,19 +27,11 @@ int main(int argc, char* argv[])
     IConfigLoader* loader = Factory::createLoader(ConfigLoaderType::FILE);
     ITargetProvider* provider = Factory::createProvider(TargetProviderType::JSON, targetsPath);
     IBallisticSolver* solver = Factory::createSolver(SolverType::ANALYTICAL);
+    ISimulationExporter* exporter = Factory::createExporter(ExporterType::JSON, SIMULATION_PATH);
 
-    if (!loader || !provider || !solver) {
-      throw std::runtime_error("Failed to create app components.");
-    }
-
-    MissionProcessor mission(loader, provider, solver);
+    MissionProcessor mission(loader, provider, solver, exporter);
     mission.init(configPath, AMMO_PATH);
-
-    while (mission.hasNext()) {
-      mission.step();
-    }
-
-    saveSimulationToJson(SIMULATION_PATH, mission.getStepsHistory(), mission.getTotalSteps());
+    mission.run();
   }
   catch (const std::exception& e) {
     std::cerr << "Error: " << e.what() << std::endl;

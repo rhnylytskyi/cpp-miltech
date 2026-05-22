@@ -1,19 +1,23 @@
-#include "ballistic_app/utils/JsonExporter.hpp"
+#include "ballistic_app/io/JsonExporter.hpp"
 #include "ballistic_app/Defines.hpp"
-#include "ballistic_app/dto/SimStep.hpp"
 #include <fstream>
-#include <iostream> // IWYU pragma: keep
+#include <iostream>  // keep
+#include <stdexcept>
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
 
 namespace BallisticApp {
 
-void saveSimulationToJson(const char* filepath, const SimStep* history, int totalSteps)
+JsonExporter::JsonExporter(std::string filePath)
+  : m_filePath(filePath)
+{
+}
+
+void JsonExporter::exportSimulation(const SimStep* history, int totalSteps) const
 {
   if (!history || totalSteps <= 0) {
-    LOG("Warning: No simulation steps to save!");
-    return;
+    throw std::runtime_error("JsonExporter Error: No simulation steps provided or totalSteps <= 0!");
   }
 
   json jsonOut;
@@ -35,15 +39,14 @@ void saveSimulationToJson(const char* filepath, const SimStep* history, int tota
     jsonOut["steps"].push_back(stepJson);
   }
 
-  std::ofstream outFile(filepath);
-  if (outFile.is_open()) {
-    outFile << jsonOut.dump(4);
-    outFile.close();
-    LOG("Data successfully saved to " << filepath);
+  std::ofstream outFile(m_filePath);
+  if (!outFile.is_open()) {
+    throw std::runtime_error("JsonExporter Error: Could not open file for writing: " + m_filePath);
   }
-  else {
-    LOG("Error: Could not open " << filepath << " for writing!");
-  }
+
+  outFile << jsonOut.dump(2);
+  outFile.close();
+  LOG("Data successfully saved to " << m_filePath);
 }
 
 }  // namespace BallisticApp

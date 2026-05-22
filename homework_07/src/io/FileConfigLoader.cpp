@@ -1,4 +1,4 @@
-#include "ballistic_app/config/FileConfigLoader.hpp"
+#include "ballistic_app/io/FileConfigLoader.hpp"
 #include <fstream>
 #include <format>
 #include <stdexcept>

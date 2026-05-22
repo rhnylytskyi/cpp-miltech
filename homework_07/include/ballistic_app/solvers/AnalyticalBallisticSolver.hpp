@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ballistic_app/interfaces/IBallisticSolver.hpp>
+#include <ballistic_app/solvers/IBallisticSolver.hpp>
 #include <ballistic_app/dto/AmmoParams.hpp>
 
 namespace BallisticApp {

@@ -3,11 +3,13 @@
 
 namespace BallisticApp::Math {
 
+// довжина вектора (hypot)
 float length(Coord c)
 {
   return std::hypot(c.x, c.y);
 }
 
+// одиничний вектор
 Coord normalize(Coord c)
 {
   float len = BallisticApp::Math::length(c);
@@ -16,6 +18,9 @@ Coord normalize(Coord c)
   return c / len;
 }
 
+// ------------------------------------------------------------
+// Нормалізація кута до [-PI, PI]
+// ------------------------------------------------------------
 float normalizeAngle(float a)
 {
   while (a > M_PI)

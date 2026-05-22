@@ -77,7 +77,7 @@
       ]
     },
     {
-      "name": "Запустити балістичний тест",
+      "name": "🎯 HW07: Запустити з вибором тесту...",
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
@@ -99,6 +99,206 @@
         }
       ]
     },
+    {
+      "name": "🚀 HW07: test01_base (Кола)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
+      "args": [
+        "targets01_base.json"
+      ],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}/homework_07",
+      "MIMode": "gdb",
+      "miDebuggerPath": "/usr/bin/gdb",
+      "preLaunchTask": "CMake: configure and build",
+      "setupCommands": [
+        {
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ]
+    },
+    {
+      "name": "🚀 HW07: test02_ellipses (Еліпси)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
+      "args": [
+        "targets02_ellipses.json"
+      ],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}/homework_07",
+      "MIMode": "gdb",
+      "miDebuggerPath": "/usr/bin/gdb",
+      "preLaunchTask": "CMake: configure and build",
+      "setupCommands": [
+        {
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ]
+    },
+    {
+      "name": "🚀 HW07: test03_figure8 (Вісімки)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
+      "args": [
+        "targets03_figure8.json"
+      ],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}/homework_07",
+      "MIMode": "gdb",
+      "miDebuggerPath": "/usr/bin/gdb",
+      "preLaunchTask": "CMake: configure and build",
+      "setupCommands": [
+        {
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ]
+    },
+    {
+      "name": "🚀 HW07: test04_flowers (Квіткові)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
+      "args": [
+        "targets04_flowers.json"
+      ],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}/homework_07",
+      "MIMode": "gdb",
+      "miDebuggerPath": "/usr/bin/gdb",
+      "preLaunchTask": "CMake: configure and build",
+      "setupCommands": [
+        {
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ]
+    },
+    {
+      "name": "🚀 HW07: test05_lissajous (Ліссажу)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
+      "args": [
+        "targets05_lissajous.json"
+      ],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}/homework_07",
+      "MIMode": "gdb",
+      "miDebuggerPath": "/usr/bin/gdb",
+      "preLaunchTask": "CMake: configure and build",
+      "setupCommands": [
+        {
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ]
+    },
+    {
+      "name": "🚀 HW07: test06_fast_drone (Швидкий дрон)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
+      "args": [
+        "targets06_fast_drone.json"
+      ],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}/homework_07",
+      "MIMode": "gdb",
+      "miDebuggerPath": "/usr/bin/gdb",
+      "preLaunchTask": "CMake: configure and build",
+      "setupCommands": [
+        {
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ]
+    },
+    {
+      "name": "🚀 HW07: test07_heavy_ammo (RKG-3)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
+      "args": [
+        "targets07_heavy_ammo.json"
+      ],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}/homework_07",
+      "MIMode": "gdb",
+      "miDebuggerPath": "/usr/bin/gdb",
+      "preLaunchTask": "CMake: configure and build",
+      "setupCommands": [
+        {
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ]
+    },
+    {
+      "name": "🚀 HW07: test08_gliding (GLIDING-VOG)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
+      "args": [
+        "targets08_gliding.json"
+      ],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}/homework_07",
+      "MIMode": "gdb",
+      "miDebuggerPath": "/usr/bin/gdb",
+      "preLaunchTask": "CMake: configure and build",
+      "setupCommands": [
+        {
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ]
+    },
+    {
+      "name": "🚀 HW07: test09_cardioids (Кардіоїди)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
+      "args": [
+        "targets09_cardioids.json"
+      ],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}/homework_07",
+      "MIMode": "gdb",
+      "miDebuggerPath": "/usr/bin/gdb",
+      "preLaunchTask": "CMake: configure and build",
+      "setupCommands": [
+        {
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ]
+    },
+    {
+      "name": "🚀 HW07: test10_extreme (Екстремальний)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
+      "args": [
+        "targets10_extreme.json"
+      ],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}/homework_07",
+      "MIMode": "gdb",
+      "miDebuggerPath": "/usr/bin/gdb",
+      "preLaunchTask": "CMake: configure and build",
+      "setupCommands": [
+        {
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ]
+    }
   ],
   "inputs": [
     {

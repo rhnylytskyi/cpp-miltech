@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ballistic_app/interfaces/ITargetProvider.hpp>
+#include <ballistic_app/providers/ITargetProvider.hpp>
 #include <ballistic_app/dto/Coord.hpp>
 
 namespace BallisticApp {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ballistic_app/interfaces/IConfigLoader.hpp>
+#include <ballistic_app/io/interfaces/IConfigLoader.hpp>
 #include <ballistic_app/dto/DroneConfig.hpp>
 #include <ballistic_app/dto/AmmoParams.hpp>
 #include <string>
