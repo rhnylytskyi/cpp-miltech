@@ -1,8 +1,10 @@
 #pragma once
 
-#include "ballistic_app/interfaces/IBallisticSolver.hpp"
-#include "ballistic_app/interfaces/ITargetProvider.hpp"
-#include "ballistic_app/interfaces/IConfigLoader.hpp"
+namespace BallisticApp {
+class IBallisticSolver;
+class ITargetProvider;
+class IConfigLoader;
+}  // namespace BallisticApp
 
 namespace BallisticApp {
 
@@ -10,8 +12,15 @@ enum class SolverType { ANALYTICAL };
 enum class TargetProviderType { JSON };
 enum class ConfigLoaderType { FILE };
 
-IBallisticSolver* createSolver(SolverType type);
-ITargetProvider* createProvider(TargetProviderType type, const char* param);
-IConfigLoader* createLoader(ConfigLoaderType type);
+// Єдина фабрика для створення компонентів системи балістики
+class Factory {
+public:
+  // Забороняємо створювати екземпляри фабрики, оскільки всі методи статичні
+  Factory() = delete;
+
+  static IBallisticSolver* createSolver(SolverType type);
+  static ITargetProvider* createProvider(TargetProviderType type, const char* param);
+  static IConfigLoader* createLoader(ConfigLoaderType type);
+};
 
 }  // namespace BallisticApp

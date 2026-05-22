@@ -24,9 +24,9 @@ int main(int argc, char* argv[])
     LOG("Loading targets from: " << targetsPath << std::endl);
     LOG("Loading config from: " << configPath << std::endl);
 
-    IConfigLoader* loader = createLoader(ConfigLoaderType::FILE);
-    ITargetProvider* provider = createProvider(TargetProviderType::JSON, targetsPath);
-    IBallisticSolver* solver = createSolver(SolverType::ANALYTICAL);
+    IConfigLoader* loader = Factory::createLoader(ConfigLoaderType::FILE);
+    ITargetProvider* provider = Factory::createProvider(TargetProviderType::JSON, targetsPath);
+    IBallisticSolver* solver = Factory::createSolver(SolverType::ANALYTICAL);
 
     if (!loader || !provider || !solver) {
       throw std::runtime_error("Failed to create app components.");
@@ -40,10 +40,6 @@ int main(int argc, char* argv[])
     }
 
     saveSimulationToJson(SIMULATION_PATH, mission.getStepsHistory(), mission.getTotalSteps());
-
-    delete loader;
-    delete provider;
-    delete solver;
   }
   catch (const std::exception& e) {
     std::cerr << "Error: " << e.what() << std::endl;

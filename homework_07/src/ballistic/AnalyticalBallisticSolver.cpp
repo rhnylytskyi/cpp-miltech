@@ -1,10 +1,6 @@
 #include "ballistic_app/ballistic/AnalyticalBallisticSolver.hpp"
 #include <cmath>
 
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
-
 namespace BallisticApp {
 
 float AnalyticalBallisticSolver::calcTimeOfFall(float z0, float v0, const AmmoParams& ammo)

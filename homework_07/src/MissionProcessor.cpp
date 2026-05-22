@@ -20,9 +20,24 @@ MissionProcessor::MissionProcessor(IConfigLoader* l, ITargetProvider* p, IBallis
 
 MissionProcessor::~MissionProcessor()
 {
+  // 1. Очищення історії кроків
   if (steps) {
     delete[] steps;
     steps = nullptr;
+  }
+
+  // 2. Очищення об'єктів, створених фабрикою
+  if (loader) {
+    delete loader;
+    loader = nullptr;
+  }
+  if (provider) {
+    delete provider;
+    provider = nullptr;
+  }
+  if (solver) {
+    delete solver;
+    solver = nullptr;
   }
 }
 
@@ -41,9 +56,9 @@ void MissionProcessor::init(const char* configSource, const char* ammoSource)
   LOG("Mission initialized. Ammo: " << ammo.name);
 }
 
-bool MissionProcessor::hasNext() 
-{ 
-  return (totalSteps < MAX_STEPS) && !isMissionFinished; 
+bool MissionProcessor::hasNext()
+{
+  return (totalSteps < MAX_STEPS) && !isMissionFinished;
 }
 
 SimStep MissionProcessor::step()
@@ -188,9 +203,15 @@ void MissionProcessor::changeSolver(IBallisticSolver* s)
     solver = s;
 }
 
-int MissionProcessor::getTotalSteps() const { return totalSteps; }
+int MissionProcessor::getTotalSteps() const
+{
+  return totalSteps;
+}
 
-const SimStep* MissionProcessor::getStepsHistory() const { return steps; }
+const SimStep* MissionProcessor::getStepsHistory() const
+{
+  return steps;
+}
 
 Coord MissionProcessor::interpolateTarget(int targetIdx, float t)
 {

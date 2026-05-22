@@ -2,7 +2,7 @@
 #include "ballistic_app/Defines.hpp"
 #include "ballistic_app/dto/SimStep.hpp"
 #include <fstream>
-#include <iostream>  // IWYU pragma: keep
+#include <iostream> // IWYU pragma: keep
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
@@ -16,29 +16,29 @@ void saveSimulationToJson(const char* filepath, const SimStep* history, int tota
     return;
   }
 
-  json json_out;
-  json_out["totalSteps"] = totalSteps;
-  json_out["steps"] = json::array();
+  json jsonOut;
+  jsonOut["totalSteps"] = totalSteps;
+  jsonOut["steps"] = json::array();
 
   for (int i = 0; i < totalSteps; ++i) {
-    json step_json;
+    json stepJson;
 
-    step_json["direction"] = history[i].direction;
-    step_json["state"] = history[i].state;
-    step_json["targetIdx"] = history[i].targetIdx;
+    stepJson["direction"] = history[i].direction;
+    stepJson["state"] = history[i].state;
+    stepJson["targetIdx"] = history[i].targetIdx;
 
-    step_json["pos"] = {{"x", history[i].pos.x}, {"y", history[i].pos.y}};
-    step_json["dropPoint"] = {{"x", history[i].dropPoint.x}, {"y", history[i].dropPoint.y}};
-    step_json["aimPoint"] = {{"x", history[i].aimPoint.x}, {"y", history[i].aimPoint.y}};
-    step_json["predictedTarget"] = {{"x", history[i].predictedTarget.x}, {"y", history[i].predictedTarget.y}};
+    stepJson["pos"] = {{"x", history[i].pos.x}, {"y", history[i].pos.y}};
+    stepJson["dropPoint"] = {{"x", history[i].dropPoint.x}, {"y", history[i].dropPoint.y}};
+    stepJson["aimPoint"] = {{"x", history[i].aimPoint.x}, {"y", history[i].aimPoint.y}};
+    stepJson["predictedTarget"] = {{"x", history[i].predictedTarget.x}, {"y", history[i].predictedTarget.y}};
 
-    json_out["steps"].push_back(step_json);
+    jsonOut["steps"].push_back(stepJson);
   }
 
-  std::ofstream out_file(filepath);
-  if (out_file.is_open()) {
-    out_file << json_out.dump(4);
-    out_file.close();
+  std::ofstream outFile(filepath);
+  if (outFile.is_open()) {
+    outFile << jsonOut.dump(4);
+    outFile.close();
     LOG("Data successfully saved to " << filepath);
   }
   else {

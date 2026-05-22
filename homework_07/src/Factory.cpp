@@ -5,7 +5,7 @@
 
 namespace BallisticApp {
 
-IBallisticSolver* createSolver(SolverType type)
+IBallisticSolver* Factory::createSolver(SolverType type)
 {
   switch (type) {
     case SolverType::ANALYTICAL:
@@ -15,7 +15,7 @@ IBallisticSolver* createSolver(SolverType type)
   }
 }
 
-ITargetProvider* createProvider(TargetProviderType type, const char* param)
+ITargetProvider* Factory::createProvider(TargetProviderType type, const char* param)
 {
   switch (type) {
     case TargetProviderType::JSON:
@@ -25,7 +25,7 @@ ITargetProvider* createProvider(TargetProviderType type, const char* param)
   }
 }
 
-IConfigLoader* createLoader(ConfigLoaderType type)
+IConfigLoader* Factory::createLoader(ConfigLoaderType type)
 {
   switch (type) {
     case ConfigLoaderType::FILE:

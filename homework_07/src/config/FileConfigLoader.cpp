@@ -39,6 +39,7 @@ void FileConfigLoader::load(const char* configPath, const char* ammoSource)
   config.arrayTimeStep = j["targetArrayTimeStep"];
   config.ammoName = j["ammo"].get<std::string>();
 
+  // --- Завантаження параметрів снаряду ---
   loadAmmoParams(ammoSource, config.ammoName);
 }
 
