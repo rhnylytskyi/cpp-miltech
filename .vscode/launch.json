@@ -75,6 +75,49 @@
           "ignoreFailures": true
         }
       ]
+    },
+    {
+      "name": "Запустити балістичний тест",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
+      "args": [
+        "${input:selectTestFile}"
+      ],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}/homework_07",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "miDebuggerPath": "/usr/bin/gdb",
+      "preLaunchTask": "CMake: configure and build",
+      "setupCommands": [
+        {
+          "description": "Увімкнути pretty-printing для STL типів у GDB.",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ]
+    },
+  ],
+  "inputs": [
+    {
+      "id": "selectTestFile",
+      "type": "pickString",
+      "description": "Оберіть файл цілей для тестування:",
+      "options": [
+        "targets01_base.json",
+        "targets02_ellipses.json",
+        "targets03_figure8.json",
+        "targets04_flowers.json",
+        "targets05_lissajous.json",
+        "targets06_fast_drone.json",
+        "targets07_heavy_ammo.json",
+        "targets08_gliding.json",
+        "targets09_cardioids.json",
+        "targets10_extreme.json"
+      ],
+      "default": "targets01_base.json"
     }
   ]
 }

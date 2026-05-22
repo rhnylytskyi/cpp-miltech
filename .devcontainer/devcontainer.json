@@ -50,6 +50,9 @@
     "--add-host=devcontainer:127.0.1.1"
   ],
 
+  // Enable autocompletion for BASH
+  "postCreateCommand": "echo 'source /usr/share/bash-completion/completions/git' >> ~/.bashrc",
+  
   // Усе всередині customizations.vscode застосовується саме до VS Code
   // сесії в контейнері. Це не те саме, що .vscode/extensions.json на host.
   "customizations": {
