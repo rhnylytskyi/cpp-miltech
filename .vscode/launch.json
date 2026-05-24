@@ -77,7 +77,7 @@
       ]
     },
     {
-      "name": "🎯 HW07: Запустити з вибором тесту...",
+      "name": "🎯 ДЗ 3: Запустити з вибором тесту...",
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
@@ -100,7 +100,7 @@
       ]
     },
     {
-      "name": "🚀 HW07: Базовий тест (кола)",
+      "name": "🚀 ДЗ 3: Базовий тест (кола)",
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
@@ -120,7 +120,7 @@
       ]
     },
     {
-      "name": "🚀 HW07: Еліптичні траєкторії",
+      "name": "🚀 ДЗ 3: Еліптичні траєкторії",
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
@@ -140,7 +140,7 @@
       ]
     },
     {
-      "name": "🚀 HW07: Вісімки (Ліссажу 1:2)",
+      "name": "🚀 ДЗ 3: Вісімки (Ліссажу 1:2)",
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
@@ -160,7 +160,7 @@
       ]
     },
     {
-      "name": "🚀 HW07: Квіткові (зіркові) траєкторії",
+      "name": "🚀 ДЗ 3: Квіткові (зіркові) траєкторії",
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
@@ -180,7 +180,7 @@
       ]
     },
     {
-      "name": "🚀 HW07: Ліссажу (складні криві)",
+      "name": "🚀 ДЗ 3: Ліссажу (складні криві)",
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
@@ -200,7 +200,7 @@
       ]
     },
     {
-      "name": "🚀 HW07: Швидкий дрон, повільні цілі",
+      "name": "🚀 ДЗ 3: Швидкий дрон, повільні цілі",
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
@@ -220,7 +220,7 @@
       ]
     },
     {
-      "name": "🚀 HW07: Важкі боєприпаси (RKG-3)",
+      "name": "🚀 ДЗ 3: Важкі боєприпаси (RKG-3)",
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
@@ -240,7 +240,7 @@
       ]
     },
     {
-      "name": "🚀 HW07: Планеруючі боєприпаси (GLIDING-VOG)",
+      "name": "🚀 ДЗ 3: Планеруючі боєприпаси (GLIDING-VOG)",
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
@@ -260,7 +260,7 @@
       ]
     },
     {
-      "name": "🚀 HW07: Кардіоїди та епітрохоїди",
+      "name": "🚀 ДЗ 3: Кардіоїди та епітрохоїди",
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
@@ -280,7 +280,7 @@
       ]
     },
     {
-      "name": "🚀 HW07: Екстремальний (далеко, швидко)",
+      "name": "🚀 ДЗ 3: Екстремальний (далеко, швидко)",
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",

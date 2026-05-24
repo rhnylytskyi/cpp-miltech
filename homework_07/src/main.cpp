@@ -6,7 +6,6 @@
 #include "ballistic_app/config/ComponentFactory.h"
 #include "ballistic_app/utils/PathResolver.h"
 #include "ballistic_app/MissionProcessor.h"
-
 #include <cstring>
 #include <iostream>
 #include <nlohmann/json.hpp>

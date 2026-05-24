@@ -5,7 +5,7 @@
 
 namespace BallisticApp {
 
-// 1. Координати та математика (базовий тип)
+// Координати та математика (базовий тип)
 struct Coord {
   float x;
   float y;
@@ -22,7 +22,7 @@ struct Coord {
   bool operator==(const Coord& other) const { return (std::fabs(x - other.x) < 1e-5f) && (std::fabs(y - other.y) < 1e-5f); }
 };
 
-// 2. Стан дрону
+// Стан дрону
 enum class DroneState {
   STOPPED = 0,       // Дрон стоїть на місці (початковий стан або після гальмування)
   TURNING = 1,       // Дрон розвертається на місці у напрямку точки скидання
@@ -31,7 +31,23 @@ enum class DroneState {
   DECELERATING = 4   // Дрон гальмує (якщо потрібно змінити курс або зупинитися)
 };
 
-// 3. Параметри боєприпасу
+// Структура фізичного стану дрона
+struct DronePhysicsState {
+  Coord pos;         // Поточні координати (x, y)
+  float speed;       // Поточна швидкість
+  float direction;   // Поточний кут напрямку в радіанах
+  DroneState state;  // Поточний стан із enum вище
+
+  DronePhysicsState(const Coord& p, float s, float d, DroneState st)
+    : pos(p)
+    , speed(s)
+    , direction(d)
+    , state(st)
+  {
+  }
+};
+
+// Параметри боєприпасу
 struct AmmoParams {
   std::string name;
   float mass;
@@ -39,7 +55,7 @@ struct AmmoParams {
   float lift;
 };
 
-// 4. Конфігурація дрону
+// Конфігурація дрону
 class DroneConfig {
 public:
   Coord startPos;
@@ -55,7 +71,7 @@ public:
   float turnThreshold;
 };
 
-// 5. Крок симуляції
+// Крок симуляції
 struct SimStep {
   Coord pos;
   float direction;
