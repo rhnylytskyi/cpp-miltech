@@ -1,4 +1,4 @@
-#include "ballistic_app/utils/MathUtils.hpp"
+#include "ballistic_app/utils/MathUtils.h"
 #include <cmath>
 
 namespace BallisticApp::Math {

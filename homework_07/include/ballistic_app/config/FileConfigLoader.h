@@ -1,8 +1,7 @@
 #pragma once
 
-#include <ballistic_app/io/interfaces/IConfigLoader.hpp>
-#include <ballistic_app/dto/DroneConfig.hpp>
-#include <ballistic_app/dto/AmmoParams.hpp>
+#include <ballistic_app/interfaces/IConfigLoader.h>
+#include <ballistic_app/Types.h>
 #include <string>
 
 namespace BallisticApp {

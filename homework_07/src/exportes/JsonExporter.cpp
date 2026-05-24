@@ -1,5 +1,5 @@
-#include "ballistic_app/io/JsonExporter.hpp"
-#include "ballistic_app/Defines.hpp"
+#include "ballistic_app/exporters/JsonExporter.h"
+#include "ballistic_app/Defines.h"
 #include <fstream>
 #include <iostream>  // keep
 #include <stdexcept>

@@ -1,12 +1,12 @@
-#include "ballistic_app/Factory.hpp"
-#include "ballistic_app/solvers/AnalyticalBallisticSolver.hpp"
-#include "ballistic_app/providers/JsonTargetProvider.hpp"
-#include "ballistic_app/io/FileConfigLoader.hpp"
-#include "ballistic_app/io/JsonExporter.hpp"
+#include "ballistic_app/config/ComponentFactory.h"
+#include "ballistic_app/config/FileConfigLoader.h"
+#include "ballistic_app/providers/JsonTargetProvider.h"
+#include "ballistic_app/solvers/AnalyticalBallisticSolver.h"
+#include "ballistic_app/exporters/JsonExporter.h"
 
 namespace BallisticApp {
 
-IBallisticSolver* Factory::createSolver(SolverType type)
+IBallisticSolver* ComponentFactory::createSolver(SolverType type)
 {
   switch (type) {
     case SolverType::ANALYTICAL:
@@ -16,7 +16,7 @@ IBallisticSolver* Factory::createSolver(SolverType type)
   }
 }
 
-ITargetProvider* Factory::createProvider(TargetProviderType type, const char* param)
+ITargetProvider* ComponentFactory::createProvider(TargetProviderType type, const char* param)
 {
   switch (type) {
     case TargetProviderType::JSON:
@@ -26,7 +26,7 @@ ITargetProvider* Factory::createProvider(TargetProviderType type, const char* pa
   }
 }
 
-IConfigLoader* Factory::createLoader(ConfigLoaderType type)
+IConfigLoader* ComponentFactory::createLoader(ConfigLoaderType type)
 {
   switch (type) {
     case ConfigLoaderType::FILE:
@@ -36,7 +36,7 @@ IConfigLoader* Factory::createLoader(ConfigLoaderType type)
   }
 }
 
-ISimulationExporter* Factory::createExporter(ExporterType type, const char* param)
+ISimulationExporter* ComponentFactory::createExporter(ExporterType type, const char* param)
 {
   switch (type) {
     case ExporterType::JSON:

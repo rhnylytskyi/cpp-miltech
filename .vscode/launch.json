@@ -100,7 +100,7 @@
       ]
     },
     {
-      "name": "🚀 HW07: test01_base (Кола)",
+      "name": "🚀 HW07: Базовий тест (кола)",
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
@@ -120,7 +120,7 @@
       ]
     },
     {
-      "name": "🚀 HW07: test02_ellipses (Еліпси)",
+      "name": "🚀 HW07: Еліптичні траєкторії",
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
@@ -140,7 +140,7 @@
       ]
     },
     {
-      "name": "🚀 HW07: test03_figure8 (Вісімки)",
+      "name": "🚀 HW07: Вісімки (Ліссажу 1:2)",
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
@@ -160,7 +160,7 @@
       ]
     },
     {
-      "name": "🚀 HW07: test04_flowers (Квіткові)",
+      "name": "🚀 HW07: Квіткові (зіркові) траєкторії",
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
@@ -180,7 +180,7 @@
       ]
     },
     {
-      "name": "🚀 HW07: test05_lissajous (Ліссажу)",
+      "name": "🚀 HW07: Ліссажу (складні криві)",
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
@@ -200,7 +200,7 @@
       ]
     },
     {
-      "name": "🚀 HW07: test06_fast_drone (Швидкий дрон)",
+      "name": "🚀 HW07: Швидкий дрон, повільні цілі",
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
@@ -220,7 +220,7 @@
       ]
     },
     {
-      "name": "🚀 HW07: test07_heavy_ammo (RKG-3)",
+      "name": "🚀 HW07: Важкі боєприпаси (RKG-3)",
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
@@ -240,7 +240,7 @@
       ]
     },
     {
-      "name": "🚀 HW07: test08_gliding (GLIDING-VOG)",
+      "name": "🚀 HW07: Планеруючі боєприпаси (GLIDING-VOG)",
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
@@ -260,7 +260,7 @@
       ]
     },
     {
-      "name": "🚀 HW07: test09_cardioids (Кардіоїди)",
+      "name": "🚀 HW07: Кардіоїди та епітрохоїди",
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
@@ -280,7 +280,7 @@
       ]
     },
     {
-      "name": "🚀 HW07: test10_extreme (Екстремальний)",
+      "name": "🚀 HW07: Екстремальний (далеко, швидко)",
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",

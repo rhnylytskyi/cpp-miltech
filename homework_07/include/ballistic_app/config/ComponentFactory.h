@@ -15,10 +15,10 @@ enum class ConfigLoaderType { FILE };
 enum class ExporterType { JSON };
 
 // Єдина фабрика для створення компонентів системи балістики
-class Factory {
+class ComponentFactory {
 public:
   // Забороняємо створювати екземпляри фабрики, оскільки всі методи статичні
-  Factory() = delete;
+  ComponentFactory() = delete;
 
   static IBallisticSolver* createSolver(SolverType type);
   static ITargetProvider* createProvider(TargetProviderType type, const char* param);

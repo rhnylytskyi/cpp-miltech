@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ballistic_app/io/interfaces/ISimulationExporter.hpp"
-#include "ballistic_app/dto/SimStep.hpp"
+#include "ballistic_app/interfaces/ISimulationExporter.h"
+#include "ballistic_app/Types.h"
 #include <string>
 
 namespace BallisticApp {

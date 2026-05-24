@@ -1,7 +1,7 @@
 #pragma once
 
-#include <ballistic_app/solvers/IBallisticSolver.hpp>
-#include <ballistic_app/dto/AmmoParams.hpp>
+#include <ballistic_app/interfaces/IBallisticSolver.h>
+#include <ballistic_app/Types.h>
 
 namespace BallisticApp {
 class AnalyticalBallisticSolver : public IBallisticSolver {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ballistic_app/dto/SimStep.hpp"
+#include "ballistic_app/Types.h"
 
 namespace BallisticApp {
 

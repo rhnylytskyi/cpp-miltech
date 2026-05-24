@@ -1,4 +1,4 @@
-#include "ballistic_app/providers/JsonTargetProvider.hpp"
+#include "ballistic_app/providers/JsonTargetProvider.h"
 #include <fstream>
 #include <nlohmann/json.hpp>
 

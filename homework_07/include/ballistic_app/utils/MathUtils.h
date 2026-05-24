@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ballistic_app/dto/Coord.hpp"
+#include "ballistic_app/Types.h"
 
 namespace BallisticApp::Math {
 

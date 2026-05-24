@@ -1,14 +1,10 @@
 #pragma once
 
-#include "ballistic_app/io/interfaces/IConfigLoader.hpp"
-#include "ballistic_app/io/interfaces/ISimulationExporter.hpp"
-#include "ballistic_app/providers/ITargetProvider.hpp"
-#include "ballistic_app/solvers/IBallisticSolver.hpp"
-#include "ballistic_app/dto/DroneConfig.hpp"
-#include "ballistic_app/dto/AmmoParams.hpp"
-#include "ballistic_app/dto/SimStep.hpp"
-#include "ballistic_app/dto/Coord.hpp"
-#include "ballistic_app/dto/DroneState.hpp"
+#include "ballistic_app/interfaces/IConfigLoader.h"
+#include "ballistic_app/interfaces/ITargetProvider.h"
+#include "ballistic_app/interfaces/IBallisticSolver.h"
+#include "ballistic_app/interfaces/ISimulationExporter.h"
+#include "ballistic_app/Types.h"
 
 namespace BallisticApp {
 
@@ -41,22 +37,22 @@ private:
   ISimulationExporter* m_exporter;
 
   // Дані конфігурації та пам'ять для кроків
-  DroneConfig config;
-  AmmoParams ammo;
-  SimStep* steps;
+  DroneConfig m_config;
+  AmmoParams m_ammo;
+  SimStep* m_steps;
 
   // Поточний стан реальної симуляції
-  Coord dronePos;
-  float direction;
-  float speed;
-  DroneState state;
-  float currentTime;
-  int totalSteps;
-  bool isMissionFinished;
+  Coord m_dronePos;
+  float m_direction;
+  float m_speed;
+  DroneState m_state;
+  float m_currentTime;
+  int m_totalSteps;
+  bool m_isMissionFinished;
 
   // Кешовані значення балістичного розрахунку
-  float cachedFlightTime = 0.0f;
-  float cachedHDist = 0.0f;
+  float m_cachedFlightTime = 0.0f;
+  float m_cachedHDist = 0.0f;
 
   // Допоміжна структура для передачі та розрахунку стану фізики
   struct DronePhysicsState {

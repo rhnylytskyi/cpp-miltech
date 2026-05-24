@@ -1,11 +1,12 @@
-#include "ballistic_app/solvers/IBallisticSolver.hpp"
-#include "ballistic_app/providers/ITargetProvider.hpp"
-#include "ballistic_app/io/interfaces/IConfigLoader.hpp"
-#include "ballistic_app/io/interfaces/ISimulationExporter.hpp"
-#include "ballistic_app/Defines.hpp"
-#include "ballistic_app/Factory.hpp"
-#include "ballistic_app/utils/PathResolver.hpp"
-#include "ballistic_app/MissionProcessor.hpp"
+#include "ballistic_app/interfaces/IBallisticSolver.h"
+#include "ballistic_app/interfaces/ITargetProvider.h"
+#include "ballistic_app/interfaces/IConfigLoader.h"
+#include "ballistic_app/interfaces/ISimulationExporter.h"
+#include "ballistic_app/Defines.h"
+#include "ballistic_app/config/ComponentFactory.h"
+#include "ballistic_app/utils/PathResolver.h"
+#include "ballistic_app/MissionProcessor.h"
+
 #include <cstring>
 #include <iostream>
 #include <nlohmann/json.hpp>
@@ -24,10 +25,10 @@ int main(int argc, char* argv[])
     LOG("Loading targets from: " << targetsPath << std::endl);
     LOG("Loading config from: " << configPath << std::endl);
 
-    IConfigLoader* loader = Factory::createLoader(ConfigLoaderType::FILE);
-    ITargetProvider* provider = Factory::createProvider(TargetProviderType::JSON, targetsPath);
-    IBallisticSolver* solver = Factory::createSolver(SolverType::ANALYTICAL);
-    ISimulationExporter* exporter = Factory::createExporter(ExporterType::JSON, SIMULATION_PATH);
+    IConfigLoader* loader = ComponentFactory::createLoader(ConfigLoaderType::FILE);
+    ITargetProvider* provider = ComponentFactory::createProvider(TargetProviderType::JSON, targetsPath);
+    IBallisticSolver* solver = ComponentFactory::createSolver(SolverType::ANALYTICAL);
+    ISimulationExporter* exporter = ComponentFactory::createExporter(ExporterType::JSON, SIMULATION_PATH);
 
     MissionProcessor mission(loader, provider, solver, exporter);
     mission.init(configPath, AMMO_PATH);
