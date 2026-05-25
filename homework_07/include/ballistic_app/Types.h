@@ -75,7 +75,7 @@ public:
 struct SimStep {
   Coord pos;
   float direction;
-  DroneState state;  // Якщо хочете сувору типізацію, можна замінити int на DroneState
+  DroneState state;
   int targetIdx;
   Coord dropPoint;
   Coord aimPoint;
