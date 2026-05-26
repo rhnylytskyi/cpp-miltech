@@ -16,7 +16,7 @@ IBallisticSolver* ComponentFactory::createSolver(SolverType type)
   }
 }
 
-ITargetProvider* ComponentFactory::createProvider(TargetProviderType type, const char* param)
+ITargetProvider* ComponentFactory::createProvider(TargetProviderType type, const std::string& param)
 {
   switch (type) {
     case TargetProviderType::JSON:
@@ -36,7 +36,7 @@ IConfigLoader* ComponentFactory::createLoader(ConfigLoaderType type)
   }
 }
 
-ISimulationExporter* ComponentFactory::createExporter(ExporterType type, const char* param)
+ISimulationExporter* ComponentFactory::createExporter(ExporterType type, const std::string& param)
 {
   switch (type) {
     case ExporterType::JSON:

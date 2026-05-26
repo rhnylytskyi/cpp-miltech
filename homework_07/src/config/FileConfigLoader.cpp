@@ -14,7 +14,7 @@ FileConfigLoader::FileConfigLoader()
 {
 }
 
-void FileConfigLoader::load(const char* configPath, const char* ammoSource)
+void FileConfigLoader::load(const std::string& configPath, const std::string& ammoSource)
 {
   std::ifstream f(configPath);
   if (!f.is_open()) {
@@ -43,7 +43,7 @@ void FileConfigLoader::load(const char* configPath, const char* ammoSource)
   loadAmmoParams(ammoSource, config.ammoName);
 }
 
-void FileConfigLoader::loadAmmoParams(const char* ammoPath, const std::string& targetAmmoName)
+void FileConfigLoader::loadAmmoParams(const std::string& ammoPath, const std::string& targetAmmoName)
 {
   std::ifstream fAmmo(ammoPath);
   if (!fAmmo.is_open()) {
@@ -67,12 +67,12 @@ void FileConfigLoader::loadAmmoParams(const char* ammoPath, const std::string& t
   throw std::runtime_error(std::format("Cannot find ammo parameters for \"{}\" in file \"{}\"!", targetAmmoName, ammoPath));
 }
 
-DroneConfig FileConfigLoader::getConfig()
+DroneConfig FileConfigLoader::getConfig() const
 {
   return config;
 }
 
-AmmoParams FileConfigLoader::getAmmoParams()
+AmmoParams FileConfigLoader::getAmmoParams() const
 {
   return ammo;
 }

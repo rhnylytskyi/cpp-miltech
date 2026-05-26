@@ -82,7 +82,7 @@
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_06/ballistics_cli",
       "args": [
-          "${workspaceFolder}/homework_06/data/sample_vog17.txt"
+        "${workspaceFolder}/homework_06/data/sample_vog17.txt"
       ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
@@ -105,7 +105,8 @@
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
       "args": [
-        "${input:selectTestFile}"
+        "--test",
+        "${input:hw3TestSelect}"
       ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}/homework_07",
@@ -128,7 +129,8 @@
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
       "args": [
-        "targets01_base.json"
+        "--test",
+        "t01_base"
       ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}/homework_07",
@@ -148,7 +150,8 @@
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
       "args": [
-        "targets02_ellipses.json"
+        "--test",
+        "t02_ellipses"
       ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}/homework_07",
@@ -168,7 +171,8 @@
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
       "args": [
-        "targets03_figure8.json"
+        "--test",
+        "t03_figure8"
       ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}/homework_07",
@@ -188,7 +192,8 @@
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
       "args": [
-        "targets04_flowers.json"
+        "--test",
+        "t04_flowers"
       ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}/homework_07",
@@ -208,7 +213,8 @@
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
       "args": [
-        "targets05_lissajous.json"
+        "--test",
+        "t05_lissajous"
       ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}/homework_07",
@@ -228,7 +234,8 @@
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
       "args": [
-        "targets06_fast_drone.json"
+        "--test",
+        "t06_fast_drone"
       ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}/homework_07",
@@ -248,7 +255,8 @@
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
       "args": [
-        "targets07_heavy_ammo.json"
+        "--test",
+        "t07_heavy_ammo"
       ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}/homework_07",
@@ -268,7 +276,8 @@
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
       "args": [
-        "targets08_gliding.json"
+        "--test",
+        "t08_gliding"
       ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}/homework_07",
@@ -288,7 +297,8 @@
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
       "args": [
-        "targets09_cardioids.json"
+        "--test",
+        "t09_cardioids"
       ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}/homework_07",
@@ -308,7 +318,8 @@
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
       "args": [
-        "targets10_extreme.json"
+        "--test",
+        "t10_extreme"
       ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}/homework_07",
@@ -325,22 +336,52 @@
   ],
   "inputs": [
     {
-      "id": "selectTestFile",
+      "id": "hw3TestSelect",
       "type": "pickString",
-      "description": "Оберіть файл цілей для тестування:",
+      "description": "— оберіть тест —",
       "options": [
-        "targets01_base.json",
-        "targets02_ellipses.json",
-        "targets03_figure8.json",
-        "targets04_flowers.json",
-        "targets05_lissajous.json",
-        "targets06_fast_drone.json",
-        "targets07_heavy_ammo.json",
-        "targets08_gliding.json",
-        "targets09_cardioids.json",
-        "targets10_extreme.json"
+        {
+          "label": "Базовий тест (кола)",
+          "value": "t01_base",
+        },
+        {
+          "label": "Еліптичні траєкторії",
+          "value": "t02_ellipses",
+        },
+        {
+          "label": "Вісімки (Ліссажу 1:2)",
+          "value": "t03_figure8",
+        },
+        {
+          "label": "Квіткові (зіркові) траєкторії",
+          "value": "t04_flowers",
+        },
+        {
+          "label": "Ліссажу (складні криві)",
+          "value": "t05_lissajous",
+        },
+        {
+          "label": "Швидкий дрон, повільні цілі",
+          "value": "t06_fast_drone",
+        },
+        {
+          "label": "Важкі боєприпаси (RKG-3)",
+          "value": "t07_heavy_ammo",
+        },
+        {
+          "label": "Планеруючі боєприпаси (GLIDING-VOG)",
+          "value": "t08_gliding",
+        },
+        {
+          "label": "Кардіоїди та епітрохоїди",
+          "value": "t09_cardioids",
+        },
+        {
+          "label": "Екстремальний (далеко, швидко)",
+          "value": "t10_extreme",
+        },
       ],
-      "default": "targets01_base.json"
-    }  
+      "default": ""
+    }
   ]
 }

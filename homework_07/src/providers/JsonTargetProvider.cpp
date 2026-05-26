@@ -6,10 +6,7 @@ using json = nlohmann::json;
 
 namespace BallisticApp {
 
-JsonTargetProvider::JsonTargetProvider(const char* filepath)
-  : tgtCount(0)
-  , timeSteps(0)
-  , targets(nullptr)
+JsonTargetProvider::JsonTargetProvider(const std::string& filepath)
 {
   std::ifstream f(filepath);
   if (!f.is_open())
@@ -22,39 +19,35 @@ JsonTargetProvider::JsonTargetProvider(const char* filepath)
   tgtCount = j_data["targetCount"];
   timeSteps = j_data["timeSteps"];
 
-  targets = new Coord*[tgtCount];
-  for (int i = 0; i < tgtCount; i++) {
-    targets[i] = new Coord[timeSteps];
-    for (int k = 0; k < timeSteps; k++) {
-      targets[i][k].x = j_data["targets"][i]["positions"][k]["x"];
-      targets[i][k].y = j_data["targets"][i]["positions"][k]["y"];
+  targets.reserve(tgtCount);
+
+  for (const auto& jTarget : j_data["targets"]) {
+    std::vector<Coord> target_positions;
+    target_positions.reserve(timeSteps);
+
+    for (const auto& j_pos : jTarget["positions"]) {
+      Coord c;
+      c.x = j_pos["x"];
+      c.y = j_pos["y"];
+      target_positions.push_back(c);
     }
+    targets.push_back(std::move(target_positions));
   }
 }
 
-int JsonTargetProvider::getTargetCount()
+int JsonTargetProvider::getTargetCount() const
 {
   return tgtCount;
 }
 
-int JsonTargetProvider::getTimeSteps()
+int JsonTargetProvider::getTimeSteps() const
 {
   return timeSteps;
 }
 
-Coord JsonTargetProvider::getTargetPos(int targetIdx, int timeIdx)
+Coord JsonTargetProvider::getTargetPos(int targetIdx, int timeIdx) const
 {
-  return targets[targetIdx][timeIdx];
-}
-
-JsonTargetProvider::~JsonTargetProvider()
-{
-  if (targets) {
-    for (int i = 0; i < tgtCount; i++) {
-      delete[] targets[i];
-    }
-    delete[] targets;
-  }
+  return targets.at(targetIdx).at(timeIdx);
 }
 
 }  // namespace BallisticApp

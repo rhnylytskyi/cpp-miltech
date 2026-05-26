@@ -1,13 +1,18 @@
 #pragma once
 
 #include "ballistic_app/Types.h"
+#include <string>
 
 namespace BallisticApp {
+
 class IConfigLoader {
 public:
-  virtual void load(const char* configPath, const char* ammoPath) = 0;
-  virtual DroneConfig getConfig() = 0;
-  virtual AmmoParams getAmmoParams() = 0;
-  virtual ~IConfigLoader() {}
+  virtual ~IConfigLoader() = default;
+
+  virtual void load(const std::string& configPath, const std::string& ammoPath) = 0;
+
+  virtual DroneConfig getConfig() const = 0;
+  virtual AmmoParams getAmmoParams() const = 0;
 };
+
 }  // namespace BallisticApp

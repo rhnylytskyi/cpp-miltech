@@ -3,14 +3,16 @@
 #include "ballistic_app/interfaces/ISimulationExporter.h"
 #include "ballistic_app/Types.h"
 #include <string>
+#include <vector>
 
 namespace BallisticApp {
 
 class JsonExporter : public ISimulationExporter {
 public:
-  explicit JsonExporter(std::string filepath);
+  explicit JsonExporter(const std::string& filePath);
+  ~JsonExporter() override = default;
 
-  void exportSimulation(const SimStep* history, int totalSteps) const override;
+  void exportSimulation(const std::vector<SimStep>& history) const override;
 
 private:
   std::string m_filePath;

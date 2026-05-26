@@ -3,11 +3,14 @@
 #include "ballistic_app/Types.h"
 
 namespace BallisticApp {
+
 class ITargetProvider {
 public:
-  virtual int getTargetCount() = 0;
-  virtual int getTimeSteps() = 0;
-  virtual Coord getTargetPos(int targetIdx, int timeIdx) = 0;
-  virtual ~ITargetProvider() {}
+  virtual ~ITargetProvider() = default;
+
+  virtual int getTargetCount() const = 0;
+  virtual int getTimeSteps() const = 0;
+  virtual Coord getTargetPos(int targetIdx, int timeIdx) const = 0;
 };
+
 }  // namespace BallisticApp

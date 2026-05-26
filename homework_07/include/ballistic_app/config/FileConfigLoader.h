@@ -1,7 +1,7 @@
 #pragma once
 
-#include <ballistic_app/interfaces/IConfigLoader.h>
-#include <ballistic_app/Types.h>
+#include "ballistic_app/interfaces/IConfigLoader.h"
+#include "ballistic_app/Types.h"
 #include <string>
 
 namespace BallisticApp {
@@ -11,15 +11,15 @@ private:
   DroneConfig config;
   AmmoParams ammo;
 
-  void loadAmmoParams(const char* ammoPath, const std::string& targetAmmoName);
+  void loadAmmoParams(const std::string& ammoPath, const std::string& targetAmmoName);
 
 public:
   FileConfigLoader();
   ~FileConfigLoader() override = default;
 
-  void load(const char* configPath, const char* ammoSource) override;
-  DroneConfig getConfig() override;
-  AmmoParams getAmmoParams() override;
+  void load(const std::string& configPath, const std::string& ammoSource) override;
+  DroneConfig getConfig() const override;
+  AmmoParams getAmmoParams() const override;
 };
 
 }  // namespace BallisticApp

@@ -8,32 +8,32 @@ using json = nlohmann::json;
 
 namespace BallisticApp {
 
-JsonExporter::JsonExporter(std::string filePath)
+JsonExporter::JsonExporter(const std::string& filePath)
   : m_filePath(filePath)
 {
 }
 
-void JsonExporter::exportSimulation(const SimStep* history, int totalSteps) const
+void JsonExporter::exportSimulation(const std::vector<SimStep>& history) const
 {
-  if (!history || totalSteps <= 0) {
-    throw std::runtime_error("JsonExporter Error: No simulation steps provided or totalSteps <= 0!");
+  if (history.empty()) {
+    throw std::runtime_error("JsonExporter Error: No simulation steps provided!");
   }
 
   json jsonOut;
-  jsonOut["totalSteps"] = totalSteps;
+  jsonOut["totalSteps"] = history.size();
   jsonOut["steps"] = json::array();
 
-  for (int i = 0; i < totalSteps; ++i) {
+  for (const auto& step : history) {
     json stepJson;
 
-    stepJson["direction"] = history[i].direction;
-    stepJson["state"] = history[i].state;
-    stepJson["targetIdx"] = history[i].targetIdx;
+    stepJson["direction"] = step.direction;
+    stepJson["state"] = step.state;
+    stepJson["targetIdx"] = step.targetIdx;
 
-    stepJson["pos"] = {{"x", history[i].pos.x}, {"y", history[i].pos.y}};
-    stepJson["dropPoint"] = {{"x", history[i].dropPoint.x}, {"y", history[i].dropPoint.y}};
-    stepJson["aimPoint"] = {{"x", history[i].aimPoint.x}, {"y", history[i].aimPoint.y}};
-    stepJson["predictedTarget"] = {{"x", history[i].predictedTarget.x}, {"y", history[i].predictedTarget.y}};
+    stepJson["pos"] = {{"x", step.pos.x}, {"y", step.pos.y}};
+    stepJson["dropPoint"] = {{"x", step.dropPoint.x}, {"y", step.dropPoint.y}};
+    stepJson["aimPoint"] = {{"x", step.aimPoint.x}, {"y", step.aimPoint.y}};
+    stepJson["predictedTarget"] = {{"x", step.predictedTarget.x}, {"y", step.predictedTarget.y}};
 
     jsonOut["steps"].push_back(stepJson);
   }

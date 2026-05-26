@@ -1,21 +1,40 @@
 #include "ballistic_app/MissionProcessor.h"
+#include "ballistic_app/config/ComponentFactory.h"
+#include "ballistic_app/interfaces/IConfigLoader.h"
+#include "ballistic_app/interfaces/ITargetProvider.h"
+#include "ballistic_app/interfaces/IBallisticSolver.h"
+#include "ballistic_app/interfaces/ISimulationExporter.h"
 #include "ballistic_app/utils/MathUtils.h"
 #include "ballistic_app/Defines.h"
 #include <cmath>
+#include <stdexcept>
 
 namespace BallisticApp {
-MissionProcessor::MissionProcessor(IConfigLoader* loader,
-                                   ITargetProvider* provider,
-                                   IBallisticSolver* solver,
-                                   ISimulationExporter* exporter)
-  : m_loader(loader)
-  , m_provider(provider)
-  , m_solver(solver)
-  , m_exporter(exporter)
-  , m_physicsEngine(nullptr)
-  , m_targetPredictor(nullptr)
-  , m_planner(nullptr)
-  , m_steps(nullptr)
+
+namespace {
+DroneConfig loadConfigHelper(IConfigLoader* loader, const std::string& cfg, const std::string& ammo)
+{
+  if (loader) {
+    loader->load(cfg, ammo);
+    return loader->getConfig();
+  }
+  return DroneConfig{};
+}
+}  // namespace
+
+MissionProcessor::MissionProcessor(const std::string& targetsPath,
+                                   const std::string& simulationPath,
+                                   const std::string& configSource,
+                                   const std::string& ammoSource)
+  : m_loader(ComponentFactory::createLoader(ConfigLoaderType::FILE))
+  , m_provider(ComponentFactory::createProvider(TargetProviderType::JSON, targetsPath))
+  , m_solver(ComponentFactory::createSolver(SolverType::ANALYTICAL))
+  , m_exporter(ComponentFactory::createExporter(ExporterType::JSON, simulationPath))
+  , m_config(loadConfigHelper(m_loader, configSource, ammoSource))
+  , m_ammo(m_loader ? m_loader->getAmmoParams() : AmmoParams{})
+  , m_physicsEngine(m_config)
+  , m_targetPredictor(m_provider, m_config)
+  , m_planner(m_physicsEngine, m_targetPredictor, m_config)
   , m_dronePos{0, 0}
   , m_direction(0.0f)
   , m_speed(0.0f)
@@ -27,79 +46,27 @@ MissionProcessor::MissionProcessor(IConfigLoader* loader,
   , m_cachedHDist(0.0f)
 {
   if (!m_loader || !m_provider || !m_solver || !m_exporter) {
-    throw std::runtime_error("MissionProcessor Error: Failed to create critical application components.");
+    delete m_loader;
+    delete m_provider;
+    delete m_solver;
+    delete m_exporter;
+    throw std::runtime_error("MissionProcessor Error: Factory failed to create critical components.");
   }
+
+  m_cachedFlightTime = m_solver->calcTimeOfFall(m_config.altitude, m_config.attackSpeed, m_ammo);
+  m_cachedHDist = m_solver->calcHDistance(m_cachedFlightTime, m_config.attackSpeed, m_ammo);
+
   reset();
+
+  LOG("Mission initialized. Ammo: " + m_ammo.name);
 }
 
 MissionProcessor::~MissionProcessor()
 {
-  if (m_steps) {
-    delete[] m_steps;
-    m_steps = nullptr;
-  }
-  if (m_physicsEngine) {
-    delete m_physicsEngine;
-    m_physicsEngine = nullptr;
-  }
-  if (m_targetPredictor) {
-    delete m_targetPredictor;
-    m_targetPredictor = nullptr;
-  }
-  if (m_planner) {
-    delete m_planner;
-    m_planner = nullptr;
-  }
-  if (m_loader) {
-    delete m_loader;
-    m_loader = nullptr;
-  }
-  if (m_provider) {
-    delete m_provider;
-    m_provider = nullptr;
-  }
-  if (m_solver) {
-    delete m_solver;
-    m_solver = nullptr;
-  }
-  if (m_exporter) {
-    delete m_exporter;
-    m_exporter = nullptr;
-  }
-}
-
-void MissionProcessor::init(const char* configSource, const char* ammoSource)
-{
-  if (m_loader) {
-    m_loader->load(configSource, ammoSource);
-    m_config = m_loader->getConfig();
-    m_ammo = m_loader->getAmmoParams();
-  }
-
-  if (m_steps) {
-    delete[] m_steps;
-  }
-  m_steps = new SimStep[MissionProcessor::MAX_STEPS];
-  reset();
-
-  if (m_solver) {
-    m_cachedFlightTime = m_solver->calcTimeOfFall(m_config.altitude, m_config.attackSpeed, m_ammo);
-    m_cachedHDist = m_solver->calcHDistance(m_cachedFlightTime, m_config.attackSpeed, m_ammo);
-  }
-
-  // Перестворення об'єктів під нову конфігурацію конфігу та провайдера
-  if (m_physicsEngine)
-    delete m_physicsEngine;
-  if (m_targetPredictor)
-    delete m_targetPredictor;
-  if (m_planner)
-    delete m_planner;
-
-  m_physicsEngine = new DronePhysicsEngine(m_config);
-  m_targetPredictor = new TargetPredictor(m_provider, m_config);
-  m_planner = new MissionPlanner(m_physicsEngine, m_targetPredictor, m_config);
-
-  LOG("Mission initialized. Ammo: " + m_ammo.name);
+  delete m_loader;
+  delete m_provider;
+  delete m_solver;
+  delete m_exporter;
 }
 
 bool MissionProcessor::hasNext()
@@ -114,15 +81,15 @@ SimStep MissionProcessor::step()
   Coord bestPredicted{0, 0};
   Coord bestFirePoint{0, 0};
 
-  DronePhysicsState currentDroneState{m_dronePos, m_speed, m_direction, m_state};
-  int targetCount = m_provider->getTargetCount();
+  const DronePhysicsState currentDroneState{m_dronePos, m_speed, m_direction, m_state};
+  const int targetCount = m_provider->getTargetCount();
 
   // Пошук найкращої цілі через віртуальний прогноз польоту
   for (int tId = 0; tId < targetCount; ++tId) {
     Coord currentFirePoint{0, 0};
     Coord currentPredictedTarget{0, 0};
 
-    float predictedTime = m_planner->predictTimeAndPos(
+    const float predictedTime = m_planner.predictTimeAndPos(
       currentDroneState, m_currentTime, m_cachedFlightTime, m_cachedHDist, tId, currentFirePoint, currentPredictedTarget);
     if (predictedTime < bestTime) {
       bestTime = predictedTime;
@@ -132,33 +99,35 @@ SimStep MissionProcessor::step()
     }
   }
 
-  Coord firePoint = bestFirePoint;
+  const Coord firePoint = bestFirePoint;
 
   // Розрахунок точного вектора прицілювання (aimPoint) попереду точки скидання
   Coord dropToTargetDir = {std::cos(m_direction), std::sin(m_direction)};
-  float distToFire = Math::length(firePoint - m_dronePos);
+  const float distToFire = Math::length(firePoint - m_dronePos);
   if (distToFire > 1e-4f) {
     dropToTargetDir = Math::normalize(firePoint - m_dronePos);
   }
-  Coord aimPoint = firePoint + dropToTargetDir * m_cachedHDist;
+  const Coord aimPoint = firePoint + dropToTargetDir * m_cachedHDist;
 
   // Запис поточного кроку в історію симуляції
-  m_steps[m_totalSteps].pos = m_dronePos;
-  m_steps[m_totalSteps].direction = m_direction;
-  m_steps[m_totalSteps].state = m_state;
-  m_steps[m_totalSteps].targetIdx = bestTarget;
-  m_steps[m_totalSteps].dropPoint = firePoint;
-  m_steps[m_totalSteps].aimPoint = aimPoint;
-  m_steps[m_totalSteps].predictedTarget = bestPredicted;
+  SimStep currentStep; 
+  currentStep.pos = m_dronePos;
+  currentStep.direction = m_direction;
+  currentStep.state = m_state;
+  currentStep.targetIdx = bestTarget;
+  currentStep.dropPoint = firePoint;
+  currentStep.aimPoint = aimPoint;
+  currentStep.predictedTarget = bestPredicted;
 
   // Оновлення реальних фізичних параметрів та позиції дрона
   float deltaPath = 0.0f;
-  m_physicsEngine->update(currentDroneState, firePoint, m_config.simTimeStep, deltaPath);
+  DronePhysicsState updatedState = currentDroneState;
+  m_physicsEngine.update(updatedState, firePoint, m_config.simTimeStep, deltaPath);
 
-  m_dronePos = currentDroneState.pos;
-  m_speed = currentDroneState.speed;
-  m_direction = currentDroneState.direction;
-  m_state = currentDroneState.state;
+  m_dronePos = updatedState.pos;
+  m_speed = updatedState.speed;
+  m_direction = updatedState.direction;
+  m_state = updatedState.state;
 
   if (m_state == DroneState::MOVING && Math::length(m_dronePos - firePoint) <= m_config.hitRadius * 0.25f) {
     m_isMissionFinished = true;
@@ -166,7 +135,8 @@ SimStep MissionProcessor::step()
   }
 
   m_currentTime += m_config.simTimeStep;
-  SimStep currentStepData = m_steps[m_totalSteps];
+  const SimStep currentStepData = currentStep;
+  m_steps.push_back(currentStepData);
   m_totalSteps++;
   return currentStepData;
 }
@@ -176,7 +146,7 @@ void MissionProcessor::run()
   while (this->hasNext()) {
     this->step();
   }
-  m_exporter->exportSimulation(getStepsHistory(), getTotalSteps());
+  m_exporter->exportSimulation(m_steps);
 }
 
 void MissionProcessor::reset()
@@ -188,6 +158,9 @@ void MissionProcessor::reset()
   m_currentTime = 0.0f;
   m_totalSteps = 0;
   m_isMissionFinished = false;
+
+  m_steps.clear(); 
+  m_steps.reserve(MissionProcessor::MAX_STEPS);
 }
 
 void MissionProcessor::changeSolver(IBallisticSolver* solver)
@@ -204,8 +177,9 @@ int MissionProcessor::getTotalSteps() const
   return m_totalSteps;
 }
 
-const SimStep* MissionProcessor::getStepsHistory() const
+const std::vector<SimStep>& MissionProcessor::getStepsHistory() const
 {
   return m_steps;
 }
+
 }  // namespace BallisticApp

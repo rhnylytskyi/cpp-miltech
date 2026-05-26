@@ -3,6 +3,20 @@
 #include <cmath>
 
 namespace BallisticApp {
+
+namespace {
+void processDeceleration(DronePhysicsState& drone, float acceleration, float dt, float& outDeltaPath)
+{
+  const float prevSpeed = drone.speed;
+  drone.speed -= acceleration * dt;
+  if (drone.speed <= 0.0f) {
+    drone.speed = 0.0f;
+    drone.state = DroneState::STOPPED;
+  }
+  outDeltaPath = (prevSpeed + drone.speed) / 2.0f * dt;
+}
+}  // namespace
+
 DronePhysicsEngine::DronePhysicsEngine(const DroneConfig& config)
   : m_config(config)
 {
@@ -10,35 +24,34 @@ DronePhysicsEngine::DronePhysicsEngine(const DroneConfig& config)
 
 void DronePhysicsEngine::update(DronePhysicsState& drone, const Coord& firePoint, float dt, float& outDeltaPath) const
 {
-  float desiredDirection = std::atan2(firePoint.y - drone.pos.y, firePoint.x - drone.pos.x);
-  float deltaAngle = Math::normalizeAngle(desiredDirection - drone.direction);
-  float acceleration = (m_config.attackSpeed * m_config.attackSpeed) / (2.0f * m_config.accelPath);
+  const float desiredDirection = std::atan2(firePoint.y - drone.pos.y, firePoint.x - drone.pos.x);
+  const float deltaAngle = Math::normalizeAngle(desiredDirection - drone.direction);
+  const float acceleration = (m_config.attackSpeed * m_config.attackSpeed) / (2.0f * m_config.accelPath);
   outDeltaPath = 0.0f;
+
+  const bool isTurningRequired = (std::fabs(deltaAngle) > m_config.turnThreshold);
 
   switch (drone.state) {
     case DroneState::STOPPED:
-      if (std::fabs(deltaAngle) > m_config.turnThreshold)
+      if (isTurningRequired) {
         drone.state = DroneState::TURNING;
+      }
       else {
         drone.direction = desiredDirection;
         drone.state = DroneState::ACCELERATING;
       }
       break;
+
     case DroneState::ACCELERATING:
-      if (std::fabs(deltaAngle) > m_config.turnThreshold && drone.speed > 0.01f) {
+      if (isTurningRequired && drone.speed > 0.01f) {
         drone.state = DroneState::DECELERATING;
-        float prevSpeed = drone.speed;
-        drone.speed -= acceleration * dt;
-        if (drone.speed <= 0) {
-          drone.speed = 0;
-          drone.state = DroneState::STOPPED;
-        }
-        outDeltaPath = (prevSpeed + drone.speed) / 2.0f * dt;
+        processDeceleration(drone, acceleration, dt, outDeltaPath);
       }
       else {
-        if (std::fabs(deltaAngle) <= m_config.turnThreshold)
+        if (!isTurningRequired) {
           drone.direction = desiredDirection;
-        float prevSpeed = drone.speed;
+        }
+        const float prevSpeed = drone.speed;
         drone.speed += acceleration * dt;
         if (drone.speed >= m_config.attackSpeed) {
           drone.speed = m_config.attackSpeed;
@@ -47,47 +60,38 @@ void DronePhysicsEngine::update(DronePhysicsState& drone, const Coord& firePoint
         outDeltaPath = (prevSpeed + drone.speed) / 2.0f * dt;
       }
       break;
-    case DroneState::DECELERATING: {
-      float prevSpeed = drone.speed;
-      drone.speed -= acceleration * dt;
-      if (drone.speed <= 0) {
-        drone.speed = 0;
-        drone.state = DroneState::STOPPED;
-      }
-      outDeltaPath = (prevSpeed + drone.speed) / 2.0f * dt;
+
+    case DroneState::DECELERATING:
+      processDeceleration(drone, acceleration, dt, outDeltaPath);
       break;
-    }
+
     case DroneState::TURNING: {
-      float da = Math::normalizeAngle(desiredDirection - drone.direction);
+      const float da = Math::normalizeAngle(desiredDirection - drone.direction);
       if (std::fabs(da) <= m_config.angularSpeed * dt) {
         drone.direction = desiredDirection;
         drone.state = DroneState::ACCELERATING;
       }
       else {
-        drone.direction += (da > 0 ? 1.0f : -1.0f) * m_config.angularSpeed * dt;
+        drone.direction += (da > 0.0f ? 1.0f : -1.0f) * m_config.angularSpeed * dt;
         drone.direction = Math::normalizeAngle(drone.direction);
       }
       break;
     }
+
     case DroneState::MOVING:
-      if (std::fabs(deltaAngle) > m_config.turnThreshold) {
+      if (isTurningRequired) {
         drone.state = DroneState::DECELERATING;
-        float prevSpeed = drone.speed;
-        drone.speed -= acceleration * dt;
-        if (drone.speed <= 0) {
-          drone.speed = 0;
-          drone.state = DroneState::STOPPED;
-        }
-        outDeltaPath = (prevSpeed + drone.speed) / 2.0f * dt;
+        processDeceleration(drone, acceleration, dt, outDeltaPath);
       }
       else {
-        if (std::fabs(deltaAngle) <= m_config.turnThreshold)
-          drone.direction = desiredDirection;
+        drone.direction = desiredDirection;
         outDeltaPath = drone.speed * dt;
       }
       break;
   }
+
   drone.pos.x += std::cos(drone.direction) * outDeltaPath;
   drone.pos.y += std::sin(drone.direction) * outDeltaPath;
 }
+
 }  // namespace BallisticApp
