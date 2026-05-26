@@ -17,7 +17,7 @@ public:
                           Coord& outPredictedTarget) const;
 
 private:
-  DronePhysicsEngine* m_physics;
+  DronePhysicsEngine* m_physicsEngine;
   TargetPredictor* m_predictor;
   DroneConfig m_config;
 };

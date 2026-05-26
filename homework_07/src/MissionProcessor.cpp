@@ -115,8 +115,10 @@ SimStep MissionProcessor::step()
   Coord bestFirePoint{0, 0};
 
   DronePhysicsState currentDroneState{m_dronePos, m_speed, m_direction, m_state};
+  int targetCount = m_provider->getTargetCount();
 
-  for (int tId = 0; tId < m_provider->getTargetCount(); ++tId) {
+  // Пошук найкращої цілі через віртуальний прогноз польоту
+  for (int tId = 0; tId < targetCount; ++tId) {
     Coord currentFirePoint{0, 0};
     Coord currentPredictedTarget{0, 0};
 
@@ -131,8 +133,16 @@ SimStep MissionProcessor::step()
   }
 
   Coord firePoint = bestFirePoint;
-  Coord aimPoint = m_dronePos + Coord{std::cos(m_direction), std::sin(m_direction)} * m_cachedHDist;
 
+  // Розрахунок точного вектора прицілювання (aimPoint) попереду точки скидання
+  Coord dropToTargetDir = {std::cos(m_direction), std::sin(m_direction)};
+  float distToFire = Math::length(firePoint - m_dronePos);
+  if (distToFire > 1e-4f) {
+    dropToTargetDir = Math::normalize(firePoint - m_dronePos);
+  }
+  Coord aimPoint = firePoint + dropToTargetDir * m_cachedHDist;
+
+  // Запис поточного кроку в історію симуляції
   m_steps[m_totalSteps].pos = m_dronePos;
   m_steps[m_totalSteps].direction = m_direction;
   m_steps[m_totalSteps].state = m_state;
@@ -141,6 +151,7 @@ SimStep MissionProcessor::step()
   m_steps[m_totalSteps].aimPoint = aimPoint;
   m_steps[m_totalSteps].predictedTarget = bestPredicted;
 
+  // Оновлення реальних фізичних параметрів та позиції дрона
   float deltaPath = 0.0f;
   m_physicsEngine->update(currentDroneState, firePoint, m_config.simTimeStep, deltaPath);
 
