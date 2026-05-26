@@ -102,5 +102,6 @@
         }
       }
     }
-  }
+  },
+  "postCreateCommand": "chmod +x .devcontainer/scripts/check-quality"
 }

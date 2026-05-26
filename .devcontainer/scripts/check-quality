@@ -1,0 +1,101 @@
+#!/bin/bash
+
+# Зупиняти скрипт при помилках
+set -e
+
+# Кольори для терміналу
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+# Функція для отримання списку змінених файлів C++ у папках homework_* (ігноруючи build)
+get_changed_files() {
+    # Перевіряємо, чи це Git-репозиторій
+    if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+        echo ""
+        return
+    fi
+
+    # Визначаємо базову гілку (основну гілку репозиторію)
+    local base_branch="main"
+    git rev-parse --verify origin/master >/dev/null 2>&1 && base_branch="master"
+
+    # Збираємо:
+    # 1. Зміни між поточною гілкою та базовою (git diff base...HEAD)
+    # 2. Ще не закомічені локальні зміни (git diff)
+    # 3. Нові невідстежувані файли (git ls-files --others --exclude-standard)
+    (
+        git diff --name-only "$base_branch...HEAD" 2>/dev/null || true
+        git diff --name-only HEAD 2>/dev/null || true
+        git ls-files --others --exclude-standard 2>/dev/null || true
+    ) | sort -u | grep -E '^homework_[^/]+/.+\.(cpp|hpp)$' || true
+}
+
+format() {
+    echo -e "${GREEN}[1/3] Форматування змінених файлів (clang-format)...${NC}"
+    local files
+    files=$(get_changed_files)
+
+    if [ -z "$files" ]; then
+        echo -e "${YELLOW}Немає змінених файлів C++ у папках homework_* для форматування.${NC}"
+        return
+    fi
+
+    echo -e "${YELLOW}Файли для форматування:${NC}"
+    echo "$files"
+    
+    # Форматуємо тільки знайдені файли
+    echo "$files" | xargs clang-format -i
+}
+
+lint() {
+    echo -e "${GREEN}[2/3] Статичний аналіз змінених файлів (clang-tidy)...${NC}"
+    local files
+    files=$(get_changed_files)
+
+    if [ -z "$files" ]; then
+        echo -e "${YELLOW}Немає змінених файлів C++ у папках homework_* для аналізу.${NC}"
+        return
+    fi
+
+    echo -e "${YELLOW}Файли для аналізу:${NC}"
+    echo "$files"
+
+    # Перевірка бази даних компіляції для clang-tidy
+    local tidy_opts=""
+    if [ -f "build/debug/compile_commands.json" ]; then
+        tidy_opts="-p build/debug"
+    else
+        echo -e "${YELLOW}Попередження: build/debug/compile_commands.json не знайдено.${NC}"
+        echo -e "${YELLOW}clang-tidy може не знайти деякі заголовочні файли.${NC}"
+    fi
+
+    # Запуск clang-tidy. Прапорець --warnings-as-errors=* змушує скрипт падати (exit code 1), якщо знайдено хоч одне попередження
+    echo "$files" | xargs clang-tidy $tidy_opts --warnings-as-errors=* || {
+        echo -e "${RED}Помилка: Статичний аналіз виявив проблеми у змінених файлах.${NC}"
+        exit 1
+    }
+}
+
+test_code() {
+    echo -e "${GREEN}[3/3] Запуск тестів (ctest)...${NC}"
+    if [ -d "build/debug" ]; then
+        cd build/debug && ctest --output-on-failure
+    else
+        echo -e "${RED}Помилка: Папка build/debug відсутня. Спочатку скомпілюйте проект.${NC}"
+        exit 1
+    fi
+}
+
+case "$1" in
+    format)   format ;;
+    lint)     lint ;;
+    test)     test_code ;;
+    all|*)
+        format
+        lint
+        test_code
+        echo -e "${GREEN}Всі перевірки змінених файлів успішно пройдено!${NC}"
+        ;;
+esac
