@@ -14,9 +14,13 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # що й реальна CMake-збірка.
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# Вмикаємо підтримку CTest для автоматичного запуску тестів.
+enable_testing()
+
 # Домашні роботи. По мірі появи додаємо кожну окремим add_subdirectory.
 add_subdirectory(homework_04)
 add_subdirectory(homework_05)
+add_subdirectory(homework_06)
 add_subdirectory(homework_07)
 
 # Demo-код для заняття 2.4: локальне і віддалене відлагодження через GDB.

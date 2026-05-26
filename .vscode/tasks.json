@@ -32,6 +32,32 @@
         "panel": "dedicated",
         "clear": true
       }
-    }
+    },
+    {
+      "label": "make quality",
+      "type": "shell",
+      "command": "./.devcontainer/scripts/check-quality all",
+      "problemMatcher": []
+    },
+    {
+      "label": "make format",
+      "type": "shell",
+      "command": "./.devcontainer/scripts/check-quality format",
+      "problemMatcher": []
+    },
+    {
+      "label": "make lint",
+      "type": "shell",
+      "command": "./.devcontainer/scripts/check-quality lint",
+      "problemMatcher": [
+          "$gcc"
+      ]
+    },
+    {
+      "label": "make test",
+      "type": "shell",
+      "command": "./.devcontainer/scripts/check-quality test",
+      "problemMatcher": []
+  }
   ]
 }

@@ -77,6 +77,29 @@
       ]
     },
     {
+      "name": "Ballistics CLI (Debug sample_vog17.txt)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/debug/homework_06/ballistics_cli",
+      "args": [
+          "${workspaceFolder}/homework_06/data/sample_vog17.txt"
+      ],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "miDebuggerPath": "/usr/bin/gdb",
+      "preLaunchTask": "CMake: configure and build",
+      "setupCommands": [
+        {
+          "description": "Увімкнути pretty-printing для STL типів у GDB.",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ],
+    },
+    {
       "name": "🎯 ДЗ 3: Запустити з вибором тесту...",
       "type": "cppdbg",
       "request": "launch",
@@ -318,6 +341,6 @@
         "targets10_extreme.json"
       ],
       "default": "targets01_base.json"
-    }
+    }  
   ]
 }
