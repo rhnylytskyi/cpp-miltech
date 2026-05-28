@@ -62,7 +62,6 @@ float AnalyticalBallisticSolver::calcHDistance(float t, float V0, const AmmoPara
   const float d3 = d2 * d;
   const float d4 = d3 * d;
 
-  // Оптимізація: std::pow(m, 3) замінено на чисте множення m * m * m (для float це значно швидше)
   const float m2 = m * m;
   const float m3 = m2 * m;
   const float m4 = m3 * m;

@@ -37,6 +37,13 @@ public:
   const std::vector<SimStep>& getStepsHistory() const;
 
 private:
+  struct TargetCandidate {
+    int id;
+    float time;
+    Coord firePoint;
+    Coord predictedTarget;
+  };
+  
   IConfigLoader* m_loader;
   ITargetProvider* m_provider;
   IBallisticSolver* m_solver;

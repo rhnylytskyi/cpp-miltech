@@ -1,6 +1,7 @@
 #include "ballistic_app/DronePhysicsEngine.h"
 #include "ballistic_app/utils/MathUtils.h"
 #include <cmath>
+#include <algorithm>
 
 namespace BallisticApp {
 
@@ -8,9 +9,10 @@ namespace {
 void processDeceleration(DronePhysicsState& drone, float acceleration, float dt, float& outDeltaPath)
 {
   const float prevSpeed = drone.speed;
-  drone.speed -= acceleration * dt;
+
+  drone.speed = std::clamp(drone.speed - acceleration * dt, 0.0f, drone.speed);
+
   if (drone.speed <= 0.0f) {
-    drone.speed = 0.0f;
     drone.state = DroneState::STOPPED;
   }
   outDeltaPath = (prevSpeed + drone.speed) / 2.0f * dt;
@@ -52,9 +54,10 @@ void DronePhysicsEngine::update(DronePhysicsState& drone, const Coord& firePoint
           drone.direction = desiredDirection;
         }
         const float prevSpeed = drone.speed;
-        drone.speed += acceleration * dt;
+
+        drone.speed = std::clamp(drone.speed + acceleration * dt, 0.0f, m_config.attackSpeed);
+
         if (drone.speed >= m_config.attackSpeed) {
-          drone.speed = m_config.attackSpeed;
           drone.state = DroneState::MOVING;
         }
         outDeltaPath = (prevSpeed + drone.speed) / 2.0f * dt;
@@ -67,13 +70,17 @@ void DronePhysicsEngine::update(DronePhysicsState& drone, const Coord& firePoint
 
     case DroneState::TURNING: {
       const float da = Math::normalizeAngle(desiredDirection - drone.direction);
-      if (std::fabs(da) <= m_config.angularSpeed * dt) {
+
+      const float maxTurnThisStep = m_config.angularSpeed * dt;
+      const float actualTurn = std::clamp(da, -maxTurnThisStep, maxTurnThisStep);
+
+      drone.direction += actualTurn;
+      drone.direction = Math::normalizeAngle(drone.direction);
+
+      // Перевіряємо, чи ми вже довернули на потрібний кут
+      if (std::fabs(Math::normalizeAngle(desiredDirection - drone.direction)) <= m_config.turnThreshold) {
         drone.direction = desiredDirection;
         drone.state = DroneState::ACCELERATING;
-      }
-      else {
-        drone.direction += (da > 0.0f ? 1.0f : -1.0f) * m_config.angularSpeed * dt;
-        drone.direction = Math::normalizeAngle(drone.direction);
       }
       break;
     }

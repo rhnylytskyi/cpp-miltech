@@ -8,6 +8,7 @@
 #include "ballistic_app/Defines.h"
 #include <cmath>
 #include <stdexcept>
+#include <algorithm>
 
 namespace BallisticApp {
 
@@ -76,29 +77,29 @@ bool MissionProcessor::hasNext()
 
 SimStep MissionProcessor::step()
 {
-  float bestTime = 1e9f;
-  int bestTarget = 0;
-  Coord bestPredicted{0, 0};
-  Coord bestFirePoint{0, 0};
-
   const DronePhysicsState currentDroneState{m_dronePos, m_speed, m_direction, m_state};
   const int targetCount = m_provider->getTargetCount();
 
   // Пошук найкращої цілі через віртуальний прогноз польоту
-  for (int tId = 0; tId < targetCount; ++tId) {
-    Coord currentFirePoint{0, 0};
-    Coord currentPredictedTarget{0, 0};
+  std::vector<TargetCandidate> candidates;
+  candidates.reserve(targetCount);
 
-    const float predictedTime = m_planner.predictTimeAndPos(
-      currentDroneState, m_currentTime, m_cachedFlightTime, m_cachedHDist, tId, currentFirePoint, currentPredictedTarget);
-    if (predictedTime < bestTime) {
-      bestTime = predictedTime;
-      bestTarget = tId;
-      bestPredicted = currentPredictedTarget;
-      bestFirePoint = currentFirePoint;
-    }
+  for (int tId = 0; tId < targetCount; ++tId) {
+    TargetCandidate c;
+    c.id = tId;
+    c.time =
+      m_planner.predictTimeAndPos(currentDroneState, m_currentTime, m_cachedFlightTime, m_cachedHDist, tId, c.firePoint, c.predictedTarget);
+    candidates.push_back(c);
   }
 
+  auto bestIt = std::min_element(
+    candidates.begin(), candidates.end(), [](const TargetCandidate& a, const TargetCandidate& b) { return a.time < b.time; });
+
+  const int bestTarget = bestIt->id;
+  const Coord bestPredicted = bestIt->predictedTarget;
+  const Coord bestFirePoint = bestIt->firePoint;
+
+  // Розрахунок параметрів скидання на основі знайденої найкращої цілі
   const Coord firePoint = bestFirePoint;
 
   // Розрахунок точного вектора прицілювання (aimPoint) попереду точки скидання
@@ -110,7 +111,7 @@ SimStep MissionProcessor::step()
   const Coord aimPoint = firePoint + dropToTargetDir * m_cachedHDist;
 
   // Запис поточного кроку в історію симуляції
-  SimStep currentStep; 
+  SimStep currentStep;
   currentStep.pos = m_dronePos;
   currentStep.direction = m_direction;
   currentStep.state = m_state;
@@ -129,16 +130,18 @@ SimStep MissionProcessor::step()
   m_direction = updatedState.direction;
   m_state = updatedState.state;
 
+  // Перевірка умови завершення місії
   if (m_state == DroneState::MOVING && Math::length(m_dronePos - firePoint) <= m_config.hitRadius * 0.25f) {
     m_isMissionFinished = true;
     LOG("Target captured. Weapon released at step: " + std::to_string(m_totalSteps));
   }
 
   m_currentTime += m_config.simTimeStep;
-  const SimStep currentStepData = currentStep;
-  m_steps.push_back(currentStepData);
+
+  m_steps.push_back(currentStep);
   m_totalSteps++;
-  return currentStepData;
+
+  return currentStep;
 }
 
 void MissionProcessor::run()
@@ -159,7 +162,7 @@ void MissionProcessor::reset()
   m_totalSteps = 0;
   m_isMissionFinished = false;
 
-  m_steps.clear(); 
+  m_steps.clear();
   m_steps.reserve(MissionProcessor::MAX_STEPS);
 }
 

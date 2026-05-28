@@ -1,25 +1,27 @@
 #pragma once
-
 #include "ballistic_app/interfaces/IConfigLoader.h"
 #include "ballistic_app/Types.h"
 #include <string>
+#include <map>
+#include <nlohmann/json_fwd.hpp>
 
 namespace BallisticApp {
 
 class FileConfigLoader : public IConfigLoader {
-private:
-  DroneConfig config;
-  AmmoParams ammo;
-
-  void loadAmmoParams(const std::string& ammoPath, const std::string& targetAmmoName);
-
 public:
   FileConfigLoader();
-  ~FileConfigLoader() override = default;
-
   void load(const std::string& configPath, const std::string& ammoSource) override;
+
   DroneConfig getConfig() const override;
   AmmoParams getAmmoParams() const override;
+
+private:
+  void validateDroneConfig(const nlohmann::json& j) const;
+  void validateAmmoItem(const nlohmann::json& item, const std::string& ammoPath) const;
+  void loadAmmoParams(const std::string& ammoPath);
+
+  DroneConfig config;
+  std::map<std::string, AmmoParams> ammoMap;
 };
 
 }  // namespace BallisticApp

@@ -2,10 +2,14 @@
 
 #include "ballistic_app/interfaces/ISimulationExporter.h"
 #include "ballistic_app/Types.h"
+#include <nlohmann/json_fwd.hpp>
 #include <string>
 #include <vector>
 
 namespace BallisticApp {
+
+void to_json(nlohmann::json& j, const Coord& c);
+void to_json(nlohmann::json& j, const SimStep& step);
 
 class JsonExporter : public ISimulationExporter {
 public:

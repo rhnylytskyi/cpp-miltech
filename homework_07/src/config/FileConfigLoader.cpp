@@ -10,7 +10,7 @@ namespace BallisticApp {
 
 FileConfigLoader::FileConfigLoader()
   : config{}
-  , ammo{}
+  , ammoMap{}
 {
 }
 
@@ -24,6 +24,8 @@ void FileConfigLoader::load(const std::string& configPath, const std::string& am
   json j;
   f >> j;
   f.close();
+
+  validateDroneConfig(j);
 
   // --- Заповнення конфігурації дрону ---
   config.startPos.x = j["drone"]["position"]["x"];
@@ -39,11 +41,11 @@ void FileConfigLoader::load(const std::string& configPath, const std::string& am
   config.arrayTimeStep = j["targetArrayTimeStep"];
   config.ammoName = j["ammo"].get<std::string>();
 
-  // --- Завантаження параметрів снаряду ---
-  loadAmmoParams(ammoSource, config.ammoName);
+  // --- Завантаження параметрів снарядів ---
+  loadAmmoParams(ammoSource);
 }
 
-void FileConfigLoader::loadAmmoParams(const std::string& ammoPath, const std::string& targetAmmoName)
+void FileConfigLoader::loadAmmoParams(const std::string& ammoPath)
 {
   std::ifstream fAmmo(ammoPath);
   if (!fAmmo.is_open()) {
@@ -54,17 +56,62 @@ void FileConfigLoader::loadAmmoParams(const std::string& ammoPath, const std::st
   fAmmo >> jAmmoArray;
   fAmmo.close();
 
-  for (const auto& item : jAmmoArray) {
-    if (item["name"].get<std::string>() == targetAmmoName) {
-      ammo.name = targetAmmoName;
-      ammo.mass = item["mass"].get<float>();
-      ammo.drag = item["drag"].get<float>();
-      ammo.lift = item["lift"].get<float>();
-      return;
-    }
+  if (!jAmmoArray.is_array()) {
+    throw std::runtime_error(std::format("Ammo file \"{}\" must contain a JSON array!", ammoPath));
   }
 
-  throw std::runtime_error(std::format("Cannot find ammo parameters for \"{}\" in file \"{}\"!", targetAmmoName, ammoPath));
+  ammoMap.clear();
+
+  for (const auto& item : jAmmoArray) {
+    validateAmmoItem(item, ammoPath);
+
+    std::string name = item["name"].get<std::string>();
+
+    AmmoParams params;
+    params.name = name;
+    params.mass = item["mass"].get<float>();
+    params.drag = item["drag"].get<float>();
+    params.lift = item["lift"].get<float>();
+
+    ammoMap[name] = params;
+  }
+}
+
+void FileConfigLoader::validateDroneConfig(const nlohmann::json& j) const
+{
+  auto assertHasKey = [&j](const std::string& jsonPointerPath) {
+    if (!j.contains(json::json_pointer(jsonPointerPath))) {
+      throw std::runtime_error(std::format("Config validation failed! Missing required field: '{}'", jsonPointerPath));
+    }
+  };
+
+  assertHasKey("/drone/position/x");
+  assertHasKey("/drone/position/y");
+  assertHasKey("/drone/initialDirection");
+  assertHasKey("/drone/altitude");
+  assertHasKey("/drone/attackSpeed");
+  assertHasKey("/drone/angularSpeed");
+  assertHasKey("/drone/turnThreshold");
+  assertHasKey("/drone/accelerationPath");
+  assertHasKey("/simulation/hitRadius");
+  assertHasKey("/simulation/timeStep");
+  assertHasKey("/targetArrayTimeStep");
+  assertHasKey("/ammo");
+}
+
+void FileConfigLoader::validateAmmoItem(const nlohmann::json& item, const std::string& ammoPath) const
+{
+  auto assertHasAmmoKey = [&item, &ammoPath](const std::string& key) {
+    if (!item.contains(key)) {
+      throw std::runtime_error(
+        std::format("Ammo validation failed in file \"{}\"! One of the ammo items is missing the '{}' field.", ammoPath, key));
+    }
+  };
+
+  assertHasAmmoKey("name");
+  assertHasAmmoKey("mass");
+  assertHasAmmoKey("drag");
+  assertHasAmmoKey("lift");
 }
 
 DroneConfig FileConfigLoader::getConfig() const
@@ -74,7 +121,11 @@ DroneConfig FileConfigLoader::getConfig() const
 
 AmmoParams FileConfigLoader::getAmmoParams() const
 {
-  return ammo;
+  auto it = ammoMap.find(config.ammoName);
+  if (it == ammoMap.end()) {
+    throw std::runtime_error(std::format("Cannot find ammo parameters for \"{}\" among loaded ammunition types!", config.ammoName));
+  }
+  return it->second;
 }
 
 }  // namespace BallisticApp
