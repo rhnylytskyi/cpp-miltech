@@ -5,6 +5,7 @@
 #include "ballistic_app/interfaces/IConfigLoader.h"
 #include "ballistic_app/interfaces/ISimulationExporter.h"
 #include <string>
+#include <memory>
 
 namespace BallisticApp {
 
@@ -17,10 +18,10 @@ class ComponentFactory {
 public:
   ComponentFactory() = delete;
 
-  static IBallisticSolver* createSolver(SolverType type);
-  static ITargetProvider* createProvider(TargetProviderType type, const std::string& param);
-  static IConfigLoader* createLoader(ConfigLoaderType type);
-  static ISimulationExporter* createExporter(ExporterType type, const std::string& param);
+  static std::unique_ptr<IBallisticSolver> createSolver(SolverType type);
+  static std::unique_ptr<ITargetProvider> createProvider(TargetProviderType type, const std::string& param);
+  static std::unique_ptr<IConfigLoader> createLoader(ConfigLoaderType type);
+  static std::unique_ptr<ISimulationExporter> createExporter(ExporterType type, const std::string& param);
 };
 
 }  // namespace BallisticApp

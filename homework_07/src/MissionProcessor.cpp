@@ -31,10 +31,10 @@ MissionProcessor::MissionProcessor(const std::string& targetsPath,
   , m_provider(ComponentFactory::createProvider(TargetProviderType::JSON, targetsPath))
   , m_solver(ComponentFactory::createSolver(SolverType::ANALYTICAL))
   , m_exporter(ComponentFactory::createExporter(ExporterType::JSON, simulationPath))
-  , m_config(loadConfigHelper(m_loader, configSource, ammoSource))
+  , m_config(loadConfigHelper(m_loader.get(), configSource, ammoSource))
   , m_ammo(m_loader ? m_loader->getAmmoParams() : AmmoParams{})
   , m_physicsEngine(m_config)
-  , m_targetPredictor(m_provider, m_config)
+  , m_targetPredictor(m_provider.get(), m_config)
   , m_planner(m_physicsEngine, m_targetPredictor, m_config)
   , m_dronePos{0, 0}
   , m_direction(0.0f)
@@ -47,10 +47,6 @@ MissionProcessor::MissionProcessor(const std::string& targetsPath,
   , m_cachedHDist(0.0f)
 {
   if (!m_loader || !m_provider || !m_solver || !m_exporter) {
-    delete m_loader;
-    delete m_provider;
-    delete m_solver;
-    delete m_exporter;
     throw std::runtime_error("MissionProcessor Error: Factory failed to create critical components.");
   }
 
@@ -62,13 +58,7 @@ MissionProcessor::MissionProcessor(const std::string& targetsPath,
   LOG("Mission initialized. Ammo: " + m_ammo.name);
 }
 
-MissionProcessor::~MissionProcessor()
-{
-  delete m_loader;
-  delete m_provider;
-  delete m_solver;
-  delete m_exporter;
-}
+MissionProcessor::~MissionProcessor() = default;
 
 bool MissionProcessor::hasNext()
 {
@@ -166,10 +156,10 @@ void MissionProcessor::reset()
   m_steps.reserve(MissionProcessor::MAX_STEPS);
 }
 
-void MissionProcessor::changeSolver(IBallisticSolver* solver)
+void MissionProcessor::changeSolver(std::unique_ptr<IBallisticSolver> solver)
 {
   if (solver) {
-    m_solver = solver;
+    m_solver = std::move(solver);
     m_cachedFlightTime = m_solver->calcTimeOfFall(m_config.altitude, m_config.attackSpeed, m_ammo);
     m_cachedHDist = m_solver->calcHDistance(m_cachedFlightTime, m_config.attackSpeed, m_ammo);
   }

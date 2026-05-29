@@ -6,6 +6,7 @@
 #include "ballistic_app/MissionPlanner.h"
 #include <string>
 #include <vector>
+#include <memory>
 
 namespace BallisticApp {
 
@@ -31,7 +32,7 @@ public:
   SimStep step();
   void run();
   void reset();
-  void changeSolver(IBallisticSolver* solver);
+  void changeSolver(std::unique_ptr<IBallisticSolver> solver);
 
   int getTotalSteps() const;
   const std::vector<SimStep>& getStepsHistory() const;
@@ -43,11 +44,11 @@ private:
     Coord firePoint;
     Coord predictedTarget;
   };
-  
-  IConfigLoader* m_loader;
-  ITargetProvider* m_provider;
-  IBallisticSolver* m_solver;
-  ISimulationExporter* m_exporter;
+
+  std::unique_ptr<IConfigLoader> m_loader;
+  std::unique_ptr<ITargetProvider> m_provider;
+  std::unique_ptr<IBallisticSolver> m_solver;
+  std::unique_ptr<ISimulationExporter> m_exporter;
 
   DroneConfig m_config;
   AmmoParams m_ammo;

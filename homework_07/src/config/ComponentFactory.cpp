@@ -3,44 +3,45 @@
 #include "ballistic_app/providers/JsonTargetProvider.h"
 #include "ballistic_app/solvers/AnalyticalBallisticSolver.h"
 #include "ballistic_app/exporters/JsonExporter.h"
+#include <memory>
 
 namespace BallisticApp {
 
-IBallisticSolver* ComponentFactory::createSolver(SolverType type)
+std::unique_ptr<IBallisticSolver> ComponentFactory::createSolver(SolverType type)
 {
   switch (type) {
     case SolverType::ANALYTICAL:
-      return new AnalyticalBallisticSolver();
+      return std::make_unique<AnalyticalBallisticSolver>();
     default:
       return nullptr;
   }
 }
 
-ITargetProvider* ComponentFactory::createProvider(TargetProviderType type, const std::string& param)
+std::unique_ptr<ITargetProvider> ComponentFactory::createProvider(TargetProviderType type, const std::string& param)
 {
   switch (type) {
     case TargetProviderType::JSON:
-      return new JsonTargetProvider(param);
+      return std::make_unique<JsonTargetProvider>(param);
     default:
       return nullptr;
   }
 }
 
-IConfigLoader* ComponentFactory::createLoader(ConfigLoaderType type)
+std::unique_ptr<IConfigLoader> ComponentFactory::createLoader(ConfigLoaderType type)
 {
   switch (type) {
     case ConfigLoaderType::FILE:
-      return new FileConfigLoader();
+      return std::make_unique<FileConfigLoader>();
     default:
       return nullptr;
   }
 }
 
-ISimulationExporter* ComponentFactory::createExporter(ExporterType type, const std::string& param)
+std::unique_ptr<ISimulationExporter> ComponentFactory::createExporter(ExporterType type, const std::string& param)
 {
   switch (type) {
     case ExporterType::JSON:
-      return new JsonExporter(param);
+      return std::make_unique<JsonExporter>(param);
     default:
       return nullptr;
   }
