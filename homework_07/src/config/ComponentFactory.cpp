@@ -1,8 +1,8 @@
-#include "ballistic_app/config/ComponentFactory.h"
-#include "ballistic_app/config/FileConfigLoader.h"
-#include "ballistic_app/providers/JsonTargetProvider.h"
-#include "ballistic_app/solvers/AnalyticalBallisticSolver.h"
-#include "ballistic_app/exporters/JsonExporter.h"
+#include "BallisticApp/config/ComponentFactory.h"
+#include "BallisticApp/config/FileConfigLoader.h"
+#include "BallisticApp/providers/JsonTargetProvider.h"
+#include "BallisticApp/solvers/AnalyticalBallisticSolver.h"
+#include "BallisticApp/exporters/JsonExporter.h"
 #include <memory>
 
 namespace BallisticApp {

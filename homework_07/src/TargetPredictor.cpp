@@ -1,4 +1,4 @@
-#include "ballistic_app/TargetPredictor.h"
+#include "BallisticApp/TargetPredictor.h"
 #include <cmath>
 
 namespace BallisticApp {

@@ -1,4 +1,4 @@
-#include "ballistic_app/utils/MathUtils.h"
+#include "BallisticApp/utils/MathUtils.h"
 #include <cmath>
 #include <numbers>
 

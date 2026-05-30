@@ -1,4 +1,4 @@
-#include "ballistic_app/solvers/AnalyticalBallisticSolver.h"
+#include "BallisticApp/solvers/AnalyticalBallisticSolver.h"
 #include <cmath>
 #include <numbers>
 

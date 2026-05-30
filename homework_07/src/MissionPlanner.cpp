@@ -1,7 +1,13 @@
-#include "ballistic_app/MissionPlanner.h"
-#include "ballistic_app/DronePhysicsEngine.h"
-#include "ballistic_app/TargetPredictor.h"
-#include "ballistic_app/utils/MathUtils.h"
+#include "BallisticApp/MissionPlanner.h"
+#include "BallisticApp/DronePhysicsEngine.h"
+#include "BallisticApp/TargetPredictor.h"
+#include "BallisticApp/states/StateStopped.h"
+#include "BallisticApp/states/StateAccelerating.h"
+#include "BallisticApp/states/StateDecelerating.h"
+#include "BallisticApp/states/StateTurning.h"
+#include "BallisticApp/states/StateMoving.h"
+#include "BallisticApp/utils/MathUtils.h"
+#include <cmath>
 
 namespace BallisticApp {
 
@@ -12,10 +18,28 @@ MissionPlanner::MissionPlanner(DronePhysicsEngine& physicsEngine, TargetPredicto
 {
 }
 
+std::unique_ptr<IDroneState> createStateFromType(DroneState type)
+{
+  switch (type) {
+    case DroneState::STOPPED:
+      return std::make_unique<StateStopped>();
+    case DroneState::ACCELERATING:
+      return std::make_unique<StateAccelerating>();
+    case DroneState::DECELERATING:
+      return std::make_unique<StateDecelerating>();
+    case DroneState::TURNING:
+      return std::make_unique<StateTurning>();
+    case DroneState::MOVING:
+      return std::make_unique<StateMoving>();
+  }
+  return std::make_unique<StateStopped>();
+}
+
 /**
  * Прогнозує час досягнення цілі та позицію скидання бомби для заданого стану дрона та цілі.
  */
-float MissionPlanner::predictTimeAndPos(const DronePhysicsState& currentDrone,
+float MissionPlanner::predictTimeAndPos(const DroneContext& currentDroneCtx,
+                                        DroneState currentStateType,
                                         float currentTime,
                                         float cachedFlightTime,
                                         float cachedHDist,
@@ -23,8 +47,10 @@ float MissionPlanner::predictTimeAndPos(const DronePhysicsState& currentDrone,
                                         Coord& outFirePoint,
                                         Coord& outPredictedTarget) const
 {
-  // Копіюємо ПОТОЧНИЙ стан дрона для віртуального тесту
-  DronePhysicsState vDrone = currentDrone;
+  // Створюємо копію контексту та стану для віртуальної симуляції вперед у часі
+  DroneContext vDroneCtx = currentDroneCtx;
+  std::unique_ptr<IDroneState> vState = createStateFromType(currentStateType);
+
   float vTime = currentTime;
   float elapsedPredictionTime = 0.0f;
 
@@ -38,22 +64,23 @@ float MissionPlanner::predictTimeAndPos(const DronePhysicsState& currentDrone,
     outPredictedTarget = m_predictor.extrapolate(targetIdx, vTime, cachedFlightTime);
 
     // Рахуємо, де має бути точка СКИДАННЯ для цієї позиції цілі
-    Coord delta = outPredictedTarget - vDrone.pos;
+    Coord delta = outPredictedTarget - vDroneCtx.pos;
     outFirePoint = outPredictedTarget - Math::normalize(delta) * cachedHDist;
 
+    // Оновлюємо віртуальний контекст дрона на основі фізики та поточного стану
+    m_physicsEngine.update(vDroneCtx, vState, outFirePoint, dt);
+
     // Перевіряємо умову перехоплення (чи долетів віртуальний дрон до точки скидання)
-    if (vDrone.state == DroneState::MOVING && Math::length(vDrone.pos - outFirePoint) <= m_config.hitRadius * 0.25f) {
-      return elapsedPredictionTime;
+    if (vDroneCtx.isTargetCaptured(vState->getType(), outFirePoint)) {
+      return elapsedPredictionTime + dt;
     }
 
-    // Оновлюємо віртуальну позицію та час
-    float deltaPath = 0.0f;
-    m_physicsEngine.update(vDrone, outFirePoint, dt, deltaPath);
-
+    // Оновлюємо віртуальний час
     vTime += dt;
     elapsedPredictionTime += dt;
   }
-  return MAX_PREDICT_TIME; // Якщо ціль недосяжна за адекватний час
+
+  return MAX_PREDICT_TIME;  // Якщо ціль недосяжна за адекватний час
 }
 
 }  // namespace BallisticApp
