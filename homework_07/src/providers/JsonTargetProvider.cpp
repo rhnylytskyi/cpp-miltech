@@ -47,7 +47,26 @@ int JsonTargetProvider::getTimeSteps() const
 
 Coord JsonTargetProvider::getTargetPos(int targetIdx, int timeIdx) const
 {
-  return targets.at(targetIdx).at(timeIdx);
+  // Захист від невалідного індексу цілі
+  if (targetIdx < 0 || targetIdx >= static_cast<int>(targets.size())) {
+    return {0.0f, 0.0f};
+  }
+
+  const auto& target_path = targets[targetIdx];
+  if (target_path.empty()) {
+    return {0.0f, 0.0f};
+  }
+
+  // Захист від виходу за межі часових кроків (кадрів)
+  if (timeIdx < 0) {
+    return target_path.front();  // Повертаємо початкову позицію цілі
+  }
+  if (timeIdx >= static_cast<int>(target_path.size())) {
+    return target_path.back();  // Повертаємо останню відому позицію цілі замість крашу!
+  }
+
+  // Якщо все супер — повертаємо швидкий доступ через оператор []
+  return target_path[timeIdx];
 }
 
 }  // namespace BallisticApp

@@ -1,4 +1,7 @@
 #include "BallisticApp/DronePhysicsEngine.h"
+#include "BallisticApp/MissionContext.h"
+#include "BallisticApp/interfaces/IDroneState.h"
+#include "BallisticApp/ComponentFactory.h"
 #include <cmath>
 
 namespace BallisticApp {
@@ -8,18 +11,24 @@ DronePhysicsEngine::DronePhysicsEngine(const DroneConfig& config)
 {
 }
 
-void DronePhysicsEngine::update(MissionContext& ctx, std::unique_ptr<IDroneState>& currentState, const Coord& firePoint) const
+void DronePhysicsEngine::update(MissionContext& ctx) const
 {
-  // Обчислюємо бажаний напрямок руху до цілі
-  ctx.desiredDir = std::atan2(firePoint.y - ctx.pos.y, firePoint.x - ctx.pos.x);
+  if (!ctx.currentState)
+    return;
 
-  // Делегуємо логіку поточному стану
-  auto nextState = currentState->execute(ctx);
-  if (nextState) {
-    currentState = std::move(nextState);
+  // Розрахунок бажаного напрямку
+  ctx.desiredDir = std::atan2(ctx.firePoint.y - ctx.pos.y, ctx.firePoint.x - ctx.pos.x);
+
+  // Виконуємо логіку стану і отримуємо енум наступного стану
+  DroneState nextStateType = ctx.currentState->execute(ctx);
+
+  // Якщо стан змінився, оновлюємо вказівник та тип у контексті
+  if (nextStateType != ctx.currentStateType) {
+    ctx.currentStateType = nextStateType;
+    ctx.currentState = ComponentFactory::getState(nextStateType);
   }
 
-  // Змінюємо позицію на основі розрахованого зміщення всередині стану
+  // Оновлюємо позицію
   ctx.pos.x += std::cos(ctx.direction) * ctx.lastDeltaPath;
   ctx.pos.y += std::sin(ctx.direction) * ctx.lastDeltaPath;
 }

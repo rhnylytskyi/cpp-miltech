@@ -14,6 +14,6 @@ public:
 
 private:
   ITargetProvider* m_provider;
-  DroneConfig m_config;
+  const DroneConfig& m_config;
 };
 }  // namespace BallisticApp

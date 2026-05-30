@@ -4,6 +4,7 @@
 #include "BallisticApp/interfaces/ITargetProvider.h"
 #include "BallisticApp/interfaces/IConfigLoader.h"
 #include "BallisticApp/interfaces/ISimulationExporter.h"
+#include "BallisticApp/interfaces/IDroneState.h"
 #include <string>
 #include <memory>
 
@@ -22,6 +23,7 @@ public:
   static std::unique_ptr<ITargetProvider> createProvider(TargetProviderType type, const std::string& param);
   static std::unique_ptr<IConfigLoader> createLoader(ConfigLoaderType type);
   static std::unique_ptr<ISimulationExporter> createExporter(ExporterType type, const std::string& param);
+  static IDroneState* getState(DroneState type);
 };
 
 }  // namespace BallisticApp

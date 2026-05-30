@@ -1,11 +1,12 @@
 #pragma once
 
-#include "BallisticApp/SimStep.h"
+#include "BallisticApp/DroneConfig.h"
 #include "BallisticApp/AmmoParams.h"
+#include "BallisticApp/MissionContext.h"
 #include "BallisticApp/DronePhysicsEngine.h"
 #include "BallisticApp/TargetPredictor.h"
-#include "BallisticApp/MissionPlanner.h"
-#include "BallisticApp/MissionContext.h"
+#include "BallisticApp/FireControlComputer.h"
+#include "BallisticApp/SimStep.h"
 #include <string>
 #include <vector>
 #include <memory>
@@ -17,6 +18,11 @@ class ITargetProvider;
 class IBallisticSolver;
 class ISimulationExporter;
 
+struct TargetCandidate {
+  int id{0};
+  FireSolution solution;
+};
+
 class MissionProcessor {
 public:
   static constexpr int MAX_STEPS = 10000;
@@ -27,27 +33,15 @@ public:
                    const std::string& ammoSource);
   ~MissionProcessor();
 
-  MissionProcessor(const MissionProcessor&) = delete;
-  MissionProcessor& operator=(const MissionProcessor&) = delete;
-
-  bool hasNext();
-  SimStep step();
   void run();
+  SimStep step();
   void reset();
+  bool hasNext();
   void changeSolver(std::unique_ptr<IBallisticSolver> solver);
-
   int getTotalSteps() const;
   const std::vector<SimStep>& getStepsHistory() const;
 
 private:
-  struct TargetCandidate {
-    int id;
-    float time;
-    Coord firePoint;
-    Coord predictedTarget;
-  };
-
-  // Порядок важливий: лоадер ініціалізується ПЕРШИМ, оскільки m_config залежить від нього
   std::unique_ptr<IConfigLoader> m_loader;
   std::unique_ptr<ITargetProvider> m_provider;
   std::unique_ptr<IBallisticSolver> m_solver;
@@ -56,21 +50,15 @@ private:
   DroneConfig m_config;
   AmmoParams m_ammo;
 
-  DronePhysicsEngine m_physicsEngine;
-  TargetPredictor m_targetPredictor;
-  MissionPlanner m_planner;
-
-  std::vector<SimStep> m_steps;
+  std::unique_ptr<DronePhysicsEngine> m_physicsEngine;
+  std::unique_ptr<TargetPredictor> m_targetPredictor;
+  std::unique_ptr<FireControlComputer> m_fireControl;
 
   MissionContext m_missionCtx;
-  std::unique_ptr<IDroneState> m_currentState;
-
   float m_currentTime;
   int m_totalSteps;
   bool m_isMissionFinished;
-
-  float m_cachedFlightTime;
-  float m_cachedHDist;
+  std::vector<SimStep> m_steps;
 };
 
 }  // namespace BallisticApp
