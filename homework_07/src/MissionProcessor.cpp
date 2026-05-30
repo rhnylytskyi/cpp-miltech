@@ -37,7 +37,7 @@ MissionProcessor::MissionProcessor(const std::string& targetsPath,
   , m_physicsEngine(m_config)
   , m_targetPredictor(m_provider.get(), m_config)
   , m_planner(m_physicsEngine, m_targetPredictor, m_config)
-  , m_droneCtx{m_config.startPos, 0.0f, m_config.initialDir, 0.0f, 0.0f, m_config}
+  , m_missionCtx{m_config.startPos, 0.0f, m_config.initialDir, 0.0f, 0.0f, m_config}
   , m_currentState(std::make_unique<StateStopped>())
   , m_currentTime(0.0f)
   , m_totalSteps(0)
@@ -73,7 +73,7 @@ SimStep MissionProcessor::step()
     TargetCandidate c;
     c.id = tId;
     c.time = m_planner.predictTimeAndPos(
-      m_droneCtx, m_currentState->getType(), m_currentTime, m_cachedFlightTime, m_cachedHDist, tId, c.firePoint, c.predictedTarget);
+      m_missionCtx, m_currentState->getType(), m_currentTime, m_cachedFlightTime, m_cachedHDist, tId, c.firePoint, c.predictedTarget);
     candidates.push_back(c);
   }
 
@@ -85,17 +85,17 @@ SimStep MissionProcessor::step()
   const Coord firePoint = bestIt->firePoint;
 
   // Розрахунок точки прицілювання
-  Coord dropToTargetDir = {std::cos(m_droneCtx.direction), std::sin(m_droneCtx.direction)};
-  const float distToFire = Math::length(firePoint - m_droneCtx.pos);
+  Coord dropToTargetDir = {std::cos(m_missionCtx.direction), std::sin(m_missionCtx.direction)};
+  const float distToFire = Math::length(firePoint - m_missionCtx.pos);
   if (distToFire > 1e-4f) {
-    dropToTargetDir = Math::normalize(firePoint - m_droneCtx.pos);
+    dropToTargetDir = Math::normalize(firePoint - m_missionCtx.pos);
   }
   const Coord aimPoint = firePoint + dropToTargetDir * m_cachedHDist;
 
   // Зберігаємо поточний стан до оновлення фізики для формування логу/історії кроку
   SimStep currentStep;
-  currentStep.pos = m_droneCtx.pos;
-  currentStep.direction = m_droneCtx.direction;
+  currentStep.pos = m_missionCtx.pos;
+  currentStep.direction = m_missionCtx.direction;
   currentStep.state = m_currentState->getType();
   currentStep.targetIdx = bestTarget;
   currentStep.dropPoint = firePoint;
@@ -103,12 +103,12 @@ SimStep MissionProcessor::step()
   currentStep.predictedTarget = bestPredicted;
 
   // Крок фізичного двигуна (контекст і стан модифікуються всередині)
-  m_physicsEngine.update(m_droneCtx, m_currentState, firePoint, m_config.simTimeStep);
+  m_physicsEngine.update(m_missionCtx, m_currentState, firePoint);
 
   // Перевірка умови скидання боєприпасу
-  if (m_droneCtx.isTargetCaptured(m_currentState->getType(), firePoint)) {
+  if (m_missionCtx.isTargetCaptured(m_currentState->getType(), firePoint)) {
     m_isMissionFinished = true;
-    LOG("Target captured. Weapon released at step: " + std::to_string(m_totalSteps));
+    LOG("Target captured. Bomb released at step: " + std::to_string(m_totalSteps));
   }
 
   m_currentTime += m_config.simTimeStep;
@@ -128,11 +128,11 @@ void MissionProcessor::run()
 
 void MissionProcessor::reset()
 {
-  m_droneCtx.pos = m_config.startPos;
-  m_droneCtx.direction = m_config.initialDir;
-  m_droneCtx.speed = 0.0f;
-  m_droneCtx.desiredDir = m_config.initialDir;
-  m_droneCtx.lastDeltaPath = 0.0f;
+  m_missionCtx.pos = m_config.startPos;
+  m_missionCtx.direction = m_config.initialDir;
+  m_missionCtx.speed = 0.0f;
+  m_missionCtx.desiredDir = m_config.initialDir;
+  m_missionCtx.lastDeltaPath = 0.0f;
 
   m_currentState = std::make_unique<StateStopped>();
   m_currentTime = 0.0f;

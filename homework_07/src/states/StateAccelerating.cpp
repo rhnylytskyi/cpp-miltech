@@ -2,14 +2,15 @@
 #include "BallisticApp/states/StateAccelerating.h"
 #include "BallisticApp/states/StateDecelerating.h"
 #include "BallisticApp/states/StateMoving.h"
-#include "BallisticApp/DroneContext.h"
+#include "BallisticApp/MissionContext.h"
 #include <cmath>
 #include <algorithm>
 
 namespace BallisticApp {
 
-std::unique_ptr<IDroneState> StateAccelerating::execute(DroneContext& ctx, float dt)
+std::unique_ptr<IDroneState> StateAccelerating::execute(MissionContext& ctx)
 {
+  float dt = ctx.cfg.simTimeStep;
   float deltaAngle = Math::normalizeAngle(ctx.desiredDir - ctx.direction);
   bool isTurningRequired = (std::fabs(deltaAngle) > ctx.cfg.turnThreshold);
 

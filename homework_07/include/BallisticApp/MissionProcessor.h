@@ -5,7 +5,7 @@
 #include "BallisticApp/DronePhysicsEngine.h"
 #include "BallisticApp/TargetPredictor.h"
 #include "BallisticApp/MissionPlanner.h"
-#include "BallisticApp/DroneContext.h"
+#include "BallisticApp/MissionContext.h"
 #include <string>
 #include <vector>
 #include <memory>
@@ -62,7 +62,7 @@ private:
 
   std::vector<SimStep> m_steps;
 
-  DroneContext m_droneCtx;
+  MissionContext m_missionCtx;
   std::unique_ptr<IDroneState> m_currentState;
 
   float m_currentTime;

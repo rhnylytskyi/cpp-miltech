@@ -1,14 +1,15 @@
 #include "BallisticApp/interfaces/IDroneState.h"
 #include "BallisticApp/states/StateTurning.h"
 #include "BallisticApp/states/StateAccelerating.h"
-#include "BallisticApp/DroneContext.h"
+#include "BallisticApp/MissionContext.h"
 #include <cmath>
 #include <algorithm>
 
 namespace BallisticApp {
 
-std::unique_ptr<IDroneState> StateTurning::execute(DroneContext& ctx, float dt)
+std::unique_ptr<IDroneState> StateTurning::execute(MissionContext& ctx)
 {
+  float dt = ctx.cfg.simTimeStep;
   ctx.lastDeltaPath = 0.0f;
   float deltaAngle = Math::normalizeAngle(ctx.desiredDir - ctx.direction);
   const float maxTurnThisStep = ctx.cfg.angularSpeed * dt;

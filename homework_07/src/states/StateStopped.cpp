@@ -1,13 +1,13 @@
 #include "BallisticApp/states/StateStopped.h"
-#include "BallisticApp/states/StateTurning.h"  // Потрібен, бо ми створюємо його всередині через make_unique
-#include "BallisticApp/states/StateAccelerating.h"  // Потрібен аналогічно
-#include "BallisticApp/DroneContext.h"  // Тепер повністю підключаємо контекст, бо тут потрібні його поля
+#include "BallisticApp/states/StateTurning.h"
+#include "BallisticApp/states/StateAccelerating.h"
+#include "BallisticApp/MissionContext.h"
 #include "BallisticApp/utils/MathUtils.h"
 #include <cmath>
 
 namespace BallisticApp {
 
-std::unique_ptr<IDroneState> StateStopped::execute(DroneContext& ctx, [[maybe_unused]] float dt)
+std::unique_ptr<IDroneState> StateStopped::execute(MissionContext& ctx)
 {
   ctx.lastDeltaPath = 0.0f;
   float deltaAngle = Math::normalizeAngle(ctx.desiredDir - ctx.direction);

@@ -1,14 +1,15 @@
 #include "BallisticApp/interfaces/IDroneState.h"
 #include "BallisticApp/states/StateDecelerating.h"
 #include "BallisticApp/states/StateStopped.h"
-#include "BallisticApp/DroneContext.h"
+#include "BallisticApp/MissionContext.h"
 #include <cmath>
 #include <algorithm>
 
 namespace BallisticApp {
 
-std::unique_ptr<IDroneState> StateDecelerating::execute(DroneContext& ctx, float dt)
+std::unique_ptr<IDroneState> StateDecelerating::execute(MissionContext& ctx)
 {
+  float dt = ctx.cfg.simTimeStep;
   const float acceleration = (ctx.cfg.attackSpeed * ctx.cfg.attackSpeed) / (2.0f * ctx.cfg.accelPath);
   const float prevSpeed = ctx.speed;
 

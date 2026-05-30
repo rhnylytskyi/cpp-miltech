@@ -7,7 +7,7 @@
 
 namespace BallisticApp {
 
-struct DroneContext {
+struct MissionContext {
   Coord pos{0.0f, 0.0f};
   float speed{0.0f};
   float direction{0.0f};

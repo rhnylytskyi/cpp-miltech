@@ -16,7 +16,7 @@ public:
   MissionPlanner(MissionPlanner&&) = delete;
   MissionPlanner& operator=(MissionPlanner&&) = delete;
 
-  float predictTimeAndPos(const DroneContext& currentDroneCtx,
+  float predictTimeAndPos(const MissionContext& currentMissionCtx,
                           DroneState currentStateType,
                           float currentTime,
                           float cachedFlightTime,

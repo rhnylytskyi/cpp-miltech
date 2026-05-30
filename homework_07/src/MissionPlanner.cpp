@@ -7,6 +7,7 @@
 #include "BallisticApp/states/StateTurning.h"
 #include "BallisticApp/states/StateMoving.h"
 #include "BallisticApp/utils/MathUtils.h"
+#include "BallisticApp/MissionContext.h"
 #include <cmath>
 
 namespace BallisticApp {
@@ -38,7 +39,7 @@ std::unique_ptr<IDroneState> createStateFromType(DroneState type)
 /**
  * Прогнозує час досягнення цілі та позицію скидання бомби для заданого стану дрона та цілі.
  */
-float MissionPlanner::predictTimeAndPos(const DroneContext& currentDroneCtx,
+float MissionPlanner::predictTimeAndPos(const MissionContext& currentMissionCtx,
                                         DroneState currentStateType,
                                         float currentTime,
                                         float cachedFlightTime,
@@ -48,7 +49,7 @@ float MissionPlanner::predictTimeAndPos(const DroneContext& currentDroneCtx,
                                         Coord& outPredictedTarget) const
 {
   // Створюємо копію контексту та стану для віртуальної симуляції вперед у часі
-  DroneContext vDroneCtx = currentDroneCtx;
+  MissionContext vMissionCtx = currentMissionCtx;
   std::unique_ptr<IDroneState> vState = createStateFromType(currentStateType);
 
   float vTime = currentTime;
@@ -64,14 +65,14 @@ float MissionPlanner::predictTimeAndPos(const DroneContext& currentDroneCtx,
     outPredictedTarget = m_predictor.extrapolate(targetIdx, vTime, cachedFlightTime);
 
     // Рахуємо, де має бути точка СКИДАННЯ для цієї позиції цілі
-    Coord delta = outPredictedTarget - vDroneCtx.pos;
+    Coord delta = outPredictedTarget - vMissionCtx.pos;
     outFirePoint = outPredictedTarget - Math::normalize(delta) * cachedHDist;
 
     // Оновлюємо віртуальний контекст дрона на основі фізики та поточного стану
-    m_physicsEngine.update(vDroneCtx, vState, outFirePoint, dt);
+    m_physicsEngine.update(vMissionCtx, vState, outFirePoint);
 
     // Перевіряємо умову перехоплення (чи долетів віртуальний дрон до точки скидання)
-    if (vDroneCtx.isTargetCaptured(vState->getType(), outFirePoint)) {
+    if (vMissionCtx.isTargetCaptured(vState->getType(), outFirePoint)) {
       return elapsedPredictionTime + dt;
     }
 

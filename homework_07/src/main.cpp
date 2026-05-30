@@ -11,8 +11,8 @@ int main(int argc, char* argv[])
     ConfigManager configManager;
     configManager.initialize(argc, argv);
 
-    LOG("Loading targets from: " << configManager.getTargetsPath());
     LOG("Loading config from: " << configManager.getConfigPath());
+    LOG("Loading targets from: " << configManager.getTargetsPath());
 
     MissionProcessor mission(
       configManager.getTargetsPath(), configManager.getSimulationPath(), configManager.getConfigPath(), configManager.getAmmoPath());
