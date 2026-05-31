@@ -1,5 +1,5 @@
 #include "BallisticApp/MissionProcessor.h"
-#include "BallisticApp/ConfigLocator.h"
+#include "BallisticApp/ScenarioPathResolver.h"
 #include "BallisticApp/Defines.h"
 #include <iostream>
 #include <exception>
@@ -9,12 +9,13 @@ using namespace BallisticApp;
 int main(int argc, char* argv[])
 {
   try {
-    const ConfigLocator locator(argc, argv);
+    ScenarioPathResolver pathResolver({argv, static_cast<size_t>(argc)});
 
-    LOG("Loading config from: " << locator.getConfigPath());
-    LOG("Loading targets from: " << locator.getTargetsPath());
+    LOG("Loading config from: " << pathResolver.getConfigPath());
+    LOG("Loading targets from: " << pathResolver.getTargetsPath());
 
-    MissionProcessor mission(locator.getConfigPath(), locator.getTargetsPath(), locator.getAmmoPath(), locator.getSimulationPath());
+    MissionProcessor mission(
+      pathResolver.getConfigPath(), pathResolver.getTargetsPath(), pathResolver.getAmmoPath(), pathResolver.getSimulationPath());
     mission.run();
   }
   catch (const std::exception& e) {

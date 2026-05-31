@@ -4,7 +4,7 @@
 
 namespace BallisticApp {
 
-TargetPredictor::TargetPredictor(ITargetProvider* provider, const DroneConfig& config)
+TargetPredictor::TargetPredictor(const ITargetProvider& provider, const DroneConfig& config)
   : m_provider(provider)
   , m_config(config)
 {
@@ -12,11 +12,7 @@ TargetPredictor::TargetPredictor(ITargetProvider* provider, const DroneConfig& c
 
 Coord TargetPredictor::interpolate(int targetIdx, float t) const
 {
-  if (!m_provider) {
-    return {0, 0};
-  }
-
-  const auto stepsCount = m_provider->getTimeSteps();
+  const auto stepsCount = m_provider.getTimeSteps();
   if (stepsCount <= 0) {
     return {0, 0};
   }
@@ -39,19 +35,15 @@ Coord TargetPredictor::interpolate(int targetIdx, float t) const
 
   const float frac = normalizedTime - floorTime;
 
-  const Coord pIdx = m_provider->getTargetPos(targetIdx, idx);
-  const Coord pNext = m_provider->getTargetPos(targetIdx, next);
+  const Coord pIdx = m_provider.getTargetPos(targetIdx, idx);
+  const Coord pNext = m_provider.getTargetPos(targetIdx, next);
 
   return pIdx + (pNext - pIdx) * frac;
 }
 
 Coord TargetPredictor::extrapolate(int targetIdx, float time, float dt) const
 {
-  if (!m_provider) {
-    return {0, 0};
-  }
-
-  const auto stepsCount = m_provider->getTimeSteps();
+  const auto stepsCount = m_provider.getTimeSteps();
   if (stepsCount <= 0) {
     return {0, 0};
   }
@@ -69,8 +61,8 @@ Coord TargetPredictor::extrapolate(int targetIdx, float time, float dt) const
   if (next < 0)
     next += stepsCount;
 
-  const Coord pIdx = m_provider->getTargetPos(targetIdx, idx);
-  const Coord pNext = m_provider->getTargetPos(targetIdx, next);
+  const Coord pIdx = m_provider.getTargetPos(targetIdx, idx);
+  const Coord pNext = m_provider.getTargetPos(targetIdx, next);
 
   // Швидкість цілі (зміна позиції за 1 секунду)
   const Coord v = (pNext - pIdx) / m_config.arrayTimeStep;

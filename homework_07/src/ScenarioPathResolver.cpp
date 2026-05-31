@@ -1,26 +1,26 @@
-#include "BallisticApp/ConfigLocator.h"
+#include "BallisticApp/ScenarioPathResolver.h"
 #include <format>
 #include <stdexcept>
-#include <string_view>
+#include <algorithm>
 
 namespace BallisticApp {
 
-ConfigLocator::ConfigLocator(int argc, char* argv[])
+ScenarioPathResolver::ScenarioPathResolver(std::span<const char* const> args)
 {
-  initialize(argc, argv);
+  resolve(args);
 }
 
-void ConfigLocator::initialize(int argc, char* argv[])
+void ScenarioPathResolver::resolve(std::span<const char* const> args)
 {
   std::string_view scenarioArg = "";
 
-  // Шукаємо прапорці --scenario або -s
-  for (int i = 1; i < argc; ++i) {
-    std::string_view arg(argv[i]);
-    if ((arg == "--scenario" || arg == "-s") && (i + 1 < argc)) {
-      scenarioArg = argv[i + 1];
-      break;
+  auto it = std::find_if(args.begin(), args.end(), [](std::string_view arg) { return arg == "--scenario" || arg == "-s"; });
+
+  if (it != args.end()) {
+    if (std::next(it) == args.end()) {
+      throw std::runtime_error("Error: Missing value for --scenario / -s argument!");
     }
+    scenarioArg = *std::next(it);
   }
 
   if (!scenarioArg.empty()) {
@@ -49,7 +49,7 @@ void ConfigLocator::initialize(int argc, char* argv[])
   validate();
 }
 
-void ConfigLocator::validate() const
+void ScenarioPathResolver::validate() const
 {
   std::string missingFiles;
 
@@ -65,22 +65,22 @@ void ConfigLocator::validate() const
   }
 }
 
-const std::filesystem::path& ConfigLocator::getConfigPath() const
+const std::filesystem::path& ScenarioPathResolver::getConfigPath() const
 {
   return m_configPath;
 }
 
-const std::filesystem::path& ConfigLocator::getTargetsPath() const
+const std::filesystem::path& ScenarioPathResolver::getTargetsPath() const
 {
   return m_targetsPath;
 }
 
-const std::filesystem::path& ConfigLocator::getAmmoPath() const
+const std::filesystem::path& ScenarioPathResolver::getAmmoPath() const
 {
   return m_ammoPath;
 }
 
-const std::filesystem::path& ConfigLocator::getSimulationPath() const
+const std::filesystem::path& ScenarioPathResolver::getSimulationPath() const
 {
   return m_simulationPath;
 }

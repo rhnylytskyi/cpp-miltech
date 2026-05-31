@@ -26,21 +26,25 @@ MissionProcessor::MissionProcessor(const std::filesystem::path& configSource,
   }())
   , m_ammo(m_loader ? m_loader->getAmmoParams() : AmmoParams{})
   , m_physicsEngine(std::make_unique<DronePhysicsEngine>(m_config))
-  , m_targetPredictor(std::make_unique<TargetPredictor>(m_provider.get(), m_config))
+  , m_targetPredictor(std::make_unique<TargetPredictor>(*m_provider, m_config))
   , m_fireControl(std::make_unique<FireControlComputer>(*m_physicsEngine, *m_targetPredictor, m_config))
-  , m_missionCtx{.pos = m_config.startPos,
-                 .speed = 0.0f,
-                 .direction = m_config.initialDir,
-                 .desiredDir = m_config.initialDir,
-                 .lastDeltaPath = 0.0f,
-                 .cfg = m_config,
-                 .currentState = ComponentFactory::getState(DroneStateType::STOPPED),
-                 .currentStateType = DroneStateType::STOPPED,
-                 .firePoint = Coord{0.0f, 0.0f},
-                 .currentTime = 0.0f,
-                 .cachedFlightTime = m_solver->calcTimeOfFall(m_config.altitude, m_config.attackSpeed, m_ammo),
-                 .cachedHDist = m_solver->calcHDistance(
-                   m_solver->calcTimeOfFall(m_config.altitude, m_config.attackSpeed, m_ammo), m_config.attackSpeed, m_ammo)}
+  , m_missionCtx([this]() {
+    const float flightTime = m_solver ? m_solver->calcTimeOfFall(m_config.altitude, m_config.attackSpeed, m_ammo) : 0.0f;
+    const float hDistance = m_solver ? m_solver->calcHDistance(flightTime, m_config.attackSpeed, m_ammo) : 0.0f;
+
+    return MissionContext{.pos = m_config.startPos,
+                          .speed = 0.0f,
+                          .direction = m_config.initialDir,
+                          .desiredDir = m_config.initialDir,
+                          .lastDeltaPath = 0.0f,
+                          .cfg = m_config,
+                          .currentState = ComponentFactory::getState(DroneStateType::STOPPED),
+                          .currentStateType = DroneStateType::STOPPED,
+                          .firePoint = Coord{0.0f, 0.0f},
+                          .currentTime = 0.0f,
+                          .cachedFlightTime = flightTime,
+                          .cachedHDist = hDistance};
+  }())
   , m_currentTime(0.0f)
   , m_totalSteps(0)
   , m_isMissionFinished(false)
@@ -53,15 +57,14 @@ MissionProcessor::~MissionProcessor() = default;
 
 bool MissionProcessor::hasNext()
 {
-  return (m_totalSteps < MissionProcessor::MAX_STEPS) && !m_isMissionFinished;
+  return (m_totalSteps < MAX_STEPS) && !m_isMissionFinished;
 }
 
 SimStep MissionProcessor::step()
 {
   const int targetCount = m_provider->getTargetCount();
 
-  std::vector<TargetCandidate> candidates;
-  candidates.reserve(targetCount);
+  m_candidates.clear();
 
   m_missionCtx.currentTime = m_currentTime;
 
@@ -69,11 +72,11 @@ SimStep MissionProcessor::step()
     TargetCandidate c;
     c.id = tId;
     c.solution = m_fireControl->calculateSolution(m_missionCtx, tId);
-    candidates.push_back(c);
+    m_candidates.push_back(c);
   }
 
   // Знаходимо кандидата з мінімальним часом польоту до точки скидання
-  auto bestIt = std::min_element(candidates.begin(), candidates.end(), [](const TargetCandidate& a, const TargetCandidate& b) {
+  auto bestIt = std::min_element(m_candidates.begin(), m_candidates.end(), [](const TargetCandidate& a, const TargetCandidate& b) {
     return a.solution.time < b.solution.time;
   });
 
@@ -82,7 +85,7 @@ SimStep MissionProcessor::step()
   Coord firePoint = bestIt->solution.firePoint;
 
   // РЕЗЕРВНИЙ ВАРІАНТ: Якщо математичне рішення для обраної цілі НЕ успішне
-  if (!bestIt->solution.isSuccess && !candidates.empty()) {
+  if (!bestIt->solution.isSuccess && !m_candidates.empty()) {
     // Беремо найпершу ціль (індекс 0)
     bestTarget = 0;
 
@@ -156,15 +159,29 @@ void MissionProcessor::reset()
   m_totalSteps = 0;
   m_isMissionFinished = false;
   m_steps.clear();
-  m_steps.reserve(MissionProcessor::MAX_STEPS);
+  m_steps.reserve(MAX_STEPS);
+
+  m_candidates.clear();
+  if (m_provider) {
+    m_candidates.reserve(m_provider->getTargetCount());
+  }
 }
 
 void MissionProcessor::changeSolver(std::unique_ptr<IBallisticSolver> solver)
 {
   if (solver) {
     m_solver = std::move(solver);
-    m_missionCtx.cachedFlightTime = m_solver->calcTimeOfFall(m_config.altitude, m_config.attackSpeed, m_ammo);
-    m_missionCtx.cachedHDist = m_solver->calcHDistance(m_missionCtx.cachedFlightTime, m_config.attackSpeed, m_ammo);
+    updateBallisticCache();
+  }
+}
+
+void MissionProcessor::updateBallisticCache()
+{
+  if (m_solver) {
+    const float flightTime = m_solver->calcTimeOfFall(m_config.altitude, m_config.attackSpeed, m_ammo);
+
+    m_missionCtx.cachedFlightTime = flightTime;
+    m_missionCtx.cachedHDist = m_solver->calcHDistance(flightTime, m_config.attackSpeed, m_ammo);
   }
 }
 

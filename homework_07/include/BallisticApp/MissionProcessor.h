@@ -42,6 +42,8 @@ public:
   const std::vector<SimStep>& getStepsHistory() const;
 
 private:
+  void updateBallisticCache();
+
   std::unique_ptr<IConfigLoader> m_loader;
   std::unique_ptr<ITargetProvider> m_provider;
   std::unique_ptr<IBallisticSolver> m_solver;
@@ -59,6 +61,7 @@ private:
   int m_totalSteps;
   bool m_isMissionFinished;
   std::vector<SimStep> m_steps;
+  std::vector<TargetCandidate> m_candidates;
 };
 
 }  // namespace BallisticApp
