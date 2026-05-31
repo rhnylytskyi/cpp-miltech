@@ -6,14 +6,17 @@
 #include "BallisticApp/interfaces/ISimulationExporter.h"
 #include "BallisticApp/states/DroneStateRegistry.h"
 #include "BallisticApp/utils/Logger.h"
+#include "BallisticApp/DronePhysicsEngine.h"
+#include "BallisticApp/TargetPredictor.h"
+#include "BallisticApp/FireControlComputer.h"
 #include <cmath>
-#include <algorithm>
 
 namespace BallisticApp {
 
 namespace {
 constexpr DroneStateType INITIAL_DRONE_STATE = DroneStateType::STOPPED;
-}
+constexpr int MAX_STEPS = 10000;
+}  // namespace
 
 MissionProcessor::MissionProcessor(const std::filesystem::path& configSource,
                                    const std::filesystem::path& targetsPath,
@@ -30,8 +33,8 @@ MissionProcessor::MissionProcessor(const std::filesystem::path& configSource,
   }())
   , m_ammo(m_loader ? m_loader->getAmmoParams() : AmmoParams{})
   , m_physicsEngine(std::make_unique<DronePhysicsEngine>())
-  , m_targetPredictor(std::make_unique<TargetPredictor>(*m_provider, m_config))
-  , m_fireControl(std::make_unique<FireControlComputer>(*m_physicsEngine, *m_targetPredictor, m_config))
+  , m_targetPredictor(std::make_unique<TargetPredictor>(*m_provider, m_config.arrayTimeStep))
+  , m_fireControl(std::make_unique<FireControlComputer>(*m_physicsEngine, *m_targetPredictor, m_config.simTimeStep))
   , m_missionCtx{.cfg = m_config}
   , m_currentTime(0.0f)
   , m_totalSteps(0)
@@ -51,37 +54,34 @@ bool MissionProcessor::hasNext()
 SimStep MissionProcessor::step()
 {
   const int targetCount = m_provider->getTargetCount();
-
-  m_candidates.clear();
-
   m_missionCtx.currentTime = m_currentTime;
 
+  FireSolution bestSolution;
+  bestSolution.isSuccess = false;
+  bestSolution.time = std::numeric_limits<float>::max();
+  int bestTarget = -1;
+
   for (int tId = 0; tId < targetCount; ++tId) {
-    TargetCandidate c;
-    c.id = tId;
-    c.solution = m_fireControl->calculateSolution(m_missionCtx, tId);
-    m_candidates.push_back(c);
+    FireSolution sol = m_fireControl->calculateSolution(m_missionCtx, tId);
+
+    if (sol.isSuccess && sol.time < bestSolution.time) {
+      bestSolution = sol;
+      bestTarget = tId;
+    }
   }
 
-  // Знаходимо кандидата з мінімальним часом польоту до точки скидання
-  auto bestIt = std::min_element(m_candidates.begin(), m_candidates.end(), [](const TargetCandidate& a, const TargetCandidate& b) {
-    return a.solution.time < b.solution.time;
-  });
+  Coord bestPredicted;
+  Coord firePoint;
 
-  int bestTarget = bestIt->id;
-  Coord bestPredicted = bestIt->solution.predictedTarget;
-  Coord firePoint = bestIt->solution.firePoint;
-
-  // РЕЗЕРВНИЙ ВАРІАНТ: Якщо математичне рішення для обраної цілі НЕ успішне
-  if (!bestIt->solution.isSuccess && !m_candidates.empty()) {
-    // Беремо найпершу ціль (індекс 0)
+  if (bestTarget != -1) {
+    bestPredicted = bestSolution.predictedTarget;
+    firePoint = bestSolution.firePoint;
+  }
+  else {
+    // РЕЗЕРВНИЙ ВАРІАНТ: Жодного успішного рішення не знайдено взагалі
     bestTarget = 0;
-
-    // Запитуємо у предиктора, де ця ціль знаходиться прямо ЗАРАЗ (в поточний момент часу)
-    // Для цього передаємо flightTime = 0.0f
+    // Екстраполюємо ціль 0 на поточний момент (flightTime = 0.0f)
     bestPredicted = m_targetPredictor->extrapolate(bestTarget, m_currentTime, 0.0f);
-
-    // Точкою вогню стає сама позиція цієї цілі (летимо просто на неї)
     firePoint = bestPredicted;
 
     APP_LOG("Warning: No fire solution. Flying directly to target 0 at pos: {}", firePoint);
@@ -105,7 +105,7 @@ SimStep MissionProcessor::step()
   currentStep.aimPoint = aimPoint;
   currentStep.predictedTarget = bestPredicted;
 
-  // Фізичний рушій
+  // Фізика та оновлення часу
   m_missionCtx.firePoint = firePoint;
   m_physicsEngine->update(m_missionCtx);
 
@@ -133,26 +133,21 @@ void MissionProcessor::reset()
 {
   m_missionCtx.pos = m_config.startPos;
   m_missionCtx.direction = m_config.initialDir;
-  m_missionCtx.speed = 0.0f;
   m_missionCtx.desiredDir = m_config.initialDir;
+  m_missionCtx.speed = 0.0f;
   m_missionCtx.lastDeltaPath = 0.0f;
-
-  m_missionCtx.currentState = DroneStateRegistry::getState(INITIAL_DRONE_STATE);
   m_missionCtx.firePoint = Coord{0.0f, 0.0f};
   m_missionCtx.currentTime = 0.0f;
+  m_missionCtx.currentState = DroneStateRegistry::getState(INITIAL_DRONE_STATE);
 
   updateBallisticCache();
 
   m_currentTime = 0.0f;
   m_totalSteps = 0;
   m_isMissionFinished = false;
+
   m_steps.clear();
   m_steps.reserve(MAX_STEPS);
-
-  m_candidates.clear();
-  if (m_provider) {
-    m_candidates.reserve(m_provider->getTargetCount());
-  }
 }
 
 void MissionProcessor::changeSolver(std::unique_ptr<IBallisticSolver> solver)

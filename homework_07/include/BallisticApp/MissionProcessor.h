@@ -4,9 +4,6 @@
 #include "BallisticApp/types/AmmoParams.h"
 #include "BallisticApp/types/SimStep.h"
 #include "BallisticApp/MissionContext.h"
-#include "BallisticApp/DronePhysicsEngine.h"
-#include "BallisticApp/TargetPredictor.h"
-#include "BallisticApp/FireControlComputer.h"
 #include <filesystem>
 #include <vector>
 #include <memory>
@@ -17,16 +14,12 @@ class IConfigLoader;
 class ITargetProvider;
 class IBallisticSolver;
 class ISimulationExporter;
-
-struct TargetCandidate {
-  int id{0};
-  FireSolution solution;
-};
+class DronePhysicsEngine;
+class TargetPredictor;
+class FireControlComputer;
 
 class MissionProcessor {
 public:
-  static constexpr int MAX_STEPS = 10000;
-
   MissionProcessor(const std::filesystem::path& configSource,
                    const std::filesystem::path& targetsPath,
                    const std::filesystem::path& ammoSource,
@@ -61,7 +54,6 @@ private:
   int m_totalSteps;
   bool m_isMissionFinished;
   std::vector<SimStep> m_steps;
-  std::vector<TargetCandidate> m_candidates;
 };
 
 }  // namespace BallisticApp

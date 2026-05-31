@@ -3,50 +3,58 @@
 #include "BallisticApp/TargetPredictor.h"
 #include "BallisticApp/MissionContext.h"
 #include <cmath>
+#include <limits>
 
 namespace BallisticApp {
 
-FireControlComputer::FireControlComputer(DronePhysicsEngine& physicsEngine, TargetPredictor& predictor, const DroneConfig& config)
+FireControlComputer::FireControlComputer(DronePhysicsEngine& physicsEngine, TargetPredictor& predictor, float simTimeStep)
   : m_physicsEngine(physicsEngine)
   , m_predictor(predictor)
-  , m_config(config)
+  , m_simTimeStep(simTimeStep)
 {
 }
 
 FireSolution FireControlComputer::calculateSolution(const MissionContext& currentMissionCtx, int targetIdx) const
 {
   FireSolution solution;
-  float dt = m_config.simTimeStep;
+  solution.targetId = targetIdx;
+  solution.time = std::numeric_limits<float>::max();
+  solution.isSuccess = false;
 
   if (!currentMissionCtx.currentState) {
-    return solution;  // Повернеться isSuccess = false, time = 30.0f
+    return solution;
   }
 
-  MissionContext vMissionCtx = currentMissionCtx.clone();
+  MissionContext vMissionCtx = currentMissionCtx;
+
+  const float dt = m_simTimeStep;
   float elapsedPredictionTime = 0.0f;
 
   while (elapsedPredictionTime < MAX_PREDICT_TIME) {
-    // Рахуємо позицію цілі
     solution.predictedTarget = m_predictor.extrapolate(targetIdx, vMissionCtx.currentTime, vMissionCtx.flightTime);
 
-    // Рахуємо точку скидання
     Coord delta = solution.predictedTarget - vMissionCtx.pos;
-    vMissionCtx.firePoint = solution.predictedTarget - delta.normalize() * vMissionCtx.hDistance;
-
-    m_physicsEngine.update(vMissionCtx);
-
-    if (vMissionCtx.isTargetCaptured()) {
-      solution.time = elapsedPredictionTime + dt;
-      solution.firePoint = vMissionCtx.firePoint;
-      solution.isSuccess = true;
-      return solution;  // Рішення знайдено!
+    if (delta.length() > 1e-4f) {
+      vMissionCtx.firePoint = solution.predictedTarget - delta.normalize() * vMissionCtx.hDistance;
+    }
+    else {
+      vMissionCtx.firePoint = solution.predictedTarget;
     }
 
     vMissionCtx.currentTime += dt;
     elapsedPredictionTime += dt;
+
+    m_physicsEngine.update(vMissionCtx);
+
+    if (vMissionCtx.isTargetCaptured()) {
+      solution.time = elapsedPredictionTime;
+      solution.firePoint = vMissionCtx.firePoint;
+      solution.isSuccess = true;
+      return solution;
+    }
   }
 
-  return solution;  // Повертаємо дефолтне невдале рішення, якщо не встигли наздогнати
+  return solution;
 }
 
 }  // namespace BallisticApp

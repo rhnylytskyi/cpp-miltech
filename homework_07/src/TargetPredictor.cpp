@@ -4,9 +4,9 @@
 
 namespace BallisticApp {
 
-TargetPredictor::TargetPredictor(const ITargetProvider& provider, const DroneConfig& config)
+TargetPredictor::TargetPredictor(const ITargetProvider& provider, float targetTimeStep)
   : m_provider(provider)
-  , m_config(config)
+  , m_targetTimeStep(targetTimeStep)
 {
 }
 
@@ -21,7 +21,7 @@ Coord TargetPredictor::interpolate(int targetIdx, float t) const
   if (t < 0.0f)
     t = 0.0f;
 
-  const float normalizedTime = t / m_config.arrayTimeStep;
+  const float normalizedTime = t / m_targetTimeStep;
   const float floorTime = std::floor(normalizedTime);
 
   // ЗАХИСТ ВІД ПЕРЕПОВНЕННЯ: суворо обмежуємо індекси в межах [0, stepsCount - 1]
@@ -51,7 +51,7 @@ Coord TargetPredictor::extrapolate(int targetIdx, float time, float dt) const
   // ЗАХИСТ: клемпінг часу в плюс
   float validTime = std::max(0.0f, time);
 
-  const float normalizedTime = validTime / m_config.arrayTimeStep;
+  const float normalizedTime = validTime / m_targetTimeStep;
 
   int idx = static_cast<int>(std::floor(normalizedTime)) % stepsCount;
   if (idx < 0)
@@ -64,13 +64,9 @@ Coord TargetPredictor::extrapolate(int targetIdx, float time, float dt) const
   const Coord pIdx = m_provider.getTargetPos(targetIdx, idx);
   const Coord pNext = m_provider.getTargetPos(targetIdx, next);
 
-  // Швидкість цілі (зміна позиції за 1 секунду)
-  const Coord v = (pNext - pIdx) / m_config.arrayTimeStep;
-
-  // Позиція цілі у віртуальний момент часу
+  const Coord v = (pNext - pIdx) / m_targetTimeStep;
   const Coord curPos = interpolate(targetIdx, validTime);
 
-  // Екстраполюємо вперед на час падіння бомби dt (секунди)
   return curPos + v * dt;
 }
 

@@ -28,8 +28,6 @@ struct MissionContext {
   {
     return (getCurrentStateType() == DroneStateType::MOVING) && ((this->pos - this->firePoint).length() <= this->cfg.hitRadius * 0.25f);
   }
-
-  inline MissionContext clone() const { return *this; }
 };
 
 }  // namespace BallisticApp
