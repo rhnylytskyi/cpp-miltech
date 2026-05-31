@@ -1,6 +1,6 @@
 #include "BallisticApp/MissionProcessor.h"
 #include "BallisticApp/ScenarioPathResolver.h"
-#include "BallisticApp/Defines.h"
+#include "BallisticApp/utils/Logger.h"
 #include <iostream>
 #include <exception>
 
@@ -11,8 +11,8 @@ int main(int argc, char* argv[])
   try {
     ScenarioPathResolver pathResolver({argv, static_cast<size_t>(argc)});
 
-    LOG("Loading config from: " << pathResolver.getConfigPath());
-    LOG("Loading targets from: " << pathResolver.getTargetsPath());
+    APP_LOG("Loading config from: {}", pathResolver.getConfigPath().string());
+    APP_LOG("Loading targets from: {}", pathResolver.getTargetsPath().string());
 
     MissionProcessor mission(
       pathResolver.getConfigPath(), pathResolver.getTargetsPath(), pathResolver.getAmmoPath(), pathResolver.getSimulationPath());

@@ -3,7 +3,7 @@
 #include "BallisticApp/providers/JsonTargetProvider.h"
 #include "BallisticApp/solvers/AnalyticalBallisticSolver.h"
 #include "BallisticApp/exporters/JsonExporter.h"
-#include "BallisticApp/DroneStateType.h"
+#include "BallisticApp/types/DroneStateType.h"
 #include "BallisticApp/interfaces/IDroneState.h"
 #include "BallisticApp/states/StateStopped.h"
 #include "BallisticApp/states/StateAccelerating.h"

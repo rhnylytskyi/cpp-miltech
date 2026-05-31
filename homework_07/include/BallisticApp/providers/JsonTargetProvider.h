@@ -1,7 +1,7 @@
 #pragma once
 
 #include "BallisticApp/interfaces/ITargetProvider.h"
-#include "BallisticApp/Coord.h"
+#include "BallisticApp/types/Coord.h"
 #include <vector>
 #include <string>
 

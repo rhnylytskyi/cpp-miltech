@@ -1,6 +1,6 @@
 #pragma once
 
-#include "BallisticApp/Coord.h"
+#include "BallisticApp/types/Coord.h"
 
 namespace BallisticApp {
 

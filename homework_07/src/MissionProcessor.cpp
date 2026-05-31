@@ -4,8 +4,7 @@
 #include "BallisticApp/interfaces/ITargetProvider.h"
 #include "BallisticApp/interfaces/IBallisticSolver.h"
 #include "BallisticApp/interfaces/ISimulationExporter.h"
-#include "BallisticApp/utils/MathUtils.h"
-#include "BallisticApp/Defines.h"
+#include "BallisticApp/utils/Logger.h"
 #include <cmath>
 #include <algorithm>
 
@@ -42,15 +41,15 @@ MissionProcessor::MissionProcessor(const std::filesystem::path& configSource,
                           .currentStateType = DroneStateType::STOPPED,
                           .firePoint = Coord{0.0f, 0.0f},
                           .currentTime = 0.0f,
-                          .cachedFlightTime = flightTime,
-                          .cachedHDist = hDistance};
+                          .flightTime = flightTime,
+                          .hDistance = hDistance};
   }())
   , m_currentTime(0.0f)
   , m_totalSteps(0)
   , m_isMissionFinished(false)
 {
   reset();
-  LOG("Mission initialized. Ammo: " + m_ammo.name);
+  APP_LOG("Mission initialized. Ammo: {}", m_ammo.name);
 }
 
 MissionProcessor::~MissionProcessor() = default;
@@ -90,23 +89,22 @@ SimStep MissionProcessor::step()
     bestTarget = 0;
 
     // Запитуємо у предиктора, де ця ціль знаходиться прямо ЗАРАЗ (в поточний момент часу)
-    // Для цього передаємо cachedFlightTime = 0.0f
+    // Для цього передаємо flightTime = 0.0f
     bestPredicted = m_targetPredictor->extrapolate(bestTarget, m_currentTime, 0.0f);
 
     // Точкою вогню стає сама позиція цієї цілі (летимо просто на неї)
     firePoint = bestPredicted;
 
-    LOG("Warning: No fire solution. Flying directly to target 0 at pos: {" + std::to_string(firePoint.x) + ", " +
-        std::to_string(firePoint.y) + "}");
+    APP_LOG("Warning: No fire solution. Flying directly to target 0 at pos: {}", firePoint);
   }
 
   // Розрахунок точки прицілювання
   Coord dropToTargetDir = {std::cos(m_missionCtx.direction), std::sin(m_missionCtx.direction)};
-  const float distToFire = Math::length(firePoint - m_missionCtx.pos);
+  const float distToFire = (firePoint - m_missionCtx.pos).length();
   if (distToFire > 1e-4f) {
-    dropToTargetDir = Math::normalize(firePoint - m_missionCtx.pos);
+    dropToTargetDir = (firePoint - m_missionCtx.pos).normalize();
   }
-  const Coord aimPoint = firePoint + dropToTargetDir * m_missionCtx.cachedHDist;
+  const Coord aimPoint = firePoint + dropToTargetDir * m_missionCtx.hDistance;
 
   // Формуємо історію кроку
   SimStep currentStep;
@@ -128,7 +126,7 @@ SimStep MissionProcessor::step()
 
   if (m_missionCtx.isTargetCaptured()) {
     m_isMissionFinished = true;
-    LOG("Target captured. Bomb released at step: " + std::to_string(m_totalSteps));
+    APP_LOG("Target captured. Bomb released at step: {}", m_totalSteps);
   }
 
   return currentStep;
@@ -180,8 +178,8 @@ void MissionProcessor::updateBallisticCache()
   if (m_solver) {
     const float flightTime = m_solver->calcTimeOfFall(m_config.altitude, m_config.attackSpeed, m_ammo);
 
-    m_missionCtx.cachedFlightTime = flightTime;
-    m_missionCtx.cachedHDist = m_solver->calcHDistance(flightTime, m_config.attackSpeed, m_ammo);
+    m_missionCtx.flightTime = flightTime;
+    m_missionCtx.hDistance = m_solver->calcHDistance(flightTime, m_config.attackSpeed, m_ammo);
   }
 }
 

@@ -1,12 +1,12 @@
 #pragma once
 
-#include "BallisticApp/DroneConfig.h"
-#include "BallisticApp/AmmoParams.h"
+#include "BallisticApp/types/DroneConfig.h"
+#include "BallisticApp/types/AmmoParams.h"
+#include "BallisticApp/types/SimStep.h"
 #include "BallisticApp/MissionContext.h"
 #include "BallisticApp/DronePhysicsEngine.h"
 #include "BallisticApp/TargetPredictor.h"
 #include "BallisticApp/FireControlComputer.h"
-#include "BallisticApp/SimStep.h"
 #include <filesystem>
 #include <vector>
 #include <memory>

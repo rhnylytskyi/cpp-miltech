@@ -1,7 +1,7 @@
 #pragma once
 
 #include "BallisticApp/MissionContext.h"
-#include "BallisticApp/DroneConfig.h"
+#include "BallisticApp/types/DroneConfig.h"
 
 namespace BallisticApp {
 

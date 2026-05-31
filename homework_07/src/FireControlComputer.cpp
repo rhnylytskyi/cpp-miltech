@@ -2,7 +2,6 @@
 #include "BallisticApp/DronePhysicsEngine.h"
 #include "BallisticApp/TargetPredictor.h"
 #include "BallisticApp/MissionContext.h"
-#include "BallisticApp/utils/MathUtils.h"
 #include <cmath>
 
 namespace BallisticApp {
@@ -28,11 +27,11 @@ FireSolution FireControlComputer::calculateSolution(const MissionContext& curren
 
   while (elapsedPredictionTime < MAX_PREDICT_TIME) {
     // Рахуємо позицію цілі
-    solution.predictedTarget = m_predictor.extrapolate(targetIdx, vMissionCtx.currentTime, vMissionCtx.cachedFlightTime);
+    solution.predictedTarget = m_predictor.extrapolate(targetIdx, vMissionCtx.currentTime, vMissionCtx.flightTime);
 
     // Рахуємо точку скидання
     Coord delta = solution.predictedTarget - vMissionCtx.pos;
-    vMissionCtx.firePoint = solution.predictedTarget - Math::normalize(delta) * vMissionCtx.cachedHDist;
+    vMissionCtx.firePoint = solution.predictedTarget - delta.normalize() * vMissionCtx.hDistance;
 
     m_physicsEngine.update(vMissionCtx);
 

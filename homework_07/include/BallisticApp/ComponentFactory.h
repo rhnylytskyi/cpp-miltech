@@ -5,7 +5,7 @@
 #include "BallisticApp/interfaces/IConfigLoader.h"
 #include "BallisticApp/interfaces/ISimulationExporter.h"
 #include "BallisticApp/interfaces/IDroneState.h"
-#include "BallisticApp/DroneStateType.h"
+#include "BallisticApp/types/DroneStateType.h"
 #include <filesystem>
 #include <memory>
 

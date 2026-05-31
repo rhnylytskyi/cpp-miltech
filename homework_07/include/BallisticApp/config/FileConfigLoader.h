@@ -1,8 +1,8 @@
 #pragma once
 
 #include "BallisticApp/interfaces/IConfigLoader.h"
-#include "BallisticApp/DroneConfig.h"
-#include "BallisticApp/AmmoParams.h"
+#include "BallisticApp/types/DroneConfig.h"
+#include "BallisticApp/types/AmmoParams.h"
 #include <string>
 #include <filesystem>
 #include <map>

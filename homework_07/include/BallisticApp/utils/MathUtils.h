@@ -1,11 +1,23 @@
 #pragma once
 
-#include "BallisticApp/Coord.h"
+#include <cmath>
+#include <numbers>
 
 namespace BallisticApp::Math {
 
-float length(Coord c);
-Coord normalize(Coord c);
-float normalizeAngle(float a);
+inline float normalizeAngle(float angle) noexcept
+{
+  constexpr float PI = std::numbers::pi_v<float>;
+  constexpr float TWO_PI = 2.0f * PI;
+
+  angle = std::fmod(angle, TWO_PI);
+
+  if (angle > PI)
+    angle -= TWO_PI;
+  if (angle <= -PI)
+    angle += TWO_PI;
+
+  return angle;
+}
 
 }  // namespace BallisticApp::Math

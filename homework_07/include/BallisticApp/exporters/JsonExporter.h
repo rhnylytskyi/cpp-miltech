@@ -1,11 +1,11 @@
 #pragma once
 
 #include "BallisticApp/interfaces/ISimulationExporter.h"
-#include "BallisticApp/Coord.h"
-#include "BallisticApp/SimStep.h"
-#include <nlohmann/json_fwd.hpp>
+#include "BallisticApp/types/Coord.h"
+#include "BallisticApp/types/SimStep.h"
 #include <filesystem>
 #include <vector>
+#include <nlohmann/json_fwd.hpp>
 
 namespace BallisticApp {
 
