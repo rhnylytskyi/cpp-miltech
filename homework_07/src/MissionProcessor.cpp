@@ -122,14 +122,14 @@ SimStep MissionProcessor::step()
   m_missionCtx.firePoint = firePoint;
   m_physicsEngine->update(m_missionCtx);
 
+  m_currentTime += m_config.simTimeStep;
+  m_steps.push_back(currentStep);
+  m_totalSteps++;
+
   if (m_missionCtx.isTargetCaptured()) {
     m_isMissionFinished = true;
     LOG("Target captured. Bomb released at step: " + std::to_string(m_totalSteps));
   }
-
-  m_currentTime += m_config.simTimeStep;
-  m_steps.push_back(currentStep);
-  m_totalSteps++;
 
   return currentStep;
 }
