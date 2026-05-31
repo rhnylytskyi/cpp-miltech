@@ -1,22 +1,20 @@
 #include "BallisticApp/MissionProcessor.h"
-#include "BallisticApp/utils/ConfigManager.h"
+#include "BallisticApp/ConfigLocator.h"
 #include "BallisticApp/Defines.h"
 #include <iostream>
+#include <exception>
 
 using namespace BallisticApp;
 
 int main(int argc, char* argv[])
 {
   try {
-    ConfigManager configManager;
-    configManager.initialize(argc, argv);
+    const ConfigLocator locator(argc, argv);
 
-    LOG("Loading config from: " << configManager.getConfigPath());
-    LOG("Loading targets from: " << configManager.getTargetsPath());
+    LOG("Loading config from: " << locator.getConfigPath());
+    LOG("Loading targets from: " << locator.getTargetsPath());
 
-    MissionProcessor mission(
-      configManager.getTargetsPath(), configManager.getSimulationPath(), configManager.getConfigPath(), configManager.getAmmoPath());
-
+    MissionProcessor mission(locator.getConfigPath(), locator.getTargetsPath(), locator.getAmmoPath(), locator.getSimulationPath());
     mission.run();
   }
   catch (const std::exception& e) {

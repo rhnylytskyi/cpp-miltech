@@ -1,14 +1,14 @@
 #pragma once
 
 #include "BallisticApp/Coord.h"
-#include "BallisticApp/DroneState.h"
+#include "BallisticApp/DroneStateType.h"
 
 namespace BallisticApp {
 
 struct SimStep {
   Coord pos;
   float direction;
-  DroneState state;
+  DroneStateType state;
   int targetIdx;
   Coord dropPoint;
   Coord aimPoint;

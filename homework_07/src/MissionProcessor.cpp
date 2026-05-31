@@ -11,10 +11,10 @@
 
 namespace BallisticApp {
 
-MissionProcessor::MissionProcessor(const std::string& targetsPath,
-                                   const std::string& simulationPath,
-                                   const std::string& configSource,
-                                   const std::string& ammoSource)
+MissionProcessor::MissionProcessor(const std::filesystem::path& configSource,
+                                   const std::filesystem::path& targetsPath,
+                                   const std::filesystem::path& ammoSource,
+                                   const std::filesystem::path& simulationPath)
   : m_loader(ComponentFactory::createLoader(ConfigLoaderType::FILE))
   , m_provider(ComponentFactory::createProvider(TargetProviderType::JSON, targetsPath))
   , m_solver(ComponentFactory::createSolver(SolverType::ANALYTICAL))
@@ -34,8 +34,8 @@ MissionProcessor::MissionProcessor(const std::string& targetsPath,
                  .desiredDir = m_config.initialDir,
                  .lastDeltaPath = 0.0f,
                  .cfg = m_config,
-                 .currentState = ComponentFactory::getState(DroneState::STOPPED),
-                 .currentStateType = DroneState::STOPPED,
+                 .currentState = ComponentFactory::getState(DroneStateType::STOPPED),
+                 .currentStateType = DroneStateType::STOPPED,
                  .firePoint = Coord{0.0f, 0.0f},
                  .currentTime = 0.0f,
                  .cachedFlightTime = m_solver->calcTimeOfFall(m_config.altitude, m_config.attackSpeed, m_ammo),
@@ -147,8 +147,8 @@ void MissionProcessor::reset()
   m_missionCtx.desiredDir = m_config.initialDir;
   m_missionCtx.lastDeltaPath = 0.0f;
 
-  m_missionCtx.currentState = ComponentFactory::getState(DroneState::STOPPED);
-  m_missionCtx.currentStateType = DroneState::STOPPED;
+  m_missionCtx.currentState = ComponentFactory::getState(DroneStateType::STOPPED);
+  m_missionCtx.currentStateType = DroneStateType::STOPPED;
   m_missionCtx.firePoint = Coord{0.0f, 0.0f};
   m_missionCtx.currentTime = 0.0f;
 

@@ -6,14 +6,14 @@
 
 namespace BallisticApp {
 
-DroneState StateAccelerating::execute(MissionContext& ctx)
+DroneStateType StateAccelerating::execute(MissionContext& ctx)
 {
   float dt = ctx.cfg.simTimeStep;
   float deltaAngle = Math::normalizeAngle(ctx.desiredDir - ctx.direction);
   bool isTurningRequired = (std::fabs(deltaAngle) > ctx.cfg.turnThreshold);
 
   if (isTurningRequired && ctx.speed > 0.01f) {
-    return DroneState::DECELERATING;
+    return DroneStateType::DECELERATING;
   }
 
   if (!isTurningRequired) {
@@ -27,14 +27,9 @@ DroneState StateAccelerating::execute(MissionContext& ctx)
   ctx.lastDeltaPath = (prevSpeed + ctx.speed) / 2.0f * dt;
 
   if (ctx.speed >= ctx.cfg.attackSpeed) {
-    return DroneState::MOVING;
+    return DroneStateType::MOVING;
   }
-  return DroneState::ACCELERATING;
-}
-
-DroneState StateAccelerating::getType() const
-{
-  return DroneState::ACCELERATING;
+  return DroneStateType::ACCELERATING;
 }
 
 }  // namespace BallisticApp

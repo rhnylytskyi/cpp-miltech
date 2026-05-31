@@ -2,7 +2,7 @@
 
 namespace BallisticApp {
 
-enum class DroneState {
+enum class DroneStateType {
   STOPPED = 0,       // Дрон стоїть на місці (початковий стан або після гальмування)
   TURNING = 1,       // Дрон розвертається на місці у напрямку точки скидання
   ACCELERATING = 2,  // Дрон розганяється до своєї максимальної швидкості

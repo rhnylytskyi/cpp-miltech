@@ -1,5 +1,6 @@
 #include "BallisticApp/exporters/JsonExporter.h"
 #include <fstream>
+#include <iomanip>
 #include <stdexcept>
 #include <format>
 #include <nlohmann/json.hpp>
@@ -24,7 +25,7 @@ void to_json(json& j, const SimStep& step)
            {"predictedTarget", step.predictedTarget}};
 }
 
-JsonExporter::JsonExporter(const std::string& filePath)
+JsonExporter::JsonExporter(const std::filesystem::path& filePath)
   : m_filePath(filePath)
 {
 }
@@ -33,15 +34,14 @@ void JsonExporter::exportSimulation(const std::vector<SimStep>& history) const
 {
   std::ofstream file(m_filePath);
   if (!file.is_open()) {
-    throw std::runtime_error(std::format("JsonExporter Error: Could not open file for writing: \"{}\"", m_filePath));
+    throw std::runtime_error(std::format("JsonExporter Error: Could not open file for writing: \"{}\"", m_filePath.string()));
   }
 
   json root;
   root["steps"] = history;
   root["totalSteps"] = history.size();
 
-  file << root.dump(2);
-  file.close();
+  file << std::setw(2) << root;
 }
 
 }  // namespace BallisticApp

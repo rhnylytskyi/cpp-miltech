@@ -20,7 +20,7 @@ void DronePhysicsEngine::update(MissionContext& ctx) const
   ctx.desiredDir = std::atan2(ctx.firePoint.y - ctx.pos.y, ctx.firePoint.x - ctx.pos.x);
 
   // Виконуємо логіку стану і отримуємо енум наступного стану
-  DroneState nextStateType = ctx.currentState->execute(ctx);
+  DroneStateType nextStateType = ctx.currentState->execute(ctx);
 
   // Якщо стан змінився, оновлюємо вказівник та тип у контексті
   if (nextStateType != ctx.currentStateType) {

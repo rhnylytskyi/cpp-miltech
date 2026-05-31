@@ -5,7 +5,8 @@
 #include "BallisticApp/interfaces/IConfigLoader.h"
 #include "BallisticApp/interfaces/ISimulationExporter.h"
 #include "BallisticApp/interfaces/IDroneState.h"
-#include <string>
+#include "BallisticApp/DroneStateType.h"
+#include <filesystem>
 #include <memory>
 
 namespace BallisticApp {
@@ -20,10 +21,10 @@ public:
   ComponentFactory() = delete;
 
   static std::unique_ptr<IBallisticSolver> createSolver(SolverType type);
-  static std::unique_ptr<ITargetProvider> createProvider(TargetProviderType type, const std::string& param);
+  static std::unique_ptr<ITargetProvider> createProvider(TargetProviderType type, const std::filesystem::path& param);
   static std::unique_ptr<IConfigLoader> createLoader(ConfigLoaderType type);
-  static std::unique_ptr<ISimulationExporter> createExporter(ExporterType type, const std::string& param);
-  static IDroneState* getState(DroneState type);
+  static std::unique_ptr<ISimulationExporter> createExporter(ExporterType type, const std::filesystem::path& param);
+  static IDroneState* getState(DroneStateType type);
 };
 
 }  // namespace BallisticApp

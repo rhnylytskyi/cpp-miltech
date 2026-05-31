@@ -105,7 +105,7 @@
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
       "args": [
-        "--test",
+        "--scenario",
         "${input:hw3TestSelect}"
       ],
       "stopAtEntry": false,
@@ -129,7 +129,7 @@
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
       "args": [
-        "--test",
+        "--scenario",
         "t01_base"
       ],
       "stopAtEntry": false,
@@ -150,7 +150,7 @@
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
       "args": [
-        "--test",
+        "--scenario",
         "t02_ellipses"
       ],
       "stopAtEntry": false,
@@ -171,7 +171,7 @@
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
       "args": [
-        "--test",
+        "--scenario",
         "t03_figure8"
       ],
       "stopAtEntry": false,
@@ -192,7 +192,7 @@
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
       "args": [
-        "--test",
+        "--scenario",
         "t04_flowers"
       ],
       "stopAtEntry": false,
@@ -213,7 +213,7 @@
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
       "args": [
-        "--test",
+        "--scenario",
         "t05_lissajous"
       ],
       "stopAtEntry": false,
@@ -234,7 +234,7 @@
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
       "args": [
-        "--test",
+        "--scenario",
         "t06_fast_drone"
       ],
       "stopAtEntry": false,
@@ -255,7 +255,7 @@
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
       "args": [
-        "--test",
+        "--scenario",
         "t07_heavy_ammo"
       ],
       "stopAtEntry": false,
@@ -276,7 +276,7 @@
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
       "args": [
-        "--test",
+        "--scenario",
         "t08_gliding"
       ],
       "stopAtEntry": false,
@@ -297,7 +297,7 @@
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
       "args": [
-        "--test",
+        "--scenario",
         "t09_cardioids"
       ],
       "stopAtEntry": false,
@@ -318,7 +318,7 @@
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
       "args": [
-        "--test",
+        "--scenario",
         "t10_extreme"
       ],
       "stopAtEntry": false,

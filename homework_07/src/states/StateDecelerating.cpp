@@ -6,7 +6,7 @@
 
 namespace BallisticApp {
 
-DroneState StateDecelerating::execute(MissionContext& ctx)
+DroneStateType StateDecelerating::execute(MissionContext& ctx)
 {
   float dt = ctx.cfg.simTimeStep;
   const float acceleration = (ctx.cfg.attackSpeed * ctx.cfg.attackSpeed) / (2.0f * ctx.cfg.accelPath);
@@ -16,14 +16,9 @@ DroneState StateDecelerating::execute(MissionContext& ctx)
   ctx.lastDeltaPath = (prevSpeed + ctx.speed) / 2.0f * dt;
 
   if (ctx.speed <= 0.0f) {
-    return DroneState::STOPPED;
+    return DroneStateType::STOPPED;
   }
-  return DroneState::DECELERATING;
-}
-
-DroneState StateDecelerating::getType() const
-{
-  return DroneState::DECELERATING;
+  return DroneStateType::DECELERATING;
 }
 
 }  // namespace BallisticApp

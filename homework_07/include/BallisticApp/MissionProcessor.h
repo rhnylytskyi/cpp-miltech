@@ -7,7 +7,7 @@
 #include "BallisticApp/TargetPredictor.h"
 #include "BallisticApp/FireControlComputer.h"
 #include "BallisticApp/SimStep.h"
-#include <string>
+#include <filesystem>
 #include <vector>
 #include <memory>
 
@@ -27,10 +27,10 @@ class MissionProcessor {
 public:
   static constexpr int MAX_STEPS = 10000;
 
-  MissionProcessor(const std::string& targetsPath,
-                   const std::string& simulationPath,
-                   const std::string& configSource,
-                   const std::string& ammoSource);
+  MissionProcessor(const std::filesystem::path& configSource,
+                   const std::filesystem::path& targetsPath,
+                   const std::filesystem::path& ammoSource,
+                   const std::filesystem::path& simulationPath);
   ~MissionProcessor();
 
   void run();

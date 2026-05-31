@@ -1,6 +1,6 @@
 #pragma once
 
-#include "BallisticApp/DroneState.h"
+#include "BallisticApp/DroneStateType.h"
 
 namespace BallisticApp {
 
@@ -10,8 +10,7 @@ class IDroneState {
 public:
   virtual ~IDroneState() = default;
 
-  virtual DroneState execute(MissionContext& ctx) = 0;
-  virtual DroneState getType() const = 0;
+  virtual DroneStateType execute(MissionContext& ctx) = 0;
 };
 
 }  // namespace BallisticApp
