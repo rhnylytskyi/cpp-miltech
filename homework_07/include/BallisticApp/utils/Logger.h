@@ -1,7 +1,6 @@
 #pragma once
 
 #include <iostream>
-#include <string_view>
 #include <format>
 #include <utility>
 
@@ -37,5 +36,5 @@ inline void debug([[maybe_unused]] std::format_string<Args...> format_str, [[may
 
 }  // namespace BallisticApp::Log
 
-#define APP_LOG(fmt, ...) ::BallisticApp::Log::log(fmt __VA_OPT__(,) __VA_ARGS__)
-#define APP_DEBUG(fmt, ...) ::BallisticApp::Log::debug(fmt __VA_OPT__(,) __VA_ARGS__)
+#define APP_LOG(fmt, ...) ::BallisticApp::Log::log(fmt __VA_OPT__(, ) __VA_ARGS__)
+#define APP_DEBUG(fmt, ...) ::BallisticApp::Log::debug(fmt __VA_OPT__(, ) __VA_ARGS__)

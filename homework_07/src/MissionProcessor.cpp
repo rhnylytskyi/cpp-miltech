@@ -4,11 +4,16 @@
 #include "BallisticApp/interfaces/ITargetProvider.h"
 #include "BallisticApp/interfaces/IBallisticSolver.h"
 #include "BallisticApp/interfaces/ISimulationExporter.h"
+#include "BallisticApp/states/DroneStateRegistry.h"
 #include "BallisticApp/utils/Logger.h"
 #include <cmath>
 #include <algorithm>
 
 namespace BallisticApp {
+
+namespace {
+constexpr DroneStateType INITIAL_DRONE_STATE = DroneStateType::STOPPED;
+}
 
 MissionProcessor::MissionProcessor(const std::filesystem::path& configSource,
                                    const std::filesystem::path& targetsPath,
@@ -24,26 +29,10 @@ MissionProcessor::MissionProcessor(const std::filesystem::path& configSource,
     return m_loader ? m_loader->getConfig() : DroneConfig{};
   }())
   , m_ammo(m_loader ? m_loader->getAmmoParams() : AmmoParams{})
-  , m_physicsEngine(std::make_unique<DronePhysicsEngine>(m_config))
+  , m_physicsEngine(std::make_unique<DronePhysicsEngine>())
   , m_targetPredictor(std::make_unique<TargetPredictor>(*m_provider, m_config))
   , m_fireControl(std::make_unique<FireControlComputer>(*m_physicsEngine, *m_targetPredictor, m_config))
-  , m_missionCtx([this]() {
-    const float flightTime = m_solver ? m_solver->calcTimeOfFall(m_config.altitude, m_config.attackSpeed, m_ammo) : 0.0f;
-    const float hDistance = m_solver ? m_solver->calcHDistance(flightTime, m_config.attackSpeed, m_ammo) : 0.0f;
-
-    return MissionContext{.pos = m_config.startPos,
-                          .speed = 0.0f,
-                          .direction = m_config.initialDir,
-                          .desiredDir = m_config.initialDir,
-                          .lastDeltaPath = 0.0f,
-                          .cfg = m_config,
-                          .currentState = ComponentFactory::getState(DroneStateType::STOPPED),
-                          .currentStateType = DroneStateType::STOPPED,
-                          .firePoint = Coord{0.0f, 0.0f},
-                          .currentTime = 0.0f,
-                          .flightTime = flightTime,
-                          .hDistance = hDistance};
-  }())
+  , m_missionCtx{.cfg = m_config}
   , m_currentTime(0.0f)
   , m_totalSteps(0)
   , m_isMissionFinished(false)
@@ -110,7 +99,7 @@ SimStep MissionProcessor::step()
   SimStep currentStep;
   currentStep.pos = m_missionCtx.pos;
   currentStep.direction = m_missionCtx.direction;
-  currentStep.state = m_missionCtx.currentStateType;
+  currentStep.state = m_missionCtx.getCurrentStateType();
   currentStep.targetIdx = bestTarget;
   currentStep.dropPoint = firePoint;
   currentStep.aimPoint = aimPoint;
@@ -148,10 +137,11 @@ void MissionProcessor::reset()
   m_missionCtx.desiredDir = m_config.initialDir;
   m_missionCtx.lastDeltaPath = 0.0f;
 
-  m_missionCtx.currentState = ComponentFactory::getState(DroneStateType::STOPPED);
-  m_missionCtx.currentStateType = DroneStateType::STOPPED;
+  m_missionCtx.currentState = DroneStateRegistry::getState(INITIAL_DRONE_STATE);
   m_missionCtx.firePoint = Coord{0.0f, 0.0f};
   m_missionCtx.currentTime = 0.0f;
+
+  updateBallisticCache();
 
   m_currentTime = 0.0f;
   m_totalSteps = 0;

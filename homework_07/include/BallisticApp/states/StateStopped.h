@@ -9,6 +9,7 @@ namespace BallisticApp {
 class StateStopped : public IDroneState {
 public:
   DroneStateType execute(MissionContext& ctx) override;
+  DroneStateType getType() const override; 
 };
 
 }  // namespace BallisticApp

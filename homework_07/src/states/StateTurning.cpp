@@ -25,4 +25,9 @@ DroneStateType StateTurning::execute(MissionContext& ctx)
   return DroneStateType::TURNING;
 }
 
+DroneStateType StateTurning::getType() const
+{
+  return DroneStateType::TURNING;
+}
+
 }  // namespace BallisticApp

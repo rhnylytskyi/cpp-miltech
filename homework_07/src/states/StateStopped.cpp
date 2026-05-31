@@ -18,4 +18,9 @@ DroneStateType StateStopped::execute(MissionContext& ctx)
   return DroneStateType::ACCELERATING;
 }
 
+DroneStateType StateStopped::getType() const
+{
+  return DroneStateType::STOPPED;
+}
+
 }  // namespace BallisticApp

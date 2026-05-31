@@ -9,6 +9,7 @@ namespace BallisticApp {
 class StateAccelerating : public IDroneState {
 public:
   DroneStateType execute(MissionContext& ctx) override;
+  DroneStateType getType() const override; 
 };
 
 }  // namespace BallisticApp

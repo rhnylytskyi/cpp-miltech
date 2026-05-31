@@ -34,4 +34,9 @@ DroneStateType StateAccelerating::execute(MissionContext& ctx)
   return DroneStateType::ACCELERATING;
 }
 
+DroneStateType StateAccelerating::getType() const
+{
+  return DroneStateType::ACCELERATING;
+}
+
 }  // namespace BallisticApp

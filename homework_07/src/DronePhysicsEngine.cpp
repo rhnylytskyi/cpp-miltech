@@ -1,15 +1,10 @@
 #include "BallisticApp/DronePhysicsEngine.h"
 #include "BallisticApp/MissionContext.h"
 #include "BallisticApp/interfaces/IDroneState.h"
-#include "BallisticApp/ComponentFactory.h"
+#include "BallisticApp/states/DroneStateRegistry.h"
 #include <cmath>
 
 namespace BallisticApp {
-
-DronePhysicsEngine::DronePhysicsEngine(const DroneConfig& config)
-  : m_config(config)
-{
-}
 
 void DronePhysicsEngine::update(MissionContext& ctx) const
 {
@@ -23,9 +18,8 @@ void DronePhysicsEngine::update(MissionContext& ctx) const
   DroneStateType nextStateType = ctx.currentState->execute(ctx);
 
   // Якщо стан змінився, оновлюємо вказівник та тип у контексті
-  if (nextStateType != ctx.currentStateType) {
-    ctx.currentStateType = nextStateType;
-    ctx.currentState = ComponentFactory::getState(nextStateType);
+  if (nextStateType != ctx.currentState->getType()) {
+    ctx.currentState = DroneStateRegistry::getState(nextStateType);
   }
 
   // Оновлюємо позицію
