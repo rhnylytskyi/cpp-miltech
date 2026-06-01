@@ -2,7 +2,7 @@
 
 #include "BallisticApp/interfaces/IDroneState.h"
 #include "BallisticApp/types/DroneStateType.h"
-#include "BallisticApp/MissionContext.h"
+#include "BallisticApp/mission/MissionContext.h"
 
 namespace BallisticApp {
 

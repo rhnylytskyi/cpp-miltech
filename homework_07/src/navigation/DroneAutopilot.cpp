@@ -1,5 +1,5 @@
 #include "BallisticApp/navigation/DroneAutopilot.h"
-#include "BallisticApp/MissionContext.h"
+#include "BallisticApp/mission/MissionContext.h"
 #include "BallisticApp/states/DroneStateRegistry.h"
 #include "BallisticApp/interfaces/IDroneState.h"
 #include <cmath>

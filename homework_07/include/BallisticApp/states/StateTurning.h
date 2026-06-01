@@ -1,6 +1,6 @@
 #pragma once
 
-#include "BallisticApp/MissionContext.h"
+#include "BallisticApp/mission/MissionContext.h"
 #include "BallisticApp/interfaces/IDroneState.h"
 #include "BallisticApp/types/DroneStateType.h"
 

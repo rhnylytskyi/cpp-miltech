@@ -6,7 +6,7 @@
 #include "BallisticApp/config/DroneConfig.h"
 #include "BallisticApp/config/AmmoParams.h"
 #include "BallisticApp/exporters/SimStep.h"
-#include "BallisticApp/MissionContext.h"
+#include "BallisticApp/mission/MissionContext.h"
 #include <filesystem>
 #include <vector>
 #include <memory>

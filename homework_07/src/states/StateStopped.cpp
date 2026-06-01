@@ -1,6 +1,6 @@
 #include "BallisticApp/states/StateStopped.h"
 #include "BallisticApp/types/DroneStateType.h"
-#include "BallisticApp/MissionContext.h"
+#include "BallisticApp/mission/MissionContext.h"
 #include "BallisticApp/utils/MathUtils.h"
 #include <cmath>
 

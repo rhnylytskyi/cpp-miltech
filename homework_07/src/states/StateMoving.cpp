@@ -1,5 +1,5 @@
 #include "BallisticApp/states/StateMoving.h"
-#include "BallisticApp/MissionContext.h"
+#include "BallisticApp/mission/MissionContext.h"
 #include "BallisticApp/utils/MathUtils.h"
 #include "BallisticApp/types/DroneStateType.h"
 #include <cmath>
