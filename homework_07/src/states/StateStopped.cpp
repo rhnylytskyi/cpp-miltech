@@ -9,12 +9,14 @@ namespace BallisticApp {
 DroneStateType StateStopped::execute(MissionContext& ctx)
 {
   ctx.lastDeltaPath = 0.0f;
-  float deltaAngle = Math::normalizeAngle(ctx.desiredDir - ctx.direction);
+  ctx.speed = 0.0f;
+
+  const float deltaAngle = Math::normalizeAngle(ctx.desiredDir - ctx.direction);
 
   if (std::fabs(deltaAngle) > ctx.cfg.turnThreshold) {
     return DroneStateType::TURNING;
   }
-  ctx.direction = ctx.desiredDir;
+
   return DroneStateType::ACCELERATING;
 }
 

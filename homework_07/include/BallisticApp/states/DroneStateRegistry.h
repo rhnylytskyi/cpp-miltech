@@ -2,6 +2,7 @@
 
 #include "BallisticApp/types/DroneStateType.h"
 #include "BallisticApp/interfaces/IDroneState.h"
+#include <cmath>
 
 namespace BallisticApp {
 

@@ -4,12 +4,13 @@
 #include "BallisticApp/interfaces/ITargetProvider.h"
 #include "BallisticApp/interfaces/IBallisticSolver.h"
 #include "BallisticApp/interfaces/ISimulationExporter.h"
+#include "BallisticApp/navigation/DroneAutopilot.h"
 #include "BallisticApp/states/DroneStateRegistry.h"
 #include "BallisticApp/utils/Logger.h"
-#include "BallisticApp/DronePhysicsEngine.h"
 #include "BallisticApp/TargetExtrapolator.h"
 #include "BallisticApp/FireControlComputer.h"
 #include <cmath>
+#include <memory>
 
 namespace BallisticApp {
 
@@ -32,9 +33,9 @@ MissionProcessor::MissionProcessor(const std::filesystem::path& configSource,
     return m_loader ? m_loader->getConfig() : DroneConfig{};
   }())
   , m_ammo(m_loader ? m_loader->getAmmoParams() : AmmoParams{})
-  , m_physicsEngine(std::make_unique<DronePhysicsEngine>())
-  , m_extrapolator(std::make_unique<TargetExtrapolator>(*m_provider, m_config.arrayTimeStep))
-  , m_fireControl(std::make_unique<FireControlComputer>(*m_physicsEngine, *m_extrapolator, m_config.simTimeStep))
+  , m_autopilot()
+  , m_extrapolator(*m_provider, m_config.arrayTimeStep)
+  , m_fireControl(std::make_unique<FireControlComputer>(m_extrapolator, m_autopilot, m_config.simTimeStep))
   , m_missionCtx{.cfg = m_config}
   , m_currentTime(0.0f)
   , m_totalSteps(0)
@@ -78,16 +79,16 @@ SimStep MissionProcessor::step()
     firePoint = bestSolution.firePoint;
   }
   else {
-    // РЕЗЕРВНИЙ ВАРІАНТ: Жодного успішного рішення не знайдено взагалі
+    // FALLBACK: No successful solution found at all
     bestTarget = 0;
-    // Екстраполюємо ціль 0 на поточний момент (flightTime = 0.0f)
-    bestPredicted = m_extrapolator->extrapolate(bestTarget, m_currentTime, 0.0f);
+    // Extrapolate target 0 to the current moment (flightTime = 0.0f)
+    bestPredicted = m_extrapolator.extrapolate(bestTarget, m_currentTime, 0.0f);
     firePoint = bestPredicted;
 
     APP_LOG("Warning: No fire solution. Flying directly to target 0 at pos: {}", firePoint);
   }
 
-  // Розрахунок точки прицілювання
+  // Calculation of the aiming point
   Coord dropToTargetDir = {std::cos(m_missionCtx.direction), std::sin(m_missionCtx.direction)};
   const float distToFire = (firePoint - m_missionCtx.pos).length();
   if (distToFire > 1e-4f) {
@@ -95,7 +96,7 @@ SimStep MissionProcessor::step()
   }
   const Coord aimPoint = firePoint + dropToTargetDir * m_missionCtx.hDistance;
 
-  // Формуємо історію кроку
+  // Form the step history
   SimStep currentStep;
   currentStep.pos = m_missionCtx.pos;
   currentStep.direction = m_missionCtx.direction;
@@ -105,9 +106,9 @@ SimStep MissionProcessor::step()
   currentStep.aimPoint = aimPoint;
   currentStep.predictedTarget = bestPredicted;
 
-  // Фізика та оновлення часу
+  // Pass control to the real drone's autopilot
   m_missionCtx.firePoint = firePoint;
-  m_physicsEngine->update(m_missionCtx);
+  m_autopilot.update(m_missionCtx);
 
   m_currentTime += m_config.simTimeStep;
   m_steps.push_back(currentStep);

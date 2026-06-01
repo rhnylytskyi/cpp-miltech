@@ -1,5 +1,7 @@
 #pragma once
 
+#include "BallisticApp/TargetExtrapolator.h"
+#include "BallisticApp/navigation/DroneAutopilot.h"
 #include "BallisticApp/types/DroneConfig.h"
 #include "BallisticApp/types/AmmoParams.h"
 #include "BallisticApp/types/SimStep.h"
@@ -14,8 +16,6 @@ class IConfigLoader;
 class ITargetProvider;
 class IBallisticSolver;
 class ISimulationExporter;
-class DronePhysicsEngine;
-class TargetExtrapolator;
 class FireControlComputer;
 
 class MissionProcessor {
@@ -45,8 +45,8 @@ private:
   DroneConfig m_config;
   AmmoParams m_ammo;
 
-  std::unique_ptr<DronePhysicsEngine> m_physicsEngine;
-  std::unique_ptr<TargetExtrapolator> m_extrapolator;
+  DroneAutopilot m_autopilot;
+  TargetExtrapolator m_extrapolator;
   std::unique_ptr<FireControlComputer> m_fireControl;
 
   MissionContext m_missionCtx;

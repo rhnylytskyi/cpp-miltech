@@ -10,18 +10,19 @@ namespace BallisticApp {
 
 DroneStateType StateTurning::execute(MissionContext& ctx)
 {
-  float dt = ctx.cfg.simTimeStep;
-  ctx.lastDeltaPath = 0.0f;
-  float deltaAngle = Math::normalizeAngle(ctx.desiredDir - ctx.direction);
+  const float dt = ctx.cfg.simTimeStep;
+  ctx.lastDeltaPath = 0.0f;  // Turning in place — linear delta zero
+
+  const float deltaAngle = Math::normalizeAngle(ctx.desiredDir - ctx.direction);
   const float maxTurnThisStep = ctx.cfg.angularSpeed * dt;
   const float actualTurn = std::clamp(deltaAngle, -maxTurnThisStep, maxTurnThisStep);
-
   ctx.direction = Math::normalizeAngle(ctx.direction + actualTurn);
 
-  if (std::fabs(Math::normalizeAngle(ctx.desiredDir - ctx.direction)) <= ctx.cfg.turnThreshold) {
-    ctx.direction = ctx.desiredDir;
+  const float deviation = std::fabs(Math::normalizeAngle(ctx.desiredDir - ctx.direction));
+  if (deviation <= (ctx.cfg.turnThreshold * 0.5f)) {
     return DroneStateType::ACCELERATING;
   }
+
   return DroneStateType::TURNING;
 }
 

@@ -1,15 +1,19 @@
 #include "BallisticApp/FireControlComputer.h"
-#include "BallisticApp/DronePhysicsEngine.h"
 #include "BallisticApp/TargetExtrapolator.h"
 #include "BallisticApp/MissionContext.h"
+#include "BallisticApp/navigation/DroneAutopilot.h"
 #include <cmath>
 #include <limits>
 
 namespace BallisticApp {
 
-FireControlComputer::FireControlComputer(DronePhysicsEngine& physicsEngine, TargetExtrapolator& extrapolator, float simTimeStep)
-  : m_physicsEngine(physicsEngine)
-  , m_extrapolator(extrapolator)
+namespace {
+constexpr float MAX_PREDICT_TIME = 30.0f;
+}  // namespace
+
+FireControlComputer::FireControlComputer(TargetExtrapolator& extrapolator, const DroneAutopilot& autopilot, float simTimeStep)
+  : m_extrapolator(extrapolator)
+  , m_autopilot(autopilot)
   , m_simTimeStep(simTimeStep)
 {
 }
@@ -25,30 +29,31 @@ FireSolution FireControlComputer::calculateSolution(const MissionContext& curren
     return solution;
   }
 
-  MissionContext vMissionCtx = currentMissionCtx;
+  MissionContext virtualCtx = currentMissionCtx;
 
   const float dt = m_simTimeStep;
   float elapsedPredictionTime = 0.0f;
 
   while (elapsedPredictionTime < MAX_PREDICT_TIME) {
-    solution.predictedTarget = m_extrapolator.extrapolate(targetIdx, vMissionCtx.currentTime, vMissionCtx.flightTime);
+    solution.predictedTarget = m_extrapolator.extrapolate(targetIdx, virtualCtx.currentTime, virtualCtx.flightTime);
 
-    Coord delta = solution.predictedTarget - vMissionCtx.pos;
+    Coord delta = solution.predictedTarget - virtualCtx.pos;
     if (delta.length() > 1e-4f) {
-      vMissionCtx.firePoint = solution.predictedTarget - delta.normalize() * vMissionCtx.hDistance;
+      virtualCtx.firePoint = solution.predictedTarget - delta.normalize() * virtualCtx.hDistance;
     }
     else {
-      vMissionCtx.firePoint = solution.predictedTarget;
+      virtualCtx.firePoint = solution.predictedTarget;
     }
 
-    vMissionCtx.currentTime += dt;
+    virtualCtx.currentTime += dt;
     elapsedPredictionTime += dt;
 
-    m_physicsEngine.update(vMissionCtx);
+    // Update the autopilot with the virtual mission context
+    m_autopilot.update(virtualCtx);
 
-    if (vMissionCtx.isTargetCaptured()) {
+    if (virtualCtx.isTargetCaptured()) {
       solution.time = elapsedPredictionTime;
-      solution.firePoint = vMissionCtx.firePoint;
+      solution.firePoint = virtualCtx.firePoint;
       solution.isSuccess = true;
       return solution;
     }
