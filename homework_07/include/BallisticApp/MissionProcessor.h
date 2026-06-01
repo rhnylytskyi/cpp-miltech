@@ -15,7 +15,7 @@ class ITargetProvider;
 class IBallisticSolver;
 class ISimulationExporter;
 class DronePhysicsEngine;
-class TargetPredictor;
+class TargetExtrapolator;
 class FireControlComputer;
 
 class MissionProcessor {
@@ -46,7 +46,7 @@ private:
   AmmoParams m_ammo;
 
   std::unique_ptr<DronePhysicsEngine> m_physicsEngine;
-  std::unique_ptr<TargetPredictor> m_targetPredictor;
+  std::unique_ptr<TargetExtrapolator> m_extrapolator;
   std::unique_ptr<FireControlComputer> m_fireControl;
 
   MissionContext m_missionCtx;

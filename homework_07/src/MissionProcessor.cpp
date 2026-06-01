@@ -7,7 +7,7 @@
 #include "BallisticApp/states/DroneStateRegistry.h"
 #include "BallisticApp/utils/Logger.h"
 #include "BallisticApp/DronePhysicsEngine.h"
-#include "BallisticApp/TargetPredictor.h"
+#include "BallisticApp/TargetExtrapolator.h"
 #include "BallisticApp/FireControlComputer.h"
 #include <cmath>
 
@@ -33,8 +33,8 @@ MissionProcessor::MissionProcessor(const std::filesystem::path& configSource,
   }())
   , m_ammo(m_loader ? m_loader->getAmmoParams() : AmmoParams{})
   , m_physicsEngine(std::make_unique<DronePhysicsEngine>())
-  , m_targetPredictor(std::make_unique<TargetPredictor>(*m_provider, m_config.arrayTimeStep))
-  , m_fireControl(std::make_unique<FireControlComputer>(*m_physicsEngine, *m_targetPredictor, m_config.simTimeStep))
+  , m_extrapolator(std::make_unique<TargetExtrapolator>(*m_provider, m_config.arrayTimeStep))
+  , m_fireControl(std::make_unique<FireControlComputer>(*m_physicsEngine, *m_extrapolator, m_config.simTimeStep))
   , m_missionCtx{.cfg = m_config}
   , m_currentTime(0.0f)
   , m_totalSteps(0)
@@ -81,7 +81,7 @@ SimStep MissionProcessor::step()
     // РЕЗЕРВНИЙ ВАРІАНТ: Жодного успішного рішення не знайдено взагалі
     bestTarget = 0;
     // Екстраполюємо ціль 0 на поточний момент (flightTime = 0.0f)
-    bestPredicted = m_targetPredictor->extrapolate(bestTarget, m_currentTime, 0.0f);
+    bestPredicted = m_extrapolator->extrapolate(bestTarget, m_currentTime, 0.0f);
     firePoint = bestPredicted;
 
     APP_LOG("Warning: No fire solution. Flying directly to target 0 at pos: {}", firePoint);

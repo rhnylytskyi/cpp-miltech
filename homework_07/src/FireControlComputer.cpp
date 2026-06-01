@@ -1,15 +1,15 @@
 #include "BallisticApp/FireControlComputer.h"
 #include "BallisticApp/DronePhysicsEngine.h"
-#include "BallisticApp/TargetPredictor.h"
+#include "BallisticApp/TargetExtrapolator.h"
 #include "BallisticApp/MissionContext.h"
 #include <cmath>
 #include <limits>
 
 namespace BallisticApp {
 
-FireControlComputer::FireControlComputer(DronePhysicsEngine& physicsEngine, TargetPredictor& predictor, float simTimeStep)
+FireControlComputer::FireControlComputer(DronePhysicsEngine& physicsEngine, TargetExtrapolator& extrapolator, float simTimeStep)
   : m_physicsEngine(physicsEngine)
-  , m_predictor(predictor)
+  , m_extrapolator(extrapolator)
   , m_simTimeStep(simTimeStep)
 {
 }
@@ -31,7 +31,7 @@ FireSolution FireControlComputer::calculateSolution(const MissionContext& curren
   float elapsedPredictionTime = 0.0f;
 
   while (elapsedPredictionTime < MAX_PREDICT_TIME) {
-    solution.predictedTarget = m_predictor.extrapolate(targetIdx, vMissionCtx.currentTime, vMissionCtx.flightTime);
+    solution.predictedTarget = m_extrapolator.extrapolate(targetIdx, vMissionCtx.currentTime, vMissionCtx.flightTime);
 
     Coord delta = solution.predictedTarget - vMissionCtx.pos;
     if (delta.length() > 1e-4f) {

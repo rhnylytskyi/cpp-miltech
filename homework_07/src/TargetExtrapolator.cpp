@@ -1,16 +1,17 @@
-#include "BallisticApp/TargetPredictor.h"
+#include "BallisticApp/TargetExtrapolator.h"
+#include "BallisticApp/interfaces/ITargetProvider.h"
 #include <cmath>
 #include <algorithm>
 
 namespace BallisticApp {
 
-TargetPredictor::TargetPredictor(const ITargetProvider& provider, float targetTimeStep)
+TargetExtrapolator::TargetExtrapolator(const ITargetProvider& provider, float targetTimeStep)
   : m_provider(provider)
   , m_targetTimeStep(targetTimeStep)
 {
 }
 
-Coord TargetPredictor::interpolate(int targetIdx, float t) const
+Coord TargetExtrapolator::interpolate(int targetIdx, float t) const
 {
   const auto stepsCount = m_provider.getTimeSteps();
   if (stepsCount <= 0) {
@@ -41,7 +42,7 @@ Coord TargetPredictor::interpolate(int targetIdx, float t) const
   return pIdx + (pNext - pIdx) * frac;
 }
 
-Coord TargetPredictor::extrapolate(int targetIdx, float time, float dt) const
+Coord TargetExtrapolator::extrapolate(int targetIdx, float time, float dt) const
 {
   const auto stepsCount = m_provider.getTimeSteps();
   if (stepsCount <= 0) {

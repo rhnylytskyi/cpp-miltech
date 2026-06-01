@@ -1,11 +1,12 @@
 #pragma once
 
+#include "BallisticApp/TargetExtrapolator.h"
 #include "BallisticApp/types/Coord.h"
 
 namespace BallisticApp {
 
 class DronePhysicsEngine;
-class TargetPredictor;
+class TargetExtrapolator;
 struct MissionContext;
 
 // Структура комплексного балістичного рішення
@@ -21,7 +22,7 @@ class FireControlComputer {
 public:
   static constexpr float MAX_PREDICT_TIME = 30.0f;
 
-  FireControlComputer(DronePhysicsEngine& physicsEngine, TargetPredictor& predictor, float simTimeStep);
+  FireControlComputer(DronePhysicsEngine& physicsEngine, TargetExtrapolator& extrapolator, float simTimeStep);
 
   /**
    * @brief Розраховує балістичне рішення для атаки заданої цілі.
@@ -34,7 +35,7 @@ public:
 
 private:
   DronePhysicsEngine& m_physicsEngine;
-  TargetPredictor& m_predictor;
+  TargetExtrapolator& m_extrapolator;
   float m_simTimeStep;
 };
 
