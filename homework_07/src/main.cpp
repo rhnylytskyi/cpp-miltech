@@ -1,5 +1,5 @@
-#include "BallisticApp/core/MissionProcessor.h"
-#include "BallisticApp/core/ScenarioPathResolver.h"
+#include "BallisticApp/mission/MissionProcessor.h"
+#include "BallisticApp/mission/ScenarioPathResolver.h"
 #include "BallisticApp/utils/Logger.h"
 #include <iostream>
 #include <exception>
