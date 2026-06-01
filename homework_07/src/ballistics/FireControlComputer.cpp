@@ -1,5 +1,5 @@
-#include "BallisticApp/FireControlComputer.h"
-#include "BallisticApp/TargetExtrapolator.h"
+#include "BallisticApp/ballistics/FireControlComputer.h"
+#include "BallisticApp/ballistics/TargetExtrapolator.h"
 #include "BallisticApp/MissionContext.h"
 #include "BallisticApp/navigation/DroneAutopilot.h"
 #include <cmath>

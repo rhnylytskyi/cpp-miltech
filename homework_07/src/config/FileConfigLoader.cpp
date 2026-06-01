@@ -1,4 +1,4 @@
-#include "BallisticApp/config/FileConfigLoader.h"
+#include "BallisticApp/loaders/FileConfigLoader.h"
 #include <fstream>
 #include <format>
 #include <stdexcept>

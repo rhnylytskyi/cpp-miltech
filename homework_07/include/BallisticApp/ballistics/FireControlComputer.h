@@ -1,6 +1,6 @@
 #pragma once
 
-#include "BallisticApp/types/FireSolution.h"
+#include "BallisticApp/ballistics/FireSolution.h"
 
 namespace BallisticApp {
 

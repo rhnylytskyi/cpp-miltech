@@ -1,4 +1,4 @@
-#include "BallisticApp/TargetExtrapolator.h"
+#include "BallisticApp/ballistics/TargetExtrapolator.h"
 #include "BallisticApp/interfaces/ITargetProvider.h"
 #include <cmath>
 #include <algorithm>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "BallisticApp/types/SimStep.h"
+#include "BallisticApp/exporters/SimStep.h"
 #include <vector>
 
 namespace BallisticApp {
