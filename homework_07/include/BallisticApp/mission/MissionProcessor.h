@@ -7,6 +7,7 @@
 #include "BallisticApp/config/AmmoParams.h"
 #include "BallisticApp/exporters/SimStep.h"
 #include "BallisticApp/mission/MissionContext.h"
+#include "BallisticApp/mission/TargetAcquisitionSystem.h"
 #include <filesystem>
 #include <vector>
 #include <memory>
@@ -24,20 +25,20 @@ public:
   MissionProcessor(const std::filesystem::path& configSource,
                    const std::filesystem::path& targetsPath,
                    const std::filesystem::path& ammoSource,
-                   const std::filesystem::path& simulationPath);
+                   const std::filesystem::path& simulationPath,
+                   bool targetLockEnabled = false);
   ~MissionProcessor();
 
-  void run();
-  SimStep step();
-  void reset();
   bool hasNext();
+  SimStep step();
+  void run();
+  void reset();
+
   void changeSolver(std::unique_ptr<IBallisticSolver> solver);
   int getTotalSteps() const;
   const std::vector<SimStep>& getStepsHistory() const;
 
-private:
-  void updateBallisticCache();
-
+  private:
   std::unique_ptr<IConfigLoader> m_loader;
   std::unique_ptr<ITargetProvider> m_provider;
   std::unique_ptr<IBallisticSolver> m_solver;
@@ -51,10 +52,14 @@ private:
   std::unique_ptr<FireControlComputer> m_fireControl;
 
   MissionContext m_missionCtx;
-  float m_currentTime;
-  int m_totalSteps;
-  bool m_isMissionFinished;
+  TargetAcquisitionSystem m_tas;
+
+  float m_currentTime{0.0f};
+  int m_totalSteps{0};
+  bool m_isMissionFinished{false};
   std::vector<SimStep> m_steps;
+
+  void updateBallisticCache();
 };
 
 }  // namespace BallisticApp

@@ -1,7 +1,5 @@
 #include "BallisticApp/interfaces/IDroneState.h"
 #include "BallisticApp/states/StateDecelerating.h"
-#include "BallisticApp/mission/MissionContext.h"
-#include "BallisticApp/types/DroneStateType.h"
 #include <cmath>
 #include <algorithm>
 

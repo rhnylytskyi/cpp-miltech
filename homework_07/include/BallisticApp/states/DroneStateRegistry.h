@@ -1,7 +1,7 @@
 #pragma once
 
-#include "BallisticApp/types/DroneStateType.h"
 #include "BallisticApp/interfaces/IDroneState.h"
+#include "BallisticApp/types/DroneStateType.h"
 #include <cmath>
 
 namespace BallisticApp {

@@ -6,9 +6,9 @@
 #include "BallisticApp/interfaces/ISimulationExporter.h"
 #include "BallisticApp/navigation/DroneAutopilot.h"
 #include "BallisticApp/states/DroneStateRegistry.h"
-#include "BallisticApp/utils/Logger.h"
 #include "BallisticApp/ballistics/TargetExtrapolator.h"
 #include "BallisticApp/ballistics/FireControlComputer.h"
+#include "BallisticApp/utils/Logger.h"
 #include <cmath>
 #include <memory>
 
@@ -22,7 +22,8 @@ constexpr int MAX_STEPS = 10000;
 MissionProcessor::MissionProcessor(const std::filesystem::path& configSource,
                                    const std::filesystem::path& targetsPath,
                                    const std::filesystem::path& ammoSource,
-                                   const std::filesystem::path& simulationPath)
+                                   const std::filesystem::path& simulationPath,
+                                   bool targetLockEnabled)
   : m_loader(ComponentFactory::createLoader(ConfigLoaderType::FILE))
   , m_provider(ComponentFactory::createProvider(TargetProviderType::JSON, targetsPath))
   , m_solver(ComponentFactory::createSolver(SolverType::ANALYTICAL))
@@ -37,10 +38,12 @@ MissionProcessor::MissionProcessor(const std::filesystem::path& configSource,
   , m_extrapolator(*m_provider, m_config.arrayTimeStep)
   , m_fireControl(std::make_unique<FireControlComputer>(m_extrapolator, m_autopilot, m_config.simTimeStep))
   , m_missionCtx{.cfg = m_config}
+  , m_tas(m_provider ? m_provider->getTargetCount() : 0)
   , m_currentTime(0.0f)
   , m_totalSteps(0)
   , m_isMissionFinished(false)
 {
+  m_tas.setTargetLockEnabled(targetLockEnabled);
   reset();
   APP_LOG("Mission initialized. Ammo: {}", m_ammo.name);
 }
@@ -54,22 +57,10 @@ bool MissionProcessor::hasNext()
 
 SimStep MissionProcessor::step()
 {
-  const int targetCount = m_provider->getTargetCount();
   m_missionCtx.currentTime = m_currentTime;
 
-  FireSolution bestSolution;
-  bestSolution.isSuccess = false;
-  bestSolution.time = std::numeric_limits<float>::max();
-  int bestTarget = -1;
-
-  for (int tId = 0; tId < targetCount; ++tId) {
-    FireSolution sol = m_fireControl->calculateSolution(m_missionCtx, tId);
-
-    if (sol.isSuccess && sol.time < bestSolution.time) {
-      bestSolution = sol;
-      bestTarget = tId;
-    }
-  }
+  // 1. TARGET LOCK LOGIC & 2. MULTI-TARGET RADAR SCAN
+  auto [bestTarget, bestSolution] = m_tas.acquireBestTarget(m_missionCtx, m_extrapolator, m_fireControl);
 
   Coord bestPredicted;
   Coord firePoint;
@@ -90,9 +81,11 @@ SimStep MissionProcessor::step()
 
   // Calculation of the aiming point
   Coord dropToTargetDir = {std::cos(m_missionCtx.direction), std::sin(m_missionCtx.direction)};
-  const float distToFire = (firePoint - m_missionCtx.pos).length();
-  if (distToFire > 1e-4f) {
-    dropToTargetDir = (firePoint - m_missionCtx.pos).normalize();
+  const Coord toFireVector = firePoint - m_missionCtx.pos;
+
+  // Optimized using lengthSquared (1e-4f squared is 1e-8f)
+  if (toFireVector.lengthSquared() > 1e-8f) {
+    dropToTargetDir = toFireVector.normalize();
   }
   const Coord aimPoint = firePoint + dropToTargetDir * m_missionCtx.hDistance;
 
@@ -116,7 +109,7 @@ SimStep MissionProcessor::step()
 
   if (m_missionCtx.isTargetCaptured()) {
     m_isMissionFinished = true;
-    APP_LOG("Target captured. Bomb released at step: {}", m_totalSteps);
+    APP_LOG("Bomb released on target {} at step: {}", bestTarget, m_totalSteps);
   }
 
   return currentStep;
@@ -142,6 +135,10 @@ void MissionProcessor::reset()
   m_missionCtx.currentState = DroneStateRegistry::getState(INITIAL_DRONE_STATE);
 
   updateBallisticCache();
+
+  if (m_provider) {
+    m_tas.reset(m_provider->getTargetCount());
+  }
 
   m_currentTime = 0.0f;
   m_totalSteps = 0;
