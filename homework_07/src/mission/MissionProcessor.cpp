@@ -39,9 +39,6 @@ MissionProcessor::MissionProcessor(const std::filesystem::path& configSource,
   , m_fireControl(std::make_unique<FireControlComputer>(m_extrapolator, m_autopilot, m_config.simTimeStep))
   , m_missionCtx{.cfg = m_config}
   , m_tas(m_provider ? m_provider->getTargetCount() : 0)
-  , m_currentTime(0.0f)
-  , m_totalSteps(0)
-  , m_isMissionFinished(false)
 {
   m_tas.setTargetLockEnabled(targetLockEnabled);
   reset();
@@ -50,7 +47,7 @@ MissionProcessor::MissionProcessor(const std::filesystem::path& configSource,
 
 MissionProcessor::~MissionProcessor() = default;
 
-bool MissionProcessor::hasNext()
+bool MissionProcessor::hasNext() const
 {
   return (m_totalSteps < MAX_STEPS) && !m_isMissionFinished;
 }

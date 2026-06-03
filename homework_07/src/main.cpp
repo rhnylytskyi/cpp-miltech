@@ -16,12 +16,7 @@ int main(int argc, char* argv[])
     APP_LOG("Targets loaded from: {}", appArgs.getTargetsPath().string());
 
     MissionProcessor mission(
-      appArgs.getConfigPath(),
-      appArgs.getTargetsPath(), 
-      appArgs.getAmmoPath(), 
-      appArgs.getSimulationPath(), 
-      appArgs.isTargetLockEnabled()
-    );
+      appArgs.getConfigPath(), appArgs.getTargetsPath(), appArgs.getAmmoPath(), appArgs.getSimulationPath(), appArgs.isTargetLockEnabled());
 
     mission.run();
   }

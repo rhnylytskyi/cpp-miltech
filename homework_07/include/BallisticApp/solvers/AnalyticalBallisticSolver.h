@@ -5,9 +5,6 @@
 
 namespace BallisticApp {
 class AnalyticalBallisticSolver : public IBallisticSolver {
-private:
-  const float g_gravity = 9.81f;
-
 public:
   AnalyticalBallisticSolver() = default;
   ~AnalyticalBallisticSolver() override = default;

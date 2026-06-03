@@ -6,9 +6,9 @@ namespace BallisticApp {
 
 struct AmmoParams {
   std::string name;
-  float mass;
-  float drag;
-  float lift;
+  float mass{0.0f};
+  float drag{0.0f};
+  float lift{0.0f};
 };
 
 }  // namespace BallisticApp

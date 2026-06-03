@@ -13,7 +13,7 @@ void DroneAutopilot::update(MissionContext& ctx) const
     return;
   }
 
-  // Lead guidance: targeting the predicted intercept point (firePoint) 
+  // Lead guidance: targeting the predicted intercept point (firePoint)
   // pre-calculated by the fire control computer (FCC).
   const float targetAngle = std::atan2(ctx.firePoint.y - ctx.pos.y, ctx.firePoint.x - ctx.pos.x);
 

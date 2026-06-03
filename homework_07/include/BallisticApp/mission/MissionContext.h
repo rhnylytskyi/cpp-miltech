@@ -35,12 +35,12 @@ struct MissionContext {
 
   CaptureAlgorithm activeAlgo = CaptureAlgorithm::PERPENDICULAR_CENTER;
 
-  inline DroneStateType getCurrentStateType() const { return currentState ? currentState->getType() : DroneStateType::STOPPED; }
+  DroneStateType getCurrentStateType() const { return currentState ? currentState->getType() : DroneStateType::STOPPED; }
 
   /**
    * @brief Universal target capture check with dynamic algorithm switching.
    */
-  inline bool isTargetCaptured() const
+  bool isTargetCaptured() const
   {
     if (getCurrentStateType() != DroneStateType::MOVING) {
       return false;

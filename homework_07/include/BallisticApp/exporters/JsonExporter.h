@@ -14,7 +14,7 @@ void to_json(nlohmann::json& j, const SimStep& step);
 
 class JsonExporter : public ISimulationExporter {
 public:
-  explicit JsonExporter(const std::filesystem::path& filePath);
+  explicit JsonExporter(std::filesystem::path filePath);
   ~JsonExporter() override = default;
 
   void exportSimulation(const std::vector<SimStep>& history) const override;

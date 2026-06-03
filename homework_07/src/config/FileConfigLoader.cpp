@@ -11,7 +11,6 @@ namespace BallisticApp {
 
 FileConfigLoader::FileConfigLoader()
   : config{}
-  , ammoMap{}
 {
 }
 

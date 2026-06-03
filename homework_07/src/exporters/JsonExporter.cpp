@@ -25,8 +25,8 @@ void to_json(json& j, const SimStep& step)
            {"predictedTarget", step.predictedTarget}};
 }
 
-JsonExporter::JsonExporter(const std::filesystem::path& filePath)
-  : m_filePath(filePath)
+JsonExporter::JsonExporter(std::filesystem::path filePath)
+  : m_filePath(std::move(filePath))
 {
 }
 

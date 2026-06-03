@@ -6,13 +6,13 @@
 namespace BallisticApp {
 
 struct SimStep {
-  Coord pos;
-  float direction;
-  DroneStateType state;
-  int targetIdx;
-  Coord dropPoint;
-  Coord aimPoint;
-  Coord predictedTarget;
+  Coord pos{0.0f, 0.0f};
+  float direction{0.0f};
+  DroneStateType state{DroneStateType::STOPPED};
+  int targetIdx{-1};
+  Coord dropPoint{0.0f, 0.0f};
+  Coord aimPoint{0.0f, 0.0f};
+  Coord predictedTarget{0.0f, 0.0f};
 };
 
 }  // namespace BallisticApp

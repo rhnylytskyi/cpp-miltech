@@ -29,7 +29,7 @@ public:
                    bool targetLockEnabled = false);
   ~MissionProcessor();
 
-  bool hasNext();
+  bool hasNext() const;
   SimStep step();
   void run();
   void reset();

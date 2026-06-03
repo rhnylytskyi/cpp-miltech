@@ -32,11 +32,6 @@ public:
   bool isTargetLockEnabled() const noexcept { return m_enableTargetLock; }
 
 private:
-  void parse(std::span<const char* const> args);
-  void validate() const;
-  void printHelp() const;
-
-private:
   std::filesystem::path m_dataDir;
   std::filesystem::path m_configDir;
 
@@ -46,6 +41,10 @@ private:
   std::filesystem::path m_simulationPath;
 
   bool m_enableTargetLock{false};
+
+  void parse(std::span<const char* const> args);
+  void validate() const;
+  void printHelp() const;
 };
 
 }  // namespace BallisticApp
