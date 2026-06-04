@@ -12,8 +12,8 @@ int main(int argc, char* argv[])
     std::span<const char* const> spanArgs(argv, argc);
     AppArguments appArgs(spanArgs);
 
-    APP_LOG("Config loaded from: {}", appArgs.getConfigPath().string());
-    APP_LOG("Targets loaded from: {}", appArgs.getTargetsPath().string());
+    APP_LOG("[SYS.LOAD] CONFIG_FILE....... {}", appArgs.getConfigPath().string());
+    APP_LOG("[SYS.LOAD] TARGET_LIST....... {}", appArgs.getTargetsPath().string());
 
     MissionProcessor mission(
       appArgs.getConfigPath(), appArgs.getTargetsPath(), appArgs.getAmmoPath(), appArgs.getSimulationPath(), appArgs.isTargetLockEnabled());

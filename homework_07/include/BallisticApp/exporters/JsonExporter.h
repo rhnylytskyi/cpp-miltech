@@ -5,7 +5,7 @@
 #include "BallisticApp/exporters/SimStep.h"
 #include <filesystem>
 #include <vector>
-#include <nlohmann/json_fwd.hpp>
+#include <nlohmann/json.hpp>
 
 namespace BallisticApp {
 

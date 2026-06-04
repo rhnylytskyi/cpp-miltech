@@ -72,10 +72,10 @@ public:
         if (isCurrentlyVisible != m_knownVisibleTargets[tId]) {
           m_knownVisibleTargets[tId] = isCurrentlyVisible;
           if (isCurrentlyVisible) {
-            APP_LOG("TAS Radar: Target {} detected on long-range scanner. Distance: {:.2f}m", tId, distanceToTarget3D);
+            APP_LOG_MOD("TAS Radar", "[RDR.SCAN] OBJ_ACQUIRED...... ID={:0>2} RANGE={:.2f}m", tId, distanceToTarget3D);
           }
           else {
-            APP_LOG("TAS Radar: Target {} lost from scanner.", tId);
+            APP_LOG_MOD("TAS Radar", "[RDR.SCAN] OBJ_LOST............ ID={:0>2}", tId);
           }
         }
 
@@ -154,11 +154,12 @@ private:
     const float realBombFallTime = ctx.flightTime;
     const float totalTimeToImpact = droneTimeToDrop + realBombFallTime;
 
-    APP_LOG("TAS Lock: Secured track on target {}. Timeline -> Drone approach: {:.2f}s | Bomb fall: {:.2f}s | Total TTI: {:.2f}s",
-            m_lockedTargetId,
-            droneTimeToDrop,
-            realBombFallTime,
-            totalTimeToImpact);
+    APP_LOG_MOD("TAS Lock",
+                "Secured track on target #{}. Timeline -> Drone approach: {:.2f}s | Bomb fall: {:.2f}s | Total TTI: {:.2f}s",
+                m_lockedTargetId,
+                droneTimeToDrop,
+                realBombFallTime,
+                totalTimeToImpact);
   }
 };
 

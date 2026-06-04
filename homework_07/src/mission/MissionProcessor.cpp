@@ -42,7 +42,7 @@ MissionProcessor::MissionProcessor(const std::filesystem::path& configSource,
 {
   m_tas.setTargetLockEnabled(targetLockEnabled);
   reset();
-  APP_LOG("Mission initialized. Ammo: {}", m_ammo.name);
+  APP_LOG_MOD("Mission", "[MSN.INIT] PAYLOAD_STATUS.... READY [AMMO={}]", m_ammo.name);
 }
 
 MissionProcessor::~MissionProcessor() = default;
@@ -73,7 +73,7 @@ SimStep MissionProcessor::step()
     bestPredicted = m_extrapolator.extrapolate(bestTarget, m_currentTime, 0.0f);
     firePoint = bestPredicted;
 
-    APP_LOG("Warning: No fire solution. Flying directly to target 0 at pos: {}", firePoint);
+    APP_LOG_MOD("Mission", "Warning: No fire solution. Flying directly to target 0 at pos: {}", firePoint);
   }
 
   // Calculation of the aiming point
@@ -106,7 +106,7 @@ SimStep MissionProcessor::step()
 
   if (m_missionCtx.isTargetCaptured()) {
     m_isMissionFinished = true;
-    APP_LOG("Bomb released on target {} at step: {}", bestTarget, m_totalSteps);
+    APP_LOG_MOD("Mission", "[MSN.DROP] WEAPON_RELEASE.... TARGET={:0>2} STEP={}", bestTarget, m_totalSteps);
   }
 
   return currentStep;
