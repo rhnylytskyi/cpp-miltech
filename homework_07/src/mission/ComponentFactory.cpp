@@ -1,14 +1,21 @@
 #include "BallisticApp/mission/ComponentFactory.h"
 #include "BallisticApp/loaders/FileConfigLoader.h"
 #include "BallisticApp/providers/JsonTargetProvider.h"
-#include "BallisticApp/solvers/AnalyticalBallisticSolver.h"
+#include "BallisticApp/solvers/AnalyticalSolver.h"
+#include "BallisticApp/solvers/TableSolver.h"
 #include "BallisticApp/exporters/JsonExporter.h"
 
 namespace BallisticApp {
 
 std::unique_ptr<IBallisticSolver> ComponentFactory::createSolver(SolverType type)
 {
-  return (type == SolverType::ANALYTICAL) ? std::make_unique<AnalyticalBallisticSolver>() : nullptr;
+  if (type == SolverType::ANALYTICAL) {
+    return std::make_unique<AnalyticalSolver>();
+  }
+  if (type == SolverType::TABLE) {
+    return std::make_unique<TableSolver>();
+  }
+  return nullptr;
 }
 
 std::unique_ptr<ITargetProvider> ComponentFactory::createProvider(TargetProviderType type, const std::filesystem::path& param)

@@ -1,12 +1,21 @@
 #pragma once
 
 #include "BallisticApp/config/AmmoParams.h"
+#include <filesystem>
 
 namespace BallisticApp {
+
 class IBallisticSolver {
 public:
+  struct Result {
+    float flightTime = 0.0f;
+    float hDistance = 0.0f;
+  };
+
   virtual ~IBallisticSolver() = default;
-  virtual float calcTimeOfFall(float z0, float v0, const AmmoParams& ammo) = 0;
-  virtual float calcHDistance(float t, float V0, const AmmoParams& ammo) = 0;
+
+  virtual bool initialize(const std::filesystem::path& /*tablePath*/) { return true; }
+  virtual Result calculate(float altitude, float speed, const AmmoParams& ammo) = 0;
 };
+
 }  // namespace BallisticApp

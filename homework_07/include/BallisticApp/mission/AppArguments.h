@@ -1,5 +1,6 @@
 #pragma once
 
+#include "BallisticApp/solvers/SolverType.h"
 #include <filesystem>
 #include <span>
 
@@ -25,11 +26,19 @@ public:
 
   const std::filesystem::path& getSimulationPath() const;
 
+  const std::filesystem::path& getTablePath() const;
+
   /**
    * @brief Verifies whether runtime target tracker lock persistence is enabled.
    * @return True if --enable-lock requested, false otherwise (default).
    */
   bool isTargetLockEnabled() const noexcept { return m_enableTargetLock; }
+
+  /**
+   * @brief Returns the selected ballistic solver type.
+   * @return SolverType::ANALYTICAL or SolverType::TABLE.
+   */
+  SolverType getSolverType() const noexcept { return m_solverType; }
 
 private:
   std::filesystem::path m_dataDir;
@@ -39,8 +48,10 @@ private:
   std::filesystem::path m_targetsPath;
   std::filesystem::path m_ammoPath;
   std::filesystem::path m_simulationPath;
+  std::filesystem::path m_tablePath;
 
   bool m_enableTargetLock{false};
+  SolverType m_solverType{SolverType::ANALYTICAL};
 
   void parse(std::span<const char* const> args);
   void validate() const;

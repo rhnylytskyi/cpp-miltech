@@ -12,12 +12,19 @@ int main(int argc, char* argv[])
     std::span<const char* const> spanArgs(argv, argc);
     AppArguments appArgs(spanArgs);
 
-    APP_LOG("[SYS.LOAD] CONFIG_FILE....... {}", appArgs.getConfigPath().string());
-    APP_LOG("[SYS.LOAD] TARGET_LIST....... {}", appArgs.getTargetsPath().string());
+    APP_LOG("{:.<15} {}", "CONFIG_FILE", appArgs.getConfigPath().string());
+    APP_LOG("{:.<15} {}", "TARGET_LIST", appArgs.getTargetsPath().string());
+    APP_LOG("{:.<15} {}", "SOLVER_TYPE", appArgs.getSolverType() == SolverType::TABLE ? "TABLE" : "ANALYTICAL");
 
-    MissionProcessor mission(
-      appArgs.getConfigPath(), appArgs.getTargetsPath(), appArgs.getAmmoPath(), appArgs.getSimulationPath(), appArgs.isTargetLockEnabled());
+    LaunchParams params{.configPath = appArgs.getConfigPath(),
+                        .targetsPath = appArgs.getTargetsPath(),
+                        .ammoPath = appArgs.getAmmoPath(),
+                        .simulationPath = appArgs.getSimulationPath(),
+                        .tablePath = appArgs.getTablePath(),
+                        .solverType = appArgs.getSolverType(),
+                        .enableTargetLock = appArgs.isTargetLockEnabled()};
 
+    MissionProcessor mission(params);
     mission.run();
   }
   catch (const std::exception& e) {

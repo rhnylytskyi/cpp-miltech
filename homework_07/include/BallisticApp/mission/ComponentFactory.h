@@ -4,12 +4,12 @@
 #include "BallisticApp/interfaces/ITargetProvider.h"
 #include "BallisticApp/interfaces/IConfigLoader.h"
 #include "BallisticApp/interfaces/ISimulationExporter.h"
+#include "BallisticApp/solvers/SolverType.h"
 #include <filesystem>
 #include <memory>
 
 namespace BallisticApp {
 
-enum class SolverType { ANALYTICAL };
 enum class TargetProviderType { JSON };
 enum class ConfigLoaderType { FILE };
 enum class ExporterType { JSON };

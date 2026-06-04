@@ -72,10 +72,10 @@ public:
         if (isCurrentlyVisible != m_knownVisibleTargets[tId]) {
           m_knownVisibleTargets[tId] = isCurrentlyVisible;
           if (isCurrentlyVisible) {
-            APP_LOG_MOD("TAS Radar", "[RDR.SCAN] OBJ_ACQUIRED...... ID={:0>2} RANGE={:.2f}m", tId, distanceToTarget3D);
+            APP_LOG_MOD("TAS Radar", "{:.<15} ID={:0>2} RANGE={:.2f}m", "OBJ_ACQUIRED", tId, distanceToTarget3D);
           }
           else {
-            APP_LOG_MOD("TAS Radar", "[RDR.SCAN] OBJ_LOST............ ID={:0>2}", tId);
+            APP_LOG_MOD("TAS Radar", "{:.<15} ID={:0>2}", "OBJ_LOST", tId);
           }
         }
 

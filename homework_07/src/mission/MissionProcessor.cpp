@@ -1,16 +1,8 @@
 #include "BallisticApp/mission/MissionProcessor.h"
 #include "BallisticApp/mission/ComponentFactory.h"
-#include "BallisticApp/interfaces/IConfigLoader.h"
-#include "BallisticApp/interfaces/ITargetProvider.h"
-#include "BallisticApp/interfaces/IBallisticSolver.h"
-#include "BallisticApp/interfaces/ISimulationExporter.h"
-#include "BallisticApp/navigation/DroneAutopilot.h"
-#include "BallisticApp/states/DroneStateRegistry.h"
-#include "BallisticApp/ballistics/TargetExtrapolator.h"
-#include "BallisticApp/ballistics/FireControlComputer.h"
 #include "BallisticApp/utils/Logger.h"
+#include "BallisticApp/states/DroneStateRegistry.h"
 #include <cmath>
-#include <memory>
 
 namespace BallisticApp {
 
@@ -19,18 +11,14 @@ constexpr DroneStateType INITIAL_DRONE_STATE = DroneStateType::STOPPED;
 constexpr int MAX_STEPS = 10000;
 }  // namespace
 
-MissionProcessor::MissionProcessor(const std::filesystem::path& configSource,
-                                   const std::filesystem::path& targetsPath,
-                                   const std::filesystem::path& ammoSource,
-                                   const std::filesystem::path& simulationPath,
-                                   bool targetLockEnabled)
+MissionProcessor::MissionProcessor(const LaunchParams& params)
   : m_loader(ComponentFactory::createLoader(ConfigLoaderType::FILE))
-  , m_provider(ComponentFactory::createProvider(TargetProviderType::JSON, targetsPath))
-  , m_solver(ComponentFactory::createSolver(SolverType::ANALYTICAL))
-  , m_exporter(ComponentFactory::createExporter(ExporterType::JSON, simulationPath))
-  , m_config([this, &configSource, &ammoSource]() {
+  , m_provider(ComponentFactory::createProvider(TargetProviderType::JSON, params.targetsPath))
+  , m_solver(ComponentFactory::createSolver(params.solverType))
+  , m_exporter(ComponentFactory::createExporter(ExporterType::JSON, params.simulationPath))
+  , m_config([this, &params]() {
     if (m_loader)
-      m_loader->load(configSource, ammoSource);
+      m_loader->load(params.configPath, params.ammoPath);
     return m_loader ? m_loader->getConfig() : DroneConfig{};
   }())
   , m_ammo(m_loader ? m_loader->getAmmoParams() : AmmoParams{})
@@ -40,9 +28,15 @@ MissionProcessor::MissionProcessor(const std::filesystem::path& configSource,
   , m_missionCtx{.cfg = m_config}
   , m_tas(m_provider ? m_provider->getTargetCount() : 0)
 {
-  m_tas.setTargetLockEnabled(targetLockEnabled);
+  if (m_solver) {
+    if (!m_solver->initialize(params.tablePath) && params.solverType == SolverType::TABLE) {
+      throw std::runtime_error("Critical: Failed to initialize Ballistic Table Solver from: " + params.tablePath.string());
+    }
+  }
+
+  m_tas.setTargetLockEnabled(params.enableTargetLock);
   reset();
-  APP_LOG_MOD("Mission", "[MSN.INIT] PAYLOAD_STATUS.... READY [AMMO={}]", m_ammo.name);
+  APP_LOG_MOD("Mission", "{:.<15} READY [AMMO={}]", "PAYLOAD_STATUS", m_ammo.name);
 }
 
 MissionProcessor::~MissionProcessor() = default;
@@ -106,7 +100,7 @@ SimStep MissionProcessor::step()
 
   if (m_missionCtx.isTargetCaptured()) {
     m_isMissionFinished = true;
-    APP_LOG_MOD("Mission", "[MSN.DROP] WEAPON_RELEASE.... TARGET={:0>2} STEP={}", bestTarget, m_totalSteps);
+    APP_LOG_MOD("Mission", "{:.<15} TARGET={:0>2} STEP={}", "WEAPON_RELEASE", bestTarget, m_totalSteps);
   }
 
   return currentStep;
@@ -156,10 +150,9 @@ void MissionProcessor::changeSolver(std::unique_ptr<IBallisticSolver> solver)
 void MissionProcessor::updateBallisticCache()
 {
   if (m_solver) {
-    const float flightTime = m_solver->calcTimeOfFall(m_config.altitude, m_config.attackSpeed, m_ammo);
-
-    m_missionCtx.flightTime = flightTime;
-    m_missionCtx.hDistance = m_solver->calcHDistance(flightTime, m_config.attackSpeed, m_ammo);
+    auto ballisticResult = m_solver->calculate(m_config.altitude, m_config.attackSpeed, m_ammo);
+    m_missionCtx.flightTime = ballisticResult.flightTime;
+    m_missionCtx.hDistance = ballisticResult.hDistance;
   }
 }
 
