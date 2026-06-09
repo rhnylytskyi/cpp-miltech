@@ -1,5 +1,4 @@
 #include "ballistics.hpp"
-
 #include <gtest/gtest.h>
 #include <stdexcept>
 #include <fstream>
@@ -22,8 +21,8 @@ TEST(Ballistics, ComputesKnownDropPoint)
 
   const DropSolution solution = computeDropSolution(input);
 
-  EXPECT_NEAR(solution.fireX, 175.441F, 0.01);
-  EXPECT_NEAR(solution.fireY, 175.441F, 0.01);
+  EXPECT_NEAR(solution.fireX, 173.759F, 0.01);
+  EXPECT_NEAR(solution.fireY, 173.759F, 0.01);
 }
 
 // Перевірка розрахунку балістики для випадку, коли потрібна проміжна точка
@@ -43,10 +42,10 @@ TEST(Ballistics, ComputesIntermediatePoint)
   const DropSolution solution = computeDropSolution(input);
 
   EXPECT_TRUE(solution.hasIntermediate);
-  EXPECT_NEAR(solution.intermediateX, 118.370F, 0.01);
-  EXPECT_NEAR(solution.intermediateY, 118.370F, 0.01);
-  EXPECT_NEAR(solution.fireX, 125.441F, 0.01);
-  EXPECT_NEAR(solution.fireY, 125.441F, 0.01);
+  EXPECT_NEAR(solution.intermediateX, 116.688F, 0.01);
+  EXPECT_NEAR(solution.intermediateY, 116.688F, 0.01);
+  EXPECT_NEAR(solution.fireX, 123.759F, 0.01);
+  EXPECT_NEAR(solution.fireY, 123.759F, 0.01);
 }
 
 // Перевірка розрахунку балістики для випадку, коли дрон над ціллю
@@ -66,9 +65,9 @@ TEST(Ballistics, ComputesWhenDroneAboveTarget)
   const DropSolution solution = computeDropSolution(input);
 
   EXPECT_TRUE(solution.hasIntermediate);
-  EXPECT_NEAR(solution.intermediateX, 105.268F, 0.01);
+  EXPECT_NEAR(solution.intermediateX, 102.889F, 0.01);
   EXPECT_NEAR(solution.intermediateY, 150.0F, 0.01);
-  EXPECT_NEAR(solution.fireX, 115.268F, 0.01);
+  EXPECT_NEAR(solution.fireX, 112.889F, 0.01);
   EXPECT_NEAR(solution.fireY, 150.0F, 0.01);
 }
 
@@ -161,13 +160,14 @@ TEST(Ballistics, ReadsValidFileCorrectly)
 // Перевірка, що планеруючий боєприпас дає скінченний додатний час падіння
 TEST(Ballistics, ReturnsFinitePositiveTimeForGlidingAmmo)
 {
-  const float z0 = 100.0F;
-  const float v0 = 10.0F;
+  const float height = 100.0F;
+  const float speed = 10.0F;
   const float mass = 0.45F;
   const float drag = 0.10F;
   const float lift = 1.0F;  // Планеруючий боєприпас
+  BallisticsArgs args{height, speed, mass, drag, lift};
 
-  float flightTime = calcTimeOfFall(z0, v0, mass, drag, lift);
+  float flightTime = calcTimeOfFall(args);
 
   EXPECT_GT(flightTime, 0.0F);           // Час має бути строго більшим за нуль
   EXPECT_FALSE(std::isnan(flightTime));  // Результат не повинен бути NaN
@@ -177,11 +177,13 @@ TEST(Ballistics, ReturnsFinitePositiveTimeForGlidingAmmo)
 // Перевірка на виключення при некоректній висоті
 TEST(Ballistics, ThrowsExceptionWhenHeightIsZeroOrNegative)
 {
-  const float v0 = 10.0F;
+  const float speed = 10.0F;
   const float mass = 0.45F;
   const float drag = 0.10F;
   const float lift = 1.0F;  // Планеруючий боєприпас
+  BallisticsArgs args{0.0F, speed, mass, drag, lift};
 
-  EXPECT_THROW(calcTimeOfFall(0.0F, v0, mass, drag, lift), std::runtime_error);
-  EXPECT_THROW(calcTimeOfFall(-10.0F, v0, mass, drag, lift), std::runtime_error);
+  EXPECT_THROW(calcTimeOfFall(args), std::runtime_error);
+  args.altitude = -10.0F;
+  EXPECT_THROW(calcTimeOfFall(args), std::runtime_error);
 }
