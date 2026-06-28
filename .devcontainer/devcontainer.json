@@ -51,8 +51,13 @@
   ],
 
   // Enable autocompletion for BASH
-  "postCreateCommand": "echo 'source /usr/share/bash-completion/completions/git' >> ~/.bashrc",
-  
+  // and make check-quality script executable
+  "postCreateCommand": [
+    "bash",
+    "-c",
+    "echo 'source /usr/share/bash-completion/completions/git' >> ~/.bashrc && chmod +x .devcontainer/scripts/check-quality"
+  ],
+
   // Усе всередині customizations.vscode застосовується саме до VS Code
   // сесії в контейнері. Це не те саме, що .vscode/extensions.json на host.
   "customizations": {
@@ -105,6 +110,5 @@
         }
       }
     }
-  },
-  "postCreateCommand": "chmod +x .devcontainer/scripts/check-quality"
+  }
 }
