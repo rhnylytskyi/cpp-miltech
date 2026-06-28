@@ -10,7 +10,7 @@
 const float g_gravity = 9.81F;
 const int BOMB_COUNT = 5;                      // Кількість типів боєприпасів у каталозі
 const float pi_f = std::numbers::pi_v<float>;  // Має тип float (запобігає narrowing conversions)
-const double pi = std::numbers::pi;            // Має тип double
+const double pi_d = std::numbers::pi;          // Має тип double
 
 struct AmmoParams {
   std::string_view name;
@@ -44,6 +44,14 @@ struct DropSolution {
   bool hasIntermediate = false;
 };
 
+struct BallisticsArgs {
+  float altitude;
+  float speed;
+  float mass;
+  float drag;
+  float lift;
+};
+
 // ----------------------------------------------
 // Зчитування вхідних даних з файлу
 // ----------------------------------------------
@@ -57,12 +65,12 @@ AmmoParams getAmmoParams(std::string_view name);
 // ------------------------------------------------------------
 // Балістика: час польоту (метод Кардано)
 // ------------------------------------------------------------
-float calcTimeOfFall(float z0, float v0, float m, float d, float l);
+float calcTimeOfFall(const BallisticsArgs& args);
 
 // ------------------------------------------------------------
 // Балістика: горизонтальна дистанція (степеневий ряд до t^5)
 // ------------------------------------------------------------
-float calcHDistance(float t, float V0, float m, float d, float l);
+float calcHDistance(float time, float speed, float mass, float drag, float lift);
 
 // ------------------------------------------------------------
 // Розрахунок балістики
