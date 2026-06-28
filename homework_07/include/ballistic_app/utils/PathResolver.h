@@ -1,33 +1,20 @@
 #pragma once
 
 #include <string>
+#include <filesystem>
 
-namespace BallisticApp {
 class PathResolver {
 public:
-  PathResolver(int argc, char* argv[])
-  {
-    targetsStr = TARGETS_PATH;
-    configStr = CONFIG_PATH;
+  // Парсинг аргументів командного рядка та налаштування папок
+  static void parseArguments(int argc, char* argv[]);
 
-    if (argc > 1) {
-      std::string fileName = argv[1];
-      targetsStr = "data/test/" + fileName;
-
-      std::string configFileName = fileName;
-      if (configFileName.rfind("targets", 0) == 0) {
-        configFileName.replace(0, 7, "config");
-      }
-      configStr = "data/test/" + configFileName;
-    }
-  }
-
-  const char* getTargetsPath() const { return targetsStr.c_str(); }
-
-  const char* getConfigPath() const { return configStr.c_str(); }
+  // Отримання шляхів до файлів
+  static std::string getTargetsPath();
+  static std::string getConfigPath();
+  static std::string getAmmoPath();
+  static std::string getSimulationPath();
 
 private:
-  std::string targetsStr;
-  std::string configStr;
+  static std::filesystem::path m_configDir;
+  static std::filesystem::path m_dataDir;
 };
-}  // namespace BallisticApp

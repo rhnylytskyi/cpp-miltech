@@ -1,8 +1,11 @@
 #include "ballistic_app/MissionPlanner.h"
+#include "ballistic_app/DronePhysicsEngine.h"
+#include "ballistic_app/TargetPredictor.h"
 #include "ballistic_app/utils/MathUtils.h"
 
 namespace BallisticApp {
-MissionPlanner::MissionPlanner(DronePhysicsEngine* physicsEngine, TargetPredictor* predictor, const DroneConfig& config)
+
+MissionPlanner::MissionPlanner(DronePhysicsEngine& physicsEngine, TargetPredictor& predictor, const DroneConfig& config)
   : m_physicsEngine(physicsEngine)
   , m_predictor(predictor)
   , m_config(config)
@@ -11,15 +14,6 @@ MissionPlanner::MissionPlanner(DronePhysicsEngine* physicsEngine, TargetPredicto
 
 /**
  * Прогнозує час досягнення цілі та позицію скидання бомби для заданого стану дрона та цілі.
- * Використовує віртуальну симуляцію руху дрона та цілі для визначення оптимальної точки скидання.
- * @param currentDrone - поточний фізичний стан дрона
- * @param currentTime - поточний час у симуляції
- * @param cachedFlightTime - попередньо обчислений час падіння бомби
- * @param cachedHDist - попередньо обчислена горизонтальна
- * @param targetIdx - індекс цілі для прогнозування
- * @param outFirePoint - вихідний параметр для отримання розрахованої точки скидання
- * @param outPredictedTarget - вихідний параметр для отримання прогнозованої позиції цілі
- * @return - прогнозований час досягнення цілі або MAX_PREDICT_TIME, якщо ціль недосяжна за адекватний час
  */
 float MissionPlanner::predictTimeAndPos(const DronePhysicsState& currentDrone,
                                         float currentTime,
@@ -40,10 +34,8 @@ float MissionPlanner::predictTimeAndPos(const DronePhysicsState& currentDrone,
   float dt = m_config.simTimeStep;
 
   while (elapsedPredictionTime < MAX_PREDICT_TIME) {
-    if (m_predictor) {
-      // Екстраполюємо, де буде ЦІЛЬ у цей віртуальний момент часу + час падіння бомби
-      outPredictedTarget = m_predictor->extrapolate(targetIdx, vTime, cachedFlightTime);
-    }
+    // Екстраполюємо, де буде ЦІЛЬ у цей віртуальний момент часу + час падіння бомби
+    outPredictedTarget = m_predictor.extrapolate(targetIdx, vTime, cachedFlightTime);
 
     // Рахуємо, де має бути точка СКИДАННЯ для цієї позиції цілі
     Coord delta = outPredictedTarget - vDrone.pos;
@@ -56,13 +48,12 @@ float MissionPlanner::predictTimeAndPos(const DronePhysicsState& currentDrone,
 
     // Оновлюємо віртуальну позицію та час
     float deltaPath = 0.0f;
-    if (m_physicsEngine) {
-      m_physicsEngine->update(vDrone, outFirePoint, dt, deltaPath);
-    }
+    m_physicsEngine.update(vDrone, outFirePoint, dt, deltaPath);
 
     vTime += dt;
     elapsedPredictionTime += dt;
   }
   return MAX_PREDICT_TIME; // Якщо ціль недосяжна за адекватний час
 }
+
 }  // namespace BallisticApp

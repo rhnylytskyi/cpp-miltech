@@ -1,51 +1,47 @@
 #include "ballistic_app/exporters/JsonExporter.h"
-#include "ballistic_app/Defines.h"
 #include <fstream>
 #include <stdexcept>
+#include <format>
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
 
 namespace BallisticApp {
 
-JsonExporter::JsonExporter(std::string filePath)
+void to_json(json& j, const Coord& c)
+{
+  j = json{{"x", c.x}, {"y", c.y}};
+}
+
+void to_json(json& j, const SimStep& step)
+{
+  j = json{{"position", step.pos},
+           {"direction", step.direction},
+           {"state", static_cast<int>(step.state)},
+           {"targetIdx", step.targetIdx},
+           {"dropPoint", step.dropPoint},
+           {"aimPoint", step.aimPoint},
+           {"predictedTarget", step.predictedTarget}};
+}
+
+JsonExporter::JsonExporter(const std::string& filePath)
   : m_filePath(filePath)
 {
 }
 
-void JsonExporter::exportSimulation(const SimStep* history, int totalSteps) const
+void JsonExporter::exportSimulation(const std::vector<SimStep>& history) const
 {
-  if (!history || totalSteps <= 0) {
-    throw std::runtime_error("JsonExporter Error: No simulation steps provided or totalSteps <= 0!");
+  std::ofstream file(m_filePath);
+  if (!file.is_open()) {
+    throw std::runtime_error(std::format("JsonExporter Error: Could not open file for writing: \"{}\"", m_filePath));
   }
 
-  json jsonOut;
-  jsonOut["totalSteps"] = totalSteps;
-  jsonOut["steps"] = json::array();
+  json root;
+  root["steps"] = history;
+  root["totalSteps"] = history.size();
 
-  for (int i = 0; i < totalSteps; ++i) {
-    json stepJson;
-
-    stepJson["direction"] = history[i].direction;
-    stepJson["state"] = history[i].state;
-    stepJson["targetIdx"] = history[i].targetIdx;
-
-    stepJson["pos"] = {{"x", history[i].pos.x}, {"y", history[i].pos.y}};
-    stepJson["dropPoint"] = {{"x", history[i].dropPoint.x}, {"y", history[i].dropPoint.y}};
-    stepJson["aimPoint"] = {{"x", history[i].aimPoint.x}, {"y", history[i].aimPoint.y}};
-    stepJson["predictedTarget"] = {{"x", history[i].predictedTarget.x}, {"y", history[i].predictedTarget.y}};
-
-    jsonOut["steps"].push_back(stepJson);
-  }
-
-  std::ofstream outFile(m_filePath);
-  if (!outFile.is_open()) {
-    throw std::runtime_error("JsonExporter Error: Could not open file for writing: " + m_filePath);
-  }
-
-  outFile << jsonOut.dump(2);
-  outFile.close();
-  LOG("Data successfully saved to " << m_filePath);
+  file << root.dump(2);
+  file.close();
 }
 
 }  // namespace BallisticApp

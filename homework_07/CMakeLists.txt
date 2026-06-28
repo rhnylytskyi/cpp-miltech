@@ -14,7 +14,3 @@ target_include_directories(ballistic_app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/inc
 target_link_libraries(ballistic_app PRIVATE nlohmann_json::nlohmann_json)
 
 target_compile_options(ballistic_app PRIVATE -Wall -Wextra -pedantic)
-
-target_compile_definitions(
-    ballistic_app PRIVATE CONFIG_PATH="data/config.json" AMMO_PATH="data/ammo.json"
-                          TARGETS_PATH="data/targets.json" SIMULATION_PATH="data/simulation.json")

@@ -5,7 +5,7 @@
 
 namespace BallisticApp {
 
-// Координати та математика (базовий тип)
+// Координати та математика
 struct Coord {
   float x;
   float y;

@@ -1,5 +1,6 @@
 #include "ballistic_app/utils/MathUtils.h"
 #include <cmath>
+#include <numbers>
 
 namespace BallisticApp::Math {
 
@@ -12,9 +13,11 @@ float length(Coord c)
 // одиничний вектор
 Coord normalize(Coord c)
 {
-  float len = BallisticApp::Math::length(c);
-  if (len < 1e-12f)
+  const float len = BallisticApp::Math::length(c);
+
+  if (len < 1e-6f) {
     return Coord{0.0f, 0.0f};
+  }
   return c / len;
 }
 
@@ -23,10 +26,18 @@ Coord normalize(Coord c)
 // ------------------------------------------------------------
 float normalizeAngle(float a)
 {
-  while (a > M_PI)
-    a -= 2.0f * (float)M_PI;
-  while (a < -M_PI)
-    a += 2.0f * (float)M_PI;
+  constexpr float pi = std::numbers::pi_v<float>;
+  constexpr float two_pi = 2.0f * pi;
+
+  a = std::fmod(a, two_pi);
+
+  if (a > pi) {
+    a -= two_pi;
+  }
+  else if (a < -pi) {
+    a += two_pi;
+  }
+
   return a;
 }
 
