@@ -33,7 +33,7 @@ public:
    * @brief Scans for potential objectives using long-range radar and secures the optimal firing asset.
    */
   std::pair<int, FireSolution> acquireBestTarget(const MissionContext& ctx,
-                                                 TargetExtrapolator& extrapolator,
+                                                 const std::unique_ptr<TargetExtrapolator>& extrapolator,
                                                  const std::unique_ptr<FireControlComputer>& fireControl)
   {
     FireSolution bestSolution;
@@ -55,7 +55,7 @@ public:
       m_lockedTargetId = -1;
 
       for (size_t tId = 0; tId < m_knownVisibleTargets.size(); ++tId) {
-        const Coord instantaneousTargetPos = extrapolator.extrapolate(tId, ctx.currentTime, 0.0f);
+        const Coord instantaneousTargetPos = extrapolator->extrapolate(tId, ctx.currentTime, 0.0f);
 
         // Calculate ground 2D distance squared using pure 2D vector mathematics
         const float distance2DSq = (instantaneousTargetPos - ctx.pos).lengthSquared();

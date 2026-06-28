@@ -2,7 +2,13 @@
 #include "BallisticApp/mission/ComponentFactory.h"
 #include "BallisticApp/utils/Logger.h"
 #include "BallisticApp/states/DroneStateRegistry.h"
+#include "BallisticApp/interfaces/IConfigLoader.h"
+#include "BallisticApp/interfaces/ITargetProvider.h"
+#include "BallisticApp/interfaces/IBallisticSolver.h"
+#include "BallisticApp/interfaces/ISimulationExporter.h"
+#include "BallisticApp/ballistics/FireControlComputer.h"
 #include <cmath>
+#include <stdexcept>
 
 namespace BallisticApp {
 
@@ -16,25 +22,34 @@ MissionProcessor::MissionProcessor(const LaunchParams& params)
   , m_provider(ComponentFactory::createProvider(TargetProviderType::JSON, params.targetsPath))
   , m_solver(ComponentFactory::createSolver(params.solverType))
   , m_exporter(ComponentFactory::createExporter(ExporterType::JSON, params.simulationPath))
-  , m_config([this, &params]() {
-    if (m_loader)
-      m_loader->load(params.configPath, params.ammoPath);
-    return m_loader ? m_loader->getConfig() : DroneConfig{};
-  }())
-  , m_ammo(m_loader ? m_loader->getAmmoParams() : AmmoParams{})
+  , m_config()
+  , m_ammo()
   , m_autopilot()
-  , m_extrapolator(*m_provider, m_config.arrayTimeStep)
-  , m_fireControl(std::make_unique<FireControlComputer>(m_extrapolator, m_autopilot, m_config.simTimeStep))
+  , m_extrapolator(nullptr)
+  , m_fireControl(nullptr)
   , m_missionCtx{.cfg = m_config}
-  , m_tas(m_provider ? m_provider->getTargetCount() : 0)
+  , m_tas(0)
 {
-  if (m_solver) {
-    if (!m_solver->initialize(params.tablePath) && params.solverType == SolverType::TABLE) {
-      throw std::runtime_error("Critical: Failed to initialize Ballistic Table Solver from: " + params.tablePath.string());
+  if (!m_loader || !m_provider || !m_solver || !m_exporter) {
+    throw std::runtime_error("Critical: Factory failed to instantiate core components.");
+  }
+
+  m_loader->load(params.configPath, params.ammoPath);
+  m_config = m_loader->getConfig();
+  m_ammo = m_loader->getAmmoParams();
+
+  m_extrapolator = std::make_unique<TargetExtrapolator>(*m_provider, m_config.arrayTimeStep);
+  m_fireControl = std::make_unique<FireControlComputer>(*m_extrapolator, m_autopilot, m_config.simTimeStep);
+
+  m_tas.reset(m_provider->getTargetCount());
+  m_tas.setTargetLockEnabled(params.enableTargetLock);
+
+  if (params.solverType == SolverType::TABLE) {
+    if (!m_solver->initialize(params.tablePath)) {
+      throw std::runtime_error("Critical: Failed to initialize Ballistic Table Solver.");
     }
   }
 
-  m_tas.setTargetLockEnabled(params.enableTargetLock);
   reset();
   APP_LOG_MOD("Mission", "{:.<15} READY [AMMO={}]", "PAYLOAD_STATUS", m_ammo.name);
 }
@@ -64,7 +79,7 @@ SimStep MissionProcessor::step()
     // FALLBACK: No successful solution found at all
     bestTarget = 0;
     // Extrapolate target 0 to the current moment (flightTime = 0.0f)
-    bestPredicted = m_extrapolator.extrapolate(bestTarget, m_currentTime, 0.0f);
+    bestPredicted = m_extrapolator->extrapolate(bestTarget, m_currentTime, 0.0f);
     firePoint = bestPredicted;
 
     APP_LOG_MOD("Mission", "Warning: No fire solution. Flying directly to target 0 at pos: {}", firePoint);

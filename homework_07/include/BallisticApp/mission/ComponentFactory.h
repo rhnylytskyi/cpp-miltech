@@ -1,14 +1,15 @@
 #pragma once
 
-#include "BallisticApp/interfaces/IBallisticSolver.h"
-#include "BallisticApp/interfaces/ITargetProvider.h"
-#include "BallisticApp/interfaces/IConfigLoader.h"
-#include "BallisticApp/interfaces/ISimulationExporter.h"
 #include "BallisticApp/solvers/SolverType.h"
 #include <filesystem>
 #include <memory>
 
 namespace BallisticApp {
+
+class IBallisticSolver;
+class ITargetProvider;
+class IConfigLoader;
+class ISimulationExporter;
 
 enum class TargetProviderType { JSON };
 enum class ConfigLoaderType { FILE };

@@ -1,20 +1,23 @@
 #pragma once
 
-#include "BallisticApp/interfaces/IConfigLoader.h"
-#include "BallisticApp/interfaces/ITargetProvider.h"
-#include "BallisticApp/interfaces/IBallisticSolver.h"
-#include "BallisticApp/interfaces/ISimulationExporter.h"
 #include "BallisticApp/navigation/DroneAutopilot.h"
 #include "BallisticApp/ballistics/TargetExtrapolator.h"
-#include "BallisticApp/ballistics/FireControlComputer.h"
 #include "BallisticApp/mission/TargetAcquisitionSystem.h"
 #include "BallisticApp/exporters/SimStep.h"
-#include "BallisticApp/solvers/SolverType.h"
+#include "BallisticApp/config/AmmoParams.h"
 #include <vector>
 #include <memory>
 #include <filesystem>
 
 namespace BallisticApp {
+
+class IConfigLoader;
+class ITargetProvider;
+class IBallisticSolver;
+class ISimulationExporter;
+class FireControlComputer;
+
+enum class SolverType : int; 
 
 struct LaunchParams {
   std::filesystem::path configPath;
@@ -22,7 +25,7 @@ struct LaunchParams {
   std::filesystem::path ammoPath;
   std::filesystem::path simulationPath;
   std::filesystem::path tablePath;
-  SolverType solverType = SolverType::ANALYTICAL;
+  SolverType solverType;
   bool enableTargetLock = false;
 };
 
@@ -50,7 +53,7 @@ private:
   DroneConfig m_config;
   AmmoParams m_ammo;
   DroneAutopilot m_autopilot;
-  TargetExtrapolator m_extrapolator;
+  std::unique_ptr<TargetExtrapolator> m_extrapolator;
   std::unique_ptr<FireControlComputer> m_fireControl;
 
   // --- Контекст місії та радар ---

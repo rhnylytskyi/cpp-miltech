@@ -3,10 +3,11 @@
 #include "BallisticApp/types/Coord.h"
 #include "BallisticApp/types/DroneStateType.h"
 #include "BallisticApp/config/DroneConfig.h"
-#include "BallisticApp/interfaces/IDroneState.h"
 #include <cmath>
 
 namespace BallisticApp {
+
+class IDroneState;
 
 /**
  * @brief Target capture validation modes.
@@ -35,7 +36,7 @@ struct MissionContext {
 
   CaptureAlgorithm activeAlgo = CaptureAlgorithm::PERPENDICULAR_CENTER;
 
-  DroneStateType getCurrentStateType() const { return currentState ? currentState->getType() : DroneStateType::STOPPED; }
+  DroneStateType getCurrentStateType() const;
 
   /**
    * @brief Universal target capture check with dynamic algorithm switching.
