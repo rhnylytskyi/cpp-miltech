@@ -1,4 +1,6 @@
 #include "BallisticApp/loaders/FileConfigLoader.h"
+#include "BallisticApp/config/DroneConfig.h"
+#include "BallisticApp/config/AmmoParams.h"
 #include <fstream>
 #include <format>
 #include <stdexcept>

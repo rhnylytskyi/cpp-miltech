@@ -1,9 +1,8 @@
 #pragma once
 
-#include "BallisticApp/types/DroneStateType.h"
-
 namespace BallisticApp {
 
+enum class DroneStateType;
 struct MissionContext;
 
 class IDroneState {

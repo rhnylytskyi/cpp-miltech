@@ -1,4 +1,6 @@
 #include "BallisticApp/exporters/JsonExporter.h"
+#include "BallisticApp/exporters/SimStep.h"
+#include "BallisticApp/types/Coord.h"
 #include <fstream>
 #include <iomanip>
 #include <stdexcept>

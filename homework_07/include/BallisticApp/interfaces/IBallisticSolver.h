@@ -1,9 +1,10 @@
 #pragma once
 
-#include "BallisticApp/config/AmmoParams.h"
 #include <filesystem>
 
 namespace BallisticApp {
+
+struct AmmoParams;
 
 class IBallisticSolver {
 public:

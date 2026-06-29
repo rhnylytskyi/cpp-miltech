@@ -1,10 +1,11 @@
 #pragma once
 
-#include "BallisticApp/config/DroneConfig.h"
-#include "BallisticApp/config/AmmoParams.h"
 #include <filesystem>
 
 namespace BallisticApp {
+
+struct AmmoParams;
+struct DroneConfig;
 
 class IConfigLoader {
 public:

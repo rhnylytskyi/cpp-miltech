@@ -1,7 +1,6 @@
 #pragma once
 
 #include "BallisticApp/navigation/DroneAutopilot.h"
-#include "BallisticApp/ballistics/TargetExtrapolator.h"
 #include "BallisticApp/mission/TargetAcquisitionSystem.h"
 #include "BallisticApp/exporters/SimStep.h"
 #include "BallisticApp/config/AmmoParams.h"
@@ -16,6 +15,7 @@ class ITargetProvider;
 class IBallisticSolver;
 class ISimulationExporter;
 class FireControlComputer;
+class TargetExtrapolator;
 
 enum class SolverType : int; 
 

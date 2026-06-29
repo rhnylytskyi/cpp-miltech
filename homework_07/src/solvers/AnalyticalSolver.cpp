@@ -1,4 +1,5 @@
 #include "BallisticApp/solvers/AnalyticalSolver.h"
+#include "BallisticApp/config/AmmoParams.h"
 #include <cmath>
 #include <limits>
 #include <numbers>

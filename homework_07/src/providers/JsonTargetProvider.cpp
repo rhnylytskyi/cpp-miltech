@@ -1,4 +1,5 @@
 #include "BallisticApp/providers/JsonTargetProvider.h"
+#include "BallisticApp/types/Coord.h"
 #include <fstream>
 #include <nlohmann/json.hpp>
 

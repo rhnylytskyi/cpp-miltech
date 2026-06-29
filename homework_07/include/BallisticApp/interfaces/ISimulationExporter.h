@@ -1,9 +1,10 @@
 #pragma once
 
-#include "BallisticApp/exporters/SimStep.h"
 #include <vector>
 
 namespace BallisticApp {
+
+struct SimStep;
 
 class ISimulationExporter {
 public:
