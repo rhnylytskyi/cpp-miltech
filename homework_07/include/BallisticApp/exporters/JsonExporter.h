@@ -1,13 +1,14 @@
 #pragma once
 
 #include "BallisticApp/interfaces/ISimulationExporter.h"
-#include "BallisticApp/types/Coord.h"
-#include "BallisticApp/exporters/SimStep.h"
 #include <filesystem>
 #include <vector>
-#include <nlohmann/json.hpp>
+#include <nlohmann/json_fwd.hpp>
 
 namespace BallisticApp {
+
+struct Coord;
+struct SimStep;
 
 void to_json(nlohmann::json& j, const Coord& c);
 void to_json(nlohmann::json& j, const SimStep& step);

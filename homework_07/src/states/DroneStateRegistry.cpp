@@ -4,6 +4,7 @@
 #include "BallisticApp/states/StateDecelerating.h"
 #include "BallisticApp/states/StateTurning.h"
 #include "BallisticApp/states/StateMoving.h"
+#include "BallisticApp/types/DroneStateType.h"
 #include <unordered_map>
 #include <memory>
 

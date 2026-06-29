@@ -1,8 +1,8 @@
 #pragma once
 
-#include "BallisticApp/types/Coord.h"
-
 namespace BallisticApp {
+
+struct Coord;
 
 class ITargetProvider {
 public:

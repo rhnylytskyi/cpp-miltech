@@ -7,6 +7,7 @@
 #include "BallisticApp/interfaces/IBallisticSolver.h"
 #include "BallisticApp/interfaces/ISimulationExporter.h"
 #include "BallisticApp/ballistics/FireControlComputer.h"
+#include "BallisticApp/ballistics/TargetExtrapolator.h"
 #include <cmath>
 #include <stdexcept>
 

@@ -1,5 +1,6 @@
 #include "BallisticApp/solvers/TableSolver.h"
 #include "BallisticApp/utils/Logger.h"
+#include "BallisticApp/config/AmmoParams.h"
 #include <fstream>
 #include <algorithm>
 #include <array>
