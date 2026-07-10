@@ -1,7 +1,10 @@
-#include "ballistic_app/config/FileConfigLoader.h"
+#include "BallisticApp/loaders/FileConfigLoader.h"
+#include "BallisticApp/config/DroneConfig.h"
+#include "BallisticApp/config/AmmoParams.h"
 #include <fstream>
 #include <format>
 #include <stdexcept>
+#include <filesystem>
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
@@ -10,15 +13,14 @@ namespace BallisticApp {
 
 FileConfigLoader::FileConfigLoader()
   : config{}
-  , ammoMap{}
 {
 }
 
-void FileConfigLoader::load(const std::string& configPath, const std::string& ammoSource)
+void FileConfigLoader::load(const std::filesystem::path& configPath, const std::filesystem::path& ammoSource)
 {
   std::ifstream f(configPath);
   if (!f.is_open()) {
-    throw std::runtime_error(std::format("Could not open config file: \"{}\"", configPath));
+    throw std::runtime_error(std::format("Could not open config file: \"{}\"", configPath.string()));
   }
 
   json j;
@@ -45,11 +47,11 @@ void FileConfigLoader::load(const std::string& configPath, const std::string& am
   loadAmmoParams(ammoSource);
 }
 
-void FileConfigLoader::loadAmmoParams(const std::string& ammoPath)
+void FileConfigLoader::loadAmmoParams(const std::filesystem::path& ammoPath)
 {
   std::ifstream fAmmo(ammoPath);
   if (!fAmmo.is_open()) {
-    throw std::runtime_error(std::format("Could not open ammo file: \"{}\"", ammoPath));
+    throw std::runtime_error(std::format("Could not open ammo file: \"{}\"", ammoPath.string()));
   }
 
   json jAmmoArray;
@@ -57,7 +59,7 @@ void FileConfigLoader::loadAmmoParams(const std::string& ammoPath)
   fAmmo.close();
 
   if (!jAmmoArray.is_array()) {
-    throw std::runtime_error(std::format("Ammo file \"{}\" must contain a JSON array!", ammoPath));
+    throw std::runtime_error(std::format("Ammo file \"{}\" must contain a JSON array!", ammoPath.string()));
   }
 
   ammoMap.clear();
@@ -99,12 +101,12 @@ void FileConfigLoader::validateDroneConfig(const nlohmann::json& j) const
   assertHasKey("/ammo");
 }
 
-void FileConfigLoader::validateAmmoItem(const nlohmann::json& item, const std::string& ammoPath) const
+void FileConfigLoader::validateAmmoItem(const nlohmann::json& item, const std::filesystem::path& ammoPath) const
 {
   auto assertHasAmmoKey = [&item, &ammoPath](const std::string& key) {
     if (!item.contains(key)) {
       throw std::runtime_error(
-        std::format("Ammo validation failed in file \"{}\"! One of the ammo items is missing the '{}' field.", ammoPath, key));
+        std::format("Ammo validation failed in file \"{}\"! One of the ammo items is missing the '{}' field.", ammoPath.string(), key));
     }
   };
 
@@ -114,12 +116,12 @@ void FileConfigLoader::validateAmmoItem(const nlohmann::json& item, const std::s
   assertHasAmmoKey("lift");
 }
 
-DroneConfig FileConfigLoader::getConfig() const
+const DroneConfig& FileConfigLoader::getConfig() const
 {
   return config;
 }
 
-AmmoParams FileConfigLoader::getAmmoParams() const
+const AmmoParams& FileConfigLoader::getAmmoParams() const
 {
   auto it = ammoMap.find(config.ammoName);
   if (it == ammoMap.end()) {

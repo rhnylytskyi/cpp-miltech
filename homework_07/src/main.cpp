@@ -1,34 +1,30 @@
-#include "ballistic_app/MissionProcessor.h"
-#include "ballistic_app/utils/PathResolver.h"
-#include "ballistic_app/Defines.h"
+#include "BallisticApp/mission/MissionProcessor.h"
+#include "BallisticApp/mission/AppArguments.h"
+#include "BallisticApp/utils/Logger.h"
 #include <iostream>
-#include <string>
-#include <filesystem>
+#include <exception>
 
-namespace fs = std::filesystem;
 using namespace BallisticApp;
 
 int main(int argc, char* argv[])
 {
   try {
-    PathResolver::parseArguments(argc, argv);
+    std::span<const char* const> spanArgs(argv, argc);
+    AppArguments appArgs(spanArgs);
 
-    std::string configPath = PathResolver::getConfigPath();
-    std::string ammoPath = PathResolver::getAmmoPath();
-    std::string targetsPath = PathResolver::getTargetsPath();
-    std::string simulationPath = PathResolver::getSimulationPath();
+    APP_LOG("{:.<15} {}", "CONFIG_FILE", appArgs.getConfigPath().string());
+    APP_LOG("{:.<15} {}", "TARGET_LIST", appArgs.getTargetsPath().string());
+    APP_LOG("{:.<15} {}", "SOLVER_TYPE", appArgs.getSolverType() == SolverType::TABLE ? "TABLE" : "ANALYTICAL");
 
-    if (!fs::exists(configPath) || !fs::exists(ammoPath) || !fs::exists(targetsPath)) {
-      std::cerr << "Error: Required configuration files not found!" << std::endl;
-      std::cerr << "Checked paths:\n - " << configPath << "\n - " << targetsPath << "\n - " << ammoPath << "\n - " << simulationPath
-                << std::endl;
-      return 1;
-    }
+    LaunchParams params{.configPath = appArgs.getConfigPath(),
+                        .targetsPath = appArgs.getTargetsPath(),
+                        .ammoPath = appArgs.getAmmoPath(),
+                        .simulationPath = appArgs.getSimulationPath(),
+                        .tablePath = appArgs.getTablePath(),
+                        .solverType = appArgs.getSolverType(),
+                        .enableTargetLock = appArgs.isTargetLockEnabled()};
 
-    LOG("Loading targets from: " << targetsPath);
-    LOG("Loading config from: " << configPath);
-
-    MissionProcessor mission(targetsPath, simulationPath, configPath, ammoPath);
+    MissionProcessor mission(params);
     mission.run();
   }
   catch (const std::exception& e) {
