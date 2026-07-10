@@ -1,0 +1,11 @@
+#pragma once
+
+#include "ballistic_app/Types.h"
+
+namespace BallisticApp::Math {
+
+float length(Coord c);
+Coord normalize(Coord c);
+float normalizeAngle(float a);
+
+}  // namespace BallisticApp::Math

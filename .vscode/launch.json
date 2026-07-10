@@ -103,7 +103,7 @@
       "name": "🎯 ДЗ 9: Table Solver (Вибір тесту...)",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
+      "program": "${workspaceFolder}/build/debug/homework_09/ballistic_app_09",
       "args": [
         "--solver",
         "table",
@@ -111,7 +111,7 @@
         "${input:hw3TestSelect}"
       ],
       "stopAtEntry": false,
-      "cwd": "${workspaceFolder}/homework_07",
+      "cwd": "${workspaceFolder}/homework_09",
       "environment": [],
       "externalConsole": false,
       "MIMode": "gdb",
@@ -129,7 +129,7 @@
       "name": "🎯 ДЗ 3: Запустити з вибором тесту...",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
+      "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app_07",
       "args": [
         "--scenario",
         "${input:hw3TestSelect}"
@@ -153,7 +153,7 @@
       "name": "🚀 ДЗ 3: Базовий тест (кола)",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
+      "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app_07",
       "args": [
         "--scenario",
         "t01_base"
@@ -174,7 +174,7 @@
       "name": "🚀 ДЗ 3: Еліптичні траєкторії",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
+      "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app_07",
       "args": [
         "--scenario",
         "t02_ellipses"
@@ -195,7 +195,7 @@
       "name": "🚀 ДЗ 3: Вісімки (Ліссажу 1:2)",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
+      "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app_07",
       "args": [
         "--scenario",
         "t03_figure8"
@@ -216,7 +216,7 @@
       "name": "🚀 ДЗ 3: Квіткові (зіркові) траєкторії",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
+      "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app_07",
       "args": [
         "--scenario",
         "t04_flowers"
@@ -237,7 +237,7 @@
       "name": "🚀 ДЗ 3: Ліссажу (складні криві)",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
+      "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app_07",
       "args": [
         "--scenario",
         "t05_lissajous"
@@ -258,7 +258,7 @@
       "name": "🚀 ДЗ 3: Швидкий дрон, повільні цілі",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
+      "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app_07",
       "args": [
         "--scenario",
         "t06_fast_drone"
@@ -279,7 +279,7 @@
       "name": "🚀 ДЗ 3: Важкі боєприпаси (RKG-3)",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
+      "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app_07",
       "args": [
         "--scenario",
         "t07_heavy_ammo"
@@ -300,7 +300,7 @@
       "name": "🚀 ДЗ 3: Планеруючі боєприпаси (GLIDING-VOG)",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
+      "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app_07",
       "args": [
         "--scenario",
         "t08_gliding"
@@ -321,7 +321,7 @@
       "name": "🚀 ДЗ 3: Кардіоїди та епітрохоїди",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
+      "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app_07",
       "args": [
         "--scenario",
         "t09_cardioids"
@@ -342,7 +342,7 @@
       "name": "🚀 ДЗ 3: Екстремальний (далеко, швидко)",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app",
+      "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app_07",
       "args": [
         "--scenario",
         "t10_extreme"
