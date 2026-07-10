@@ -32,4 +32,4 @@ core.*
 .DS_Store
 Thumbs.db
 
-homework_07/data/simulation.json
+homework_*/data/simulation.json
