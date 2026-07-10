@@ -1,35 +1,40 @@
-#include "BallisticApp/mission/MissionProcessor.h"
-#include "BallisticApp/mission/AppArguments.h"
-#include "BallisticApp/utils/Logger.h"
+#include "ballistic_app/interfaces/IBallisticSolver.h"
+#include "ballistic_app/interfaces/ITargetProvider.h"
+#include "ballistic_app/interfaces/IConfigLoader.h"
+#include "ballistic_app/interfaces/ISimulationExporter.h"
+#include "ballistic_app/Defines.h"
+#include "ballistic_app/config/ComponentFactory.h"
+#include "ballistic_app/utils/PathResolver.h"
+#include "ballistic_app/MissionProcessor.h"
+#include <cstring>
 #include <iostream>
-#include <exception>
+#include <nlohmann/json.hpp>
 
+using json = nlohmann::json;
 using namespace BallisticApp;
 
 int main(int argc, char* argv[])
 {
   try {
-    std::span<const char* const> spanArgs(argv, argc);
-    AppArguments appArgs(spanArgs);
+    PathResolver pathResolver(argc, argv);
 
-    APP_LOG("{:.<15} {}", "CONFIG_FILE", appArgs.getConfigPath().string());
-    APP_LOG("{:.<15} {}", "TARGET_LIST", appArgs.getTargetsPath().string());
-    APP_LOG("{:.<15} {}", "SOLVER_TYPE", appArgs.getSolverType() == SolverType::TABLE ? "TABLE" : "ANALYTICAL");
+    const char* targetsPath = pathResolver.getTargetsPath();
+    const char* configPath = pathResolver.getConfigPath();
 
-    LaunchParams params{.configPath = appArgs.getConfigPath(),
-                        .targetsPath = appArgs.getTargetsPath(),
-                        .ammoPath = appArgs.getAmmoPath(),
-                        .simulationPath = appArgs.getSimulationPath(),
-                        .tablePath = appArgs.getTablePath(),
-                        .solverType = appArgs.getSolverType(),
-                        .enableTargetLock = appArgs.isTargetLockEnabled()};
+    LOG("Loading targets from: " << targetsPath << std::endl);
+    LOG("Loading config from: " << configPath << std::endl);
 
-    MissionProcessor mission(params);
+    IConfigLoader* loader = ComponentFactory::createLoader(ConfigLoaderType::FILE);
+    ITargetProvider* provider = ComponentFactory::createProvider(TargetProviderType::JSON, targetsPath);
+    IBallisticSolver* solver = ComponentFactory::createSolver(SolverType::ANALYTICAL);
+    ISimulationExporter* exporter = ComponentFactory::createExporter(ExporterType::JSON, SIMULATION_PATH);
+
+    MissionProcessor mission(loader, provider, solver, exporter);
+    mission.init(configPath, AMMO_PATH);
     mission.run();
   }
   catch (const std::exception& e) {
     std::cerr << "Error: " << e.what() << std::endl;
-    return 1;
   }
 
   return 0;
