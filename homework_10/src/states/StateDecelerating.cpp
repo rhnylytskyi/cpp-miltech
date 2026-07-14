@@ -15,8 +15,7 @@ DroneStateType StateDecelerating::execute(MissionContext& ctx)
   ctx.speed = std::clamp(ctx.speed - acceleration * dt, 0.0f, prevSpeed);
   ctx.lastDeltaPath = ((prevSpeed + ctx.speed) / 2.0f) * dt;
 
-  // ЕФЕКТ БОНУСНОГО ПОВОРОТУ ПРИ ГАЛЬМУВАННІ (витягнуто з коду колеги)
-  // Що менша швидкість, то вища маневреність дрона
+  // The slower the speed, the higher the maneuverability of the drone
   float frac = 1.0f - (ctx.speed / ctx.cfg.attackSpeed);
   float effectiveAngularSpeed = ctx.cfg.angularSpeed * frac;
 

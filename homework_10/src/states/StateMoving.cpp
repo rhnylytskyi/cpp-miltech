@@ -11,7 +11,7 @@ DroneStateType StateMoving::execute(MissionContext& ctx)
   const float dt = ctx.deltaTime;
   const float deltaAngle = Math::normalizeAngle(ctx.desiredDir - ctx.direction);
 
-  // Кут відхилення завеликий — терміново скидаємо швидкість для маневру
+  // If the deviation angle is too large — immediately reset speed for maneuvering
   if (std::fabs(deltaAngle) > ctx.cfg.turnThreshold) {
     ctx.lastDeltaPath = ctx.speed * dt;
     return DroneStateType::DECELERATING;

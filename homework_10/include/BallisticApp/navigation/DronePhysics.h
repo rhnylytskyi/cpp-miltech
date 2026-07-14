@@ -29,43 +29,43 @@ public:
   void start();
   void stop();
 
-  // Методи взаємодії між потоками
+  // Methods for inter-thread communication
   void postCommand(const DroneCommand& cmd);
   DroneTelemetry getTelemetry() const;
 
-  // ЖОРСТКИЙ БАР'ЄР: Блокуюче очікування нової телеметрії з боку MissionProcessor
+  // STIFF BARRIER: Blocking wait for new telemetry from MissionProcessor
   DroneTelemetry waitTelemetry(uint64_t& lastSeq);
 
 private:
   void integratePhysicsStep(const DroneCommand& cmd);
   void publishTelemetryLocked();
 
-  // Фізичні параметри дрона
+  // Physical parameters of the drone
   DroneConfig m_config;
   Coord m_pos{0.0f, 0.0f};
   float m_direction{0.0f};
   float m_speed{0.0f};
   DroneStateType m_currentState{DroneStateType::STOPPED};
 
-  // Детермінований віртуальний час
+  // Deterministic virtual time
   float m_timeSecSinceStart{0.0f};
   float m_lastDeltaPath{0.0f};
 
-  // Черга команд від планувальника місії
+  // Thread-safe queue for commands from the mission planner
   ThreadSafeQueue<DroneCommand> m_commandQueue;
 
-  // Потокобезпечний кеш телеметрії та бар'єр синхронізації
+  // Thread-safe cache for telemetry and synchronization barrier
   mutable std::mutex m_mutex;
   mutable std::condition_variable m_cv;
   DroneTelemetry m_telemetryCache;
   uint64_t m_telemetrySeq{0};
 
-  // Керування життєвим циклом потоку
+  // Lifecycle management for the mission thread
   std::atomic<bool> m_isReady{false};
   std::atomic<bool> m_isStarted{false};
   std::atomic<bool> m_stopRequested{false};
 
-  // Атомік для підтвердження споживання кадру місією
+  // Atomic for confirming frame consumption by the mission
   std::atomic<uint64_t> m_consumedSeq{0};
 };
 

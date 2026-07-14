@@ -17,7 +17,7 @@ DroneStateType StateTurning::execute(MissionContext& ctx)
   const float actualTurn = std::clamp(deltaAngle, -maxTurnThisStep, maxTurnThisStep);
   ctx.direction = Math::normalizeAngle(ctx.direction + actualTurn);
 
-  // Використовуємо затиснутий поріг точності (половина turnThreshold), щоб стабілізувати курс
+  // Use the clamped accuracy threshold (half of turnThreshold) to stabilize the course
   const float deviation = std::fabs(Math::normalizeAngle(ctx.desiredDir - ctx.direction));
   if (deviation <= (ctx.cfg.turnThreshold * 0.5f)) {
     return DroneStateType::ACCELERATING;

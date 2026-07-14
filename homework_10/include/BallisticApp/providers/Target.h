@@ -4,8 +4,8 @@
 namespace BallisticApp {
 
 struct Target {
-  Coord pos;       // поточна позиція цілі
-  Coord velocity;  // поточна швидкість цілі
+  Coord pos;       // current position of the target
+  Coord velocity;  // current velocity of the target
 
   Target()
     : pos{0.0f, 0.0f}

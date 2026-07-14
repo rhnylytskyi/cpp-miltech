@@ -54,7 +54,7 @@ void DronePhysics::start()
 void DronePhysics::stop()
 {
   m_stopRequested.store(true);
-  m_cv.notify_all();  // Розблокуємо потоки у разі екстреної зупинки
+  m_cv.notify_all();  // Notify all threads waiting in waitTelemetry
 }
 
 void DronePhysics::postCommand(const DroneCommand& cmd)
@@ -68,19 +68,19 @@ DroneTelemetry DronePhysics::getTelemetry() const
   return m_telemetryCache;
 }
 
-// Споживання кадру місією (викликається в потоці MissionProcessor)
+// Consumption of telemetry by the mission (called from the MissionProcessor thread)
 DroneTelemetry DronePhysics::waitTelemetry(uint64_t& lastSeq)
 {
   std::unique_lock<std::mutex> lock(m_mutex);
 
-  // Чекаємо, поки з'явиться новий номер кадру (або прийде запит на зупинку)
+  // Waiting for the mission to consume the next telemetry frame (or a stop request)
   m_cv.wait(lock, [this, &lastSeq] { return m_telemetrySeq != lastSeq || m_stopRequested.load(); });
 
   lastSeq = m_telemetrySeq;
   DroneTelemetry result = m_telemetryCache;
   lock.unlock();
 
-  // Сигналізуємо фізичному потоку, що цей кадр успішно прочитано місією
+  // Signaling the physics thread that this frame has been successfully read by the mission
   m_consumedSeq.store(lastSeq, std::memory_order_release);
   return result;
 }
@@ -94,7 +94,7 @@ void DronePhysics::publishTelemetryLocked()
   m_telemetryCache.timeSecSinceStart = m_timeSecSinceStart;
 
   ++m_telemetrySeq;
-  m_cv.notify_all();  // Будимо потік місії, що заснув у waitTelemetry
+  m_cv.notify_all();  // Notify all threads waiting in waitTelemetry
 }
 
 void DronePhysics::integratePhysicsStep(const DroneCommand& cmd)
@@ -115,13 +115,12 @@ void DronePhysics::integratePhysicsStep(const DroneCommand& cmd)
     return;
   }
 
-  // Обчислюємо логіку поточного стану
+  // Obcomputing the logic for the current state
   DroneStateType nextStateType = internalCtx.currentState->execute(internalCtx);
 
-  // Валідація прискорення
+  // Validation of acceleration
   float maxAllowedAcceleration = 0.0f;
   if (m_config.accelPath > 1e-5f) {
-    // Коригуємо дільник відповідно до налаштувань детермінізму тестера курсу
     maxAllowedAcceleration = (m_config.attackSpeed * m_config.attackSpeed) / (3.0f * m_config.accelPath);
   }
 
@@ -138,13 +137,11 @@ void DronePhysics::integratePhysicsStep(const DroneCommand& cmd)
     internalCtx.speed = 0.0f;
   }
 
-  // Записуємо результати інтегрування
   m_speed = internalCtx.speed;
   m_lastDeltaPath = internalCtx.lastDeltaPath;
   m_direction = internalCtx.direction;
   m_currentState = nextStateType;
 
-  // Оновлюємо тригонометричні координати
   m_pos.x += std::cos(m_direction) * m_lastDeltaPath;
   m_pos.y += std::sin(m_direction) * m_lastDeltaPath;
 
@@ -162,7 +159,7 @@ void DronePhysics::run()
   float simStepConfig = 0.1f;
   float scale = 1.0f;
 
-  // Початкова дефолтна команда
+  // Initial default command
   DroneCommand activeCommand{.stateType = DroneStateType::STOPPED, .desiredDir = 0.0f};
   
   {
@@ -173,12 +170,12 @@ void DronePhysics::run()
     activeCommand.desiredDir = m_direction;
   }
 
-  // Розраховуємо кратність: скільки мікрокроків фізики міститься в одному кроці планувальника
+  // Calculate the multiple: how many physics steps are contained in one planner step
   const int publishEvery = std::max(1, static_cast<int>(std::round(simStepConfig / dtConfig)));
   int stepsSincePublish = 0;
 
   while (!m_stopRequested.load()) {
-    // ВИТЯГУЄМО НАЙНОВІШУ КОМАНДУ (Всі старі та проміжні просто відкидаємо)
+    // Extract the latest command (all old and intermediate commands are simply discarded)
     while (auto newCmd = m_commandQueue.tryPop()) {
       activeCommand = *newCmd;
     }
@@ -188,11 +185,11 @@ void DronePhysics::run()
       integratePhysicsStep(activeCommand);
     }
 
-    // Засинаємо суто для підтримки візуального масштабу часу
+    // Waiting for the mission to consume the next telemetry frame (or a stop request)
     const float sleepSeconds = dtConfig / std::max(scale, 1e-5f);
     std::this_thread::sleep_for(std::chrono::duration<float>(sleepSeconds));
 
-    // Перевіряємо, чи настав час синхронізації з MissionProcessor
+    // Checking if it's time to synchronize with MissionProcessor
     if (++stepsSincePublish >= publishEvery) {
       uint64_t publishedFrame = 0;
       {
@@ -202,14 +199,14 @@ void DronePhysics::run()
       }
       stepsSincePublish = 0;
 
-      // ЖОРСТКИЙ БАР'ЄР: Фізика чекає, поки місія прочитає цей publish
+      // HARD BARRIER: Physics waits until the mission reads this publish
       while (!m_stopRequested.load() && m_consumedSeq.load(std::memory_order_acquire) < publishedFrame) {
         std::this_thread::sleep_for(std::chrono::microseconds(200));
       }
     }
   }
 
-  // Фінальний пуш перед смертю потоку, щоб планувальник місії випадково не завис у блокуванні
+  // Final push before thread death, so that the mission planner doesn't accidentally get stuck in a blocked state
   std::lock_guard<std::mutex> lock(m_mutex);
   publishTelemetryLocked();
 }

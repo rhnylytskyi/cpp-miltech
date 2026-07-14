@@ -42,10 +42,10 @@ struct MissionContext {
       return false;
     }
 
-    // Бомба летить вперед за вектором напрямку дрона на відстань hDistance
+    // Bomb flies forward along the drone's direction vector for a distance of hDistance
     Coord bombLanding = this->pos + Coord{std::cos(this->direction), std::sin(this->direction)} * this->hDistance;
 
-    // Перевіряємо відстань від точки падіння бомби до геометричної точки вогню (де має бути ціль)
+    // Check the distance from the bomb's landing point to the target's geometric point (where the target should be)
     const float currentDistanceSq = (bombLanding - this->firePoint).lengthSquared();
     const float fullRadiusSq = this->cfg.hitRadius * this->cfg.hitRadius;
 

@@ -49,24 +49,24 @@ private:
   std::unique_ptr<IBallisticSolver> m_solver;
   std::unique_ptr<ISimulationExporter> m_exporter;
 
-  // Внутрішні параметри та кеш балістики
+  // Internal parameters and ballistic cache
   DroneConfig m_config;
   AmmoParams m_ammo;
   float m_cachedFlightTime{0.0f};
   float m_cachedHDistance{0.0f};
 
-  // Логіка вибору та фіксації цілей
+  // Logic for target selection and locking
   int m_lockedTargetId{-1};
   bool m_enableTargetLockCLI{false};
   float m_prevHitDistance{1e9f};
 
-  // Синхронізація кадрів та історія кроків симуляції
+  // Frame synchronization and simulation step history
   uint64_t m_telemetrySeqNum{0};
   int m_totalSteps{0};
   bool m_isMissionFinished{false};
   std::vector<SimStep> m_steps;
 
-  // Керування життєвим циклом потоку місії
+  // Lifecycle management for the mission thread
   mutable std::mutex m_stepsMutex;
   std::atomic<bool> m_isReady{false};
   std::atomic<bool> m_isStarted{false};

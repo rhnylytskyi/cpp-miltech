@@ -122,7 +122,7 @@ void ThreadSafeTargetProvider::setTiming(FloatSeconds arrayTimeStep, float timeS
   }
 }
 
-// Розрахунок швидкості як кінцевої різниці між поточним та НАСТУПНИМ кроком
+// Calculate velocity as the finite difference between the current and next step
 Coord ThreadSafeTargetProvider::calcVelocityLocked(size_t targetIdx, size_t timeIdx) const
 {
   if (m_timeSteps <= 1 || m_arrayTimeStep <= FloatSeconds::zero()) {
@@ -152,7 +152,7 @@ void ThreadSafeTargetProvider::updateCurrentTargetsLocked(int stepIndex)
   }
 }
 
-// Лінійна інтерполяція позиції цілі відносно чистого віртуального часу
+// Linear interpolation of the target's position relative to the clean virtual time
 Target ThreadSafeTargetProvider::getTargetAtFutureTime(int targetIdx, float futureSeconds, float offsetSimTime) const
 {
   std::lock_guard<std::mutex> lock(m_mutex);
@@ -165,20 +165,20 @@ Target ThreadSafeTargetProvider::getTargetAtFutureTime(int targetIdx, float futu
   size_t n = static_cast<size_t>(m_timeSteps);
   float dt = m_arrayTimeStep.count();
 
-  // Розраховуємо повний віртуальний час від старту
+  // Calculate the total virtual time from the start
   float totalSimTime = offsetSimTime + futureSeconds;
 
-  // Використовуємо floor для стабільності індексів
+  // Use floor for index stability
   size_t futureIdx = static_cast<size_t>(std::floor(totalSimTime / dt)) % n;
   size_t afterIdx = (futureIdx + 1) % n;
 
-  // Рахуємо швидкість на цьому відрізку
+  // Calculate velocity on this segment
   Coord vel = (m_paths[uTargetIdx][afterIdx] - m_paths[uTargetIdx][futureIdx]) / dt;
 
-  // Вираховуємо дробовий залишок часу всередині поточного кроку
+  // Calculate the fractional remainder of the time within the current step
   float fracTime = totalSimTime - std::floor(totalSimTime / dt) * dt;
 
-  // Плавне лінійне зміщення позиції цілі
+  // Linear interpolation of the target's position relative to the clean virtual time
   Coord interpolatedPos;
   interpolatedPos.x = m_paths[uTargetIdx][futureIdx].x + vel.x * fracTime;
   interpolatedPos.y = m_paths[uTargetIdx][futureIdx].y + vel.y * fracTime;

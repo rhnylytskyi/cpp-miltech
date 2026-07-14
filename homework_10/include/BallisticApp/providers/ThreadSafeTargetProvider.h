@@ -30,13 +30,13 @@ public:
   int getTargetCount() const;
   int getTimeSteps() const;
 
-  // Отримання поточної позиції (real-time)
+  // Getting the current position (real-time)
   Target getTarget(int targetIdx) const;
   std::vector<Target> getSnapshot() const;
 
   void setTiming(FloatSeconds arrayTimeStep, float timeScale);
 
-  // Детерміноване отримання цілі у майбутньому часі відносно віртуального часу місії
+  // Deterministic retrieval of target at future time relative to virtual mission time
   Target getTargetAtFutureTime(int targetIdx, float futureSeconds, float offsetSimTime) const;
 
 private:
