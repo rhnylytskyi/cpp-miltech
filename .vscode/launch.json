@@ -100,7 +100,33 @@
       ],
     },
     {
-      "name": "🎯 ДЗ 9: Table Solver (Вибір тесту...)",
+      "name": "🎯 ДЗ 10: Multithreaded simulation",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/debug/homework_10/ballistic_app_10",
+      "args": [
+        "--solver",
+        "table",
+        "--scenario",
+        "${input:ballisticAppSelect}"
+      ],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}/homework_10",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "miDebuggerPath": "/usr/bin/gdb",
+      "preLaunchTask": "CMake: configure and build",
+      "setupCommands": [
+        {
+          "description": "Увімкнути pretty-printing для STL типів у GDB.",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ],
+    },
+    {
+      "name": "🎯 ДЗ 9: Table Solver",
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/homework_09/ballistic_app_09",
@@ -108,7 +134,7 @@
         "--solver",
         "table",
         "--scenario",
-        "${input:hw3TestSelect}"
+        "${input:ballisticAppSelect}"
       ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}/homework_09",
@@ -132,7 +158,7 @@
       "program": "${workspaceFolder}/build/debug/homework_07/ballistic_app_07",
       "args": [
         "--scenario",
-        "${input:hw3TestSelect}"
+        "${input:ballisticAppSelect}"
       ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}/homework_07",
@@ -362,9 +388,9 @@
   ],
   "inputs": [
     {
-      "id": "hw3TestSelect",
+      "id": "ballisticAppSelect",
       "type": "pickString",
-      "description": "— оберіть тест —",
+      "description": "— оберіть сценарій —",
       "options": [
         {
           "label": "Базовий тест (кола)",
