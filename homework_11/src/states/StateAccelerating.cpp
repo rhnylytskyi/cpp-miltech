@@ -1,36 +1,40 @@
-#include "BallisticApp/interfaces/IDroneState.h"
 #include "BallisticApp/states/StateAccelerating.h"
+#include "BallisticApp/interfaces/IDroneState.h"
 #include "BallisticApp/utils/MathUtils.h"
 #include <cmath>
 #include <algorithm>
 
 namespace BallisticApp {
 
-DroneStateType StateAccelerating::execute(MissionContext& ctx)
+DroneStateType StateAccelerating::execute(float& speed, float& direction, float desiredDir, const DroneConfig& cfg)
 {
-  const float dt = ctx.deltaTime;
-  const float deltaAngle = Math::normalizeAngle(ctx.desiredDir - ctx.direction);
+  const float dt = cfg.timeStep;
+  const float deltaAngle = Math::normalizeAngle(desiredDir - direction);
 
-  // If the target suddenly shifts during acceleration — initiate deceleration
-  if (std::fabs(deltaAngle) > ctx.cfg.turnThreshold && ctx.speed > 0.01f) {
+  // Якщо ціль під час розгону різко змістилася — ініціюємо гальмування для безпечного маневру
+  if (std::fabs(deltaAngle) > cfg.turnThreshold && speed > 0.01f) {
     return DroneStateType::DECELERATING;
   }
 
-  // Calculate acceleration considering the deterministic coefficient 3.0f
-  const float acceleration = (ctx.cfg.attackSpeed * ctx.cfg.attackSpeed) / (3.0f * ctx.cfg.accelPath);
+  // Розрахунок прискорення на основі вашого детермінованого коефіцієнта 3.0f
+  float acceleration = 0.0f;
+  if (cfg.accelerationPath > 1e-5f) {  // замість accelPath
+    acceleration = (cfg.attackSpeed * cfg.attackSpeed) / (3.0f * cfg.accelerationPath);
+  }
 
-  const float prevSpeed = ctx.speed;
-  ctx.speed = std::clamp(ctx.speed + acceleration * dt, 0.0f, ctx.cfg.attackSpeed);
-  ctx.lastDeltaPath = ((prevSpeed + ctx.speed) / 2.0f) * dt;
+  // Нарощуємо швидкість через посилання
+  speed = std::clamp(speed + acceleration * dt, 0.0f, cfg.attackSpeed);
 
-  // Smooth turn during acceleration
-  const float maxTurnThisStep = ctx.cfg.angularSpeed * dt;
+  // Плавне підвертання на ціль під час розгону
+  const float maxTurnThisStep = cfg.angularSpeed * dt;
   const float actualTurn = std::clamp(deltaAngle, -maxTurnThisStep, maxTurnThisStep);
-  ctx.direction = Math::normalizeAngle(ctx.direction + actualTurn);
+  direction = Math::normalizeAngle(direction + actualTurn);
 
-  if (ctx.speed >= ctx.cfg.attackSpeed) {
+  // При досягненні максимальної швидкості переходимо в режим маршу
+  if (speed >= cfg.attackSpeed) {
     return DroneStateType::MOVING;
   }
+
   return DroneStateType::ACCELERATING;
 }
 

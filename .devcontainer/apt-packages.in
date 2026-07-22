@@ -34,3 +34,6 @@ cmake-format
 ninja-build
 
 python3-pip
+
+libgpiod-dev
+socat

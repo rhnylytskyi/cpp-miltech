@@ -1,38 +1,47 @@
+#include "BallisticApp/states/StateDecelerating.h"
 #include "BallisticApp/interfaces/IDroneState.h"
 #include "BallisticApp/utils/MathUtils.h"
-#include "BallisticApp/states/StateDecelerating.h"
 #include <cmath>
 #include <algorithm>
 
 namespace BallisticApp {
 
-DroneStateType StateDecelerating::execute(MissionContext& ctx)
+DroneStateType StateDecelerating::execute(float& speed, float& direction, float desiredDir, const DroneConfig& cfg)
 {
-  const float dt = ctx.deltaTime;
-  const float acceleration = (ctx.cfg.attackSpeed * ctx.cfg.attackSpeed) / (3.0f * ctx.cfg.accelPath);
+  const float dt = cfg.timeStep;
 
-  const float prevSpeed = ctx.speed;
-  ctx.speed = std::clamp(ctx.speed - acceleration * dt, 0.0f, prevSpeed);
-  ctx.lastDeltaPath = ((prevSpeed + ctx.speed) / 2.0f) * dt;
+  // Розрахунок уповільнення на основі вашої формули з детермінованим коефіцієнтом 3.0f
+  float acceleration = 0.0f;
+  if (cfg.accelerationPath > 1e-5f) {  // замість accelPath
+    acceleration = (cfg.attackSpeed * cfg.attackSpeed) / (3.0f * cfg.accelerationPath);
+  }
 
-  // The slower the speed, the higher the maneuverability of the drone
-  float frac = 1.0f - (ctx.speed / ctx.cfg.attackSpeed);
-  float effectiveAngularSpeed = ctx.cfg.angularSpeed * frac;
+  const float prevSpeed = speed;
+  // Керуємо поточною швидкістю через посилання
+  speed = std::clamp(speed - acceleration * dt, 0.0f, prevSpeed);
 
-  const float deltaAngle = Math::normalizeAngle(ctx.desiredDir - ctx.direction);
+  // Ваша фірмова зворотна залежність маневреності від швидкості
+  float frac = 1.0f - (speed / cfg.attackSpeed);
+  float effectiveAngularSpeed = cfg.angularSpeed * frac;
+
+  // Поворот з урахуванням адаптивної кутової швидкості
+  const float deltaAngle = Math::normalizeAngle(desiredDir - direction);
   const float maxTurnThisStep = effectiveAngularSpeed * dt;
   const float actualTurn = std::clamp(deltaAngle, -maxTurnThisStep, maxTurnThisStep);
-  ctx.direction = Math::normalizeAngle(ctx.direction + actualTurn);
 
-  if (ctx.speed <= 0.0f) {
-    ctx.speed = 0.0f;
-    ctx.lastDeltaPath = 0.0f;
+  // Керуємо напрямком через посилання
+  direction = Math::normalizeAngle(direction + actualTurn);
 
-    if (std::fabs(Math::normalizeAngle(ctx.desiredDir - ctx.direction)) > ctx.cfg.turnThreshold) {
+  // Логіка повної зупинки
+  if (speed <= 0.0f) {
+    speed = 0.0f;
+
+    if (std::fabs(Math::normalizeAngle(desiredDir - direction)) > cfg.turnThreshold) {
       return DroneStateType::TURNING;
     }
     return DroneStateType::STOPPED;
   }
+
   return DroneStateType::DECELERATING;
 }
 

@@ -1,13 +1,12 @@
-#include "BallisticApp/mission/MissionProcessor.h"
-#include "BallisticApp/mission/AppArguments.h"
-#include "BallisticApp/navigation/DronePhysics.h"
-#include "BallisticApp/providers/ThreadSafeTargetProvider.h"
+#include "BallisticApp/link/UartLink.h"
+#include "BallisticApp/link/GpioPins.h"
+#include "BallisticApp/link/Autopilot.h"
+#include "BallisticApp/utils/AppArguments.h"
+#include "BallisticApp/ComponentFactory.h"
 #include "BallisticApp/utils/Logger.h"
-#include <iostream>
-#include <exception>
-#include <thread>
-#include <chrono>
 #include <span>
+#include <iostream>
+#include <memory>
 
 using namespace BallisticApp;
 
@@ -17,56 +16,48 @@ int main(int argc, char* argv[])
     std::span<const char* const> spanArgs(argv, argc);
     AppArguments appArgs(spanArgs);
 
-    APP_LOG("{:.<15} {}", "CONFIG_FILE", appArgs.getConfigPath().string());
-    APP_LOG("{:.<15} {}", "TARGET_LIST", appArgs.getTargetsPath().string());
-    APP_LOG("{:.<15} {}", "SOLVER_TYPE", appArgs.getSolverType() == SolverType::TABLE ? "TABLE" : "ANALYTICAL");
+    APP_LOG("{:.<15}{}", "UART_PORT", appArgs.getUart());
+    APP_LOG("{:.<15}{}", "GPIO_CHIP", appArgs.getGpioChip());
+    APP_LOG("{:.<15}START={},DROP={}", "GPIO_LINES", appArgs.getStartLine(), appArgs.getDropLine());
 
-    ThreadSafeTargetProvider provider(appArgs.getTargetsPath());
-    if (!provider.load()) {
-      std::cerr << "Error: Failed to load target trajectories." << std::endl;
+    UartLink link;
+    link.open(appArgs.getUart());
+
+    GpioPins gpio;
+    gpio.open(appArgs.getGpioChip(), appArgs.getStartLine(), appArgs.getDropLine());
+
+    // ООП Handshake: викликаємо статичний метод ініціалізації
+    dlink::AmmoCfg ammo{};
+    dlink::DroneCfg cfg{};
+
+    APP_LOG_MOD("Main", "START line raised high. Waiting for checker configuration packages...");
+    if (!Autopilot::handshake(link, gpio, ammo, cfg, 2000)) {
+      std::cerr << "student: handshake failed — checker did not respond\n";
       return 1;
     }
 
-    DronePhysics physics;
-    MissionProcessor mission(appArgs, provider, physics);
+    APP_LOG_MOD("Main", "SUCCESS | Handshake finalized. Loading ballistic solver...");
 
-    std::thread providerThread(&ThreadSafeTargetProvider::run, &provider);
-    std::thread physicsThread(&DronePhysics::run, &physics);
-    std::thread missionThread(&MissionProcessor::run, &mission);
-
-    while (!provider.isThreadReady() || !physics.isThreadReady() || !mission.isThreadReady()) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    // Створення балістичного солвера
+    auto solver = ComponentFactory::createSolver(SolverType::TABLE);
+    if (!solver->initialize("data/ballistic_table.txt")) {
+      throw std::runtime_error("Critical: Failed to initialize Ballistic Table Solver.");
     }
 
-    provider.start();
-    physics.start();
-    mission.start();
+    // Створюємо об'єкт автопілота
+    Autopilot autopilot(link, gpio, std::move(solver), ammo, cfg);
 
-    if (missionThread.joinable()) {
-      missionThread.join();
-    }
+    APP_LOG_MOD("Main", "student: flying...");
 
-    physics.stop();
-    provider.stop();
-
-    if (physicsThread.joinable()) {
-      physicsThread.join();
-    }
-    if (providerThread.joinable()) {
-      providerThread.join();
+    // Чистий Game Loop циклу польоту дрона
+    while (autopilot.step()) {
+      // Усередині step() викликається link.pump() та обробляється телеметрія
     }
 
-    const auto history = mission.getStepsHistory();
-    if (!history.empty()) {
-      float totalSimTime = history.back().timeSecSinceStart;
-      APP_LOG_MOD("Main", "SUCCESS | Simulation finalized. Total Steps: {} | Flight Time: {:.2f}s", history.size(), totalSimTime);
-    }
-    else {
-      APP_LOG_MOD("Main", "WARNING | Simulation completed with empty history.");
-    }
+    APP_LOG_MOD("Main", "student: done (dropped={})", autopilot.dropped() ? "yes" : "no");
   }
   catch (const std::exception& e) {
-    std::cerr << "Error: " << e.what() << std::endl;
+    std::cerr << "student: error: " << e.what() << std::endl;
     return 1;
   }
 

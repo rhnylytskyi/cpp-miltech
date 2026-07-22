@@ -1,27 +1,32 @@
+#include "BallisticApp/states/StateTurning.h"
 #include "BallisticApp/interfaces/IDroneState.h"
 #include "BallisticApp/utils/MathUtils.h"
-#include "BallisticApp/states/StateTurning.h"
 #include <cmath>
 #include <algorithm>
 
 namespace BallisticApp {
 
-DroneStateType StateTurning::execute(MissionContext& ctx)
+DroneStateType StateTurning::execute(float& speed, float& direction, float desiredDir, const DroneConfig& cfg)
 {
-  const float dt = ctx.deltaTime;
-  ctx.speed = 0.0f;
-  ctx.lastDeltaPath = 0.0f;
+  const float dt = cfg.timeStep;
+  speed = 0.0f;  // При розвороті на місці лінійна швидкість відсутня
 
-  const float deltaAngle = Math::normalizeAngle(ctx.desiredDir - ctx.direction);
-  const float maxTurnThisStep = ctx.cfg.angularSpeed * dt;
+  // Обчислення похибки курсу
+  const float deltaAngle = Math::normalizeAngle(desiredDir - direction);
+
+  // Максимальний кут повороту за поточний крок часу телеметрії
+  const float maxTurnThisStep = cfg.angularSpeed * dt;
   const float actualTurn = std::clamp(deltaAngle, -maxTurnThisStep, maxTurnThisStep);
-  ctx.direction = Math::normalizeAngle(ctx.direction + actualTurn);
 
-  // Use the clamped accuracy threshold (half of turnThreshold) to stabilize the course
-  const float deviation = std::fabs(Math::normalizeAngle(ctx.desiredDir - ctx.direction));
-  if (deviation <= (ctx.cfg.turnThreshold * 0.5f)) {
+  // Змінюємо напрямок дрона напряму через посилання
+  direction = Math::normalizeAngle(direction + actualTurn);
+
+  // Ваша фірмова підвищена точність (половина порогу) для стабілізації курсу
+  const float deviation = std::fabs(Math::normalizeAngle(desiredDir - direction));
+  if (deviation <= (cfg.turnThreshold * 0.5f)) {
     return DroneStateType::ACCELERATING;
   }
+
   return DroneStateType::TURNING;
 }
 

@@ -1,15 +1,17 @@
 #pragma once
+#include "BallisticApp/config/DroneConfig.h"
+#include "BallisticApp/states/DroneStateType.h"
 
 namespace BallisticApp {
 
 enum class DroneStateType;
-struct MissionContext;
 
 class IDroneState {
 public:
   virtual ~IDroneState() = default;
 
-  virtual DroneStateType execute(MissionContext& ctx) = 0;
+  virtual DroneStateType execute(float& speed, float& direction, float desiredDir, const DroneConfig& cfg) = 0;
+
   virtual DroneStateType getType() const = 0;
 };
 

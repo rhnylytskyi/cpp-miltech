@@ -1,28 +1,28 @@
+#include "BallisticApp/states/StateMoving.h"
 #include "BallisticApp/interfaces/IDroneState.h"
 #include "BallisticApp/utils/MathUtils.h"
-#include "BallisticApp/states/StateMoving.h"
 #include <cmath>
 #include <algorithm>
 
 namespace BallisticApp {
 
-DroneStateType StateMoving::execute(MissionContext& ctx)
+DroneStateType StateMoving::execute(float& speed, float& direction, float desiredDir, const DroneConfig& cfg)
 {
-  const float dt = ctx.deltaTime;
-  const float deltaAngle = Math::normalizeAngle(ctx.desiredDir - ctx.direction);
+  const float dt = cfg.timeStep;
+  const float deltaAngle = Math::normalizeAngle(desiredDir - direction);
 
-  // If the deviation angle is too large — immediately reset speed for maneuvering
-  if (std::fabs(deltaAngle) > ctx.cfg.turnThreshold) {
-    ctx.lastDeltaPath = ctx.speed * dt;
+  // Якщо відхилення занадто велике — негайно переходимо до гальмування для маневру
+  if (std::fabs(deltaAngle) > cfg.turnThreshold) {
     return DroneStateType::DECELERATING;
   }
 
-  const float maxTurnThisStep = ctx.cfg.angularSpeed * dt;
+  // Плавне підвертання на курс під час маршу
+  const float maxTurnThisStep = cfg.angularSpeed * dt;
   const float actualTurn = std::clamp(deltaAngle, -maxTurnThisStep, maxTurnThisStep);
-  ctx.direction = Math::normalizeAngle(ctx.direction + actualTurn);
+  direction = Math::normalizeAngle(direction + actualTurn);
 
-  ctx.speed = ctx.cfg.attackSpeed;
-  ctx.lastDeltaPath = ctx.speed * dt;
+  // Підтримуємо максимальну швидкість атаки
+  speed = cfg.attackSpeed;
 
   return DroneStateType::MOVING;
 }
