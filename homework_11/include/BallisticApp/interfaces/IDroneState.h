@@ -1,6 +1,6 @@
 #pragma once
 #include "BallisticApp/config/DroneConfig.h"
-#include "BallisticApp/states/DroneStateType.h"
+#include "BallisticApp/DroneStateType.h"
 
 namespace BallisticApp {
 

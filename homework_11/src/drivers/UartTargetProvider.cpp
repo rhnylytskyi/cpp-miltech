@@ -1,21 +1,21 @@
-#include "BallisticApp/link/UartTargetProvider.h"
+#include "BallisticApp/drivers/UartTargetProvider.h"
 
-namespace BallisticApp {
+namespace BallisticApp::sys {
 
 void UartTargetProvider::setExpectedCount(uint8_t n)
 {
-  if (entries_.size() < n) {
-    entries_.resize(n);
+  if (m_entries.size() < n) {
+    m_entries.resize(n);
   }
 }
 
 void UartTargetProvider::update(const dlink::TargetPos &p, float nowSec)
 {
-  if (entries_.size() <= p.id) {
-    entries_.resize((size_t)p.id + 1);
+  if (m_entries.size() <= p.id) {
+    m_entries.resize((size_t)p.id + 1);
   }
 
-  Entry &e = entries_[p.id];
+  Entry &e = m_entries[p.id];
   Coord newPos{p.x, p.y};
 
   if (e.known) {
@@ -35,22 +35,22 @@ void UartTargetProvider::update(const dlink::TargetPos &p, float nowSec)
 
 bool UartTargetProvider::hasTarget(int index) const
 {
-  return index >= 0 && (size_t)index < entries_.size() && entries_[index].known;
+  return index >= 0 && (size_t)index < m_entries.size() && m_entries[index].known;
 }
 
 int UartTargetProvider::getTargetCount()
 {
-  return (int)entries_.size();
+  return (int)m_entries.size();
 }
 
 Target UartTargetProvider::getTarget(int index)
 {
-  if (index < 0 || (size_t)index >= entries_.size()) {
+  if (index < 0 || (size_t)index >= m_entries.size()) {
     return Target{{0.0f, 0.0f}, {0.0f, 0.0f}};
   }
 
-  const Entry &e = entries_[index];
+  const Entry &e = m_entries[index];
   return Target{e.pos, e.vel};
 }
 
-}  // namespace BallisticApp
+}  // namespace BallisticApp::sys

@@ -1,9 +1,9 @@
 #pragma once
 #include "BallisticApp/types/Coord.h"
-#include "third_party/drone_link.h"
+#include "drone_link.h"
 #include <vector>
 
-namespace BallisticApp {
+namespace BallisticApp::sys {
 
 struct Target {
   Coord pos{0.0f, 0.0f};
@@ -19,7 +19,7 @@ private:
     bool known{false};
   };
 
-  std::vector<Entry> entries_;
+  std::vector<Entry> m_entries;
 
 public:
   UartTargetProvider() = default;
@@ -36,4 +36,4 @@ public:
   Target getTarget(int index);
 };
 
-}  // namespace BallisticApp
+}  // namespace BallisticApp::sys

@@ -1,5 +1,5 @@
 #pragma once
-#include "third_party/drone_link.h"
+#include "drone_link.h"
 #include "BallisticApp/interfaces/IDroneState.h"
 
 namespace BallisticApp {

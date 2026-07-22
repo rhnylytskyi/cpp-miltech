@@ -1,10 +1,12 @@
-#include "BallisticApp/link/UartPort.h"
+#include "BallisticApp/drivers/UartPort.h"
 #include <cerrno>
 #include <cstring>
 #include <fcntl.h>
 #include <stdexcept>
 #include <termios.h>
 #include <unistd.h>
+
+namespace BallisticApp::sys {
 
 UartPort::~UartPort()
 {
@@ -15,49 +17,48 @@ void UartPort::open(const std::string &device)
 {
   close();
 
-  // O_NONBLOCK: наступні read() повертають -1/EAGAIN замість блокування,
-  // коли даних ще нема — дозволяє в тому ж циклі перевіряти GPIO/таймаути.
-  fd_ = ::open(device.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK);
+  // O_NONBLOCK: наступні read() повертають -1/EAGAIN замість блокування
+  m_fd = ::open(device.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK);
 
-  if (fd_ < 0) {
+  if (m_fd < 0) {
     throw std::runtime_error("UartPort: cannot open '" + device + "': " + std::strerror(errno));
   }
 
   termios tio{};
 
-  if (tcgetattr(fd_, &tio) != 0) {
+  if (tcgetattr(m_fd, &tio) != 0) {
     throw std::runtime_error("UartPort: tcgetattr failed: " + std::string(std::strerror(errno)));
   }
 
   cfmakeraw(&tio);  // 8N1, без обробки символів (raw mode)
   cfsetispeed(&tio, B115200);
-  cfsetospeed(&tio, B115200);  // швидкість з обох боків однакова
+  cfsetospeed(&tio, B115200);
   tio.c_cflag |= (CLOCAL | CREAD);
 
-  if (tcsetattr(fd_, TCSANOW, &tio) != 0) {
+  if (tcsetattr(m_fd, TCSANOW, &tio) != 0) {
     throw std::runtime_error("UartPort: tcsetattr failed: " + std::string(std::strerror(errno)));
   }
 }
 
 void UartPort::close()
 {
-  if (fd_ >= 0) {
-    ::close(fd_);
-    fd_ = -1;
+  if (m_fd >= 0) {
+    ::close(m_fd);
+    m_fd = -1;
   }
 }
 
 int UartPort::read(uint8_t *buf, size_t maxLen)
 {
-  if (fd_ < 0) {
+  if (m_fd < 0) {
     throw std::runtime_error("UartPort::read: port not open");
   }
 
-  ssize_t n = ::read(fd_, buf, maxLen);
+  ssize_t n = ::read(m_fd, buf, maxLen);
 
   if (n < 0) {
     if (errno == EAGAIN || errno == EWOULDBLOCK) {
-      return 0;  // даних поки нема — це не помилка з O_NONBLOCK
+      return 0;  // даних поки нема
     }
 
     throw std::runtime_error("UartPort::read failed: " + std::string(std::strerror(errno)));
@@ -68,18 +69,18 @@ int UartPort::read(uint8_t *buf, size_t maxLen)
 
 void UartPort::write(const uint8_t *buf, size_t len)
 {
-  if (fd_ < 0) {
+  if (m_fd < 0) {
     throw std::runtime_error("UartPort::write: port not open");
   }
 
   size_t off = 0;
 
   while (off < len) {
-    ssize_t n = ::write(fd_, buf + off, len - off);
+    ssize_t n = ::write(m_fd, buf + off, len - off);
 
     if (n < 0) {
       if (errno == EAGAIN || errno == EWOULDBLOCK) {
-        continue;  // вихідний буфер тимчасово повний — повторити
+        continue;
       }
 
       throw std::runtime_error("UartPort::write failed: " + std::string(std::strerror(errno)));
@@ -88,3 +89,5 @@ void UartPort::write(const uint8_t *buf, size_t len)
     off += (size_t)n;
   }
 }
+
+}  // namespace BallisticApp::sys

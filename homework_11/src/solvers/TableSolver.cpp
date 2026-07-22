@@ -6,7 +6,7 @@
 #include <array>
 #include <cmath>
 
-namespace BallisticApp {
+namespace BallisticApp::solvers {
 
 bool TableSolver::BallisticTable::load(const std::filesystem::path& path)
 {
@@ -152,4 +152,4 @@ IBallisticSolver::Result TableSolver::calculate(float altitude, float speed, con
   return m_table.lookup(altitude, speed, ammo.mass, ammo.drag, ammo.lift);
 }
 
-}  // namespace BallisticApp
+}  // namespace BallisticApp::solvers

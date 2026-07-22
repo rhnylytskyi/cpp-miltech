@@ -17,7 +17,7 @@ void AppArguments::printHelp() const
             << "  BallisticApp Drone Autopilot Board CLI (HW-in-the-Loop Mode)\n"
             << "===================================================================\n"
             << "Usage:\n"
-            << "  ./ballistic_app_11 [options]\n\n"
+            << "  ./student [options]\n\n"
             << "Options:\n"
             << "  --uart <device>         Specify path to the UART device serial port\n"
             << "                          (Default: /tmp/ttyA)\n"

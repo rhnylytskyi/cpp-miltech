@@ -4,7 +4,7 @@
 #include <vector>
 #include <filesystem>
 
-namespace BallisticApp {
+namespace BallisticApp::solvers {
 
 class TableSolver : public IBallisticSolver {
 public:
@@ -45,4 +45,4 @@ private:
   bool m_isTableLoaded = false;
 };
 
-}  // namespace BallisticApp
+}  // namespace BallisticApp::solvers

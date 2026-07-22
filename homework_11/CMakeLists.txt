@@ -15,7 +15,11 @@ if(NOT GPIOD_LIBRARY OR NOT GPIOD_INCLUDE_DIR)
 endif()
 
 file(GLOB_RECURSE SOURCES "src/*.cpp")
-add_executable(ballistic_app_11 ${SOURCES})
 
-target_include_directories(ballistic_app_11 PUBLIC include ${GPIOD_INCLUDE_DIR})
-target_link_libraries(ballistic_app_11 PRIVATE Threads::Threads ${GPIOD_LIBRARY})
+add_executable(student ${SOURCES})
+
+target_include_directories(
+    student PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/third_party
+                   ${GPIOD_INCLUDE_DIR})
+
+target_link_libraries(student PRIVATE Threads::Threads ${GPIOD_LIBRARY})

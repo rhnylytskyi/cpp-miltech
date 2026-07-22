@@ -1,12 +1,13 @@
 #include "BallisticApp/states/DroneStateRegistry.h"
-#include "BallisticApp/states/DroneStateType.h"
-#include "BallisticApp/states/StateStopped.h"
-#include "BallisticApp/states/StateTurning.h"
-#include "BallisticApp/states/StateAccelerating.h"
-#include "BallisticApp/states/StateMoving.h"
-#include "BallisticApp/states/StateDecelerating.h"
+#include "BallisticApp/states/Stopped.h"
+#include "BallisticApp/states/Turning.h"
+#include "BallisticApp/states/Accelerating.h"
+#include "BallisticApp/states/Moving.h"
+#include "BallisticApp/states/Decelerating.h"
+#include "BallisticApp/DroneStateType.h"
+#include <iostream>
 
-namespace BallisticApp {
+namespace BallisticApp::states {
 
 IDroneState* DroneStateRegistry::getState(DroneStateType type)
 {
@@ -28,8 +29,9 @@ IDroneState* DroneStateRegistry::getState(DroneStateType type)
     case DroneStateType::DECELERATING:
       return &decelerating;
     default:
-      return nullptr;
+      std::cerr << "[FSM Critical] Detected invalid or corrupted DroneStateType! Falling back to STOPPED.\n";
+      return &stopped;
   }
 }
 
-}  // namespace BallisticApp
+}  // namespace BallisticApp::states

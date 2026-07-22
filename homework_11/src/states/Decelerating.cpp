@@ -1,10 +1,10 @@
-#include "BallisticApp/states/StateDecelerating.h"
+#include "BallisticApp/states/Decelerating.h"
 #include "BallisticApp/interfaces/IDroneState.h"
 #include "BallisticApp/utils/MathUtils.h"
 #include <cmath>
 #include <algorithm>
 
-namespace BallisticApp {
+namespace BallisticApp::states {
 
 DroneStateType StateDecelerating::execute(float& speed, float& direction, float desiredDir, const DroneConfig& cfg)
 {
@@ -50,4 +50,4 @@ DroneStateType StateDecelerating::getType() const
   return DroneStateType::DECELERATING;
 }
 
-}  // namespace BallisticApp
+}  // namespace BallisticApp::states

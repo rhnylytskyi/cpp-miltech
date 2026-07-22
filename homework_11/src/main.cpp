@@ -1,9 +1,10 @@
-#include "BallisticApp/link/UartLink.h"
-#include "BallisticApp/link/GpioPins.h"
-#include "BallisticApp/link/Autopilot.h"
+#include "BallisticApp/mission/Autopilot.h"
+#include "BallisticApp/drivers/GpioPins.h"
+#include "BallisticApp/drivers/UartLink.h"
 #include "BallisticApp/utils/AppArguments.h"
 #include "BallisticApp/ComponentFactory.h"
 #include "BallisticApp/utils/Logger.h"
+#include "drone_link.h"
 #include <span>
 #include <iostream>
 #include <memory>
@@ -12,6 +13,10 @@ using namespace BallisticApp;
 
 int main(int argc, char* argv[])
 {
+  using UartLink = BallisticApp::sys::UartLink;
+  using GpioPins = BallisticApp::sys::GpioPins;
+  using Autopilot = BallisticApp::mission::Autopilot;
+
   try {
     std::span<const char* const> spanArgs(argv, argc);
     AppArguments appArgs(spanArgs);
@@ -26,11 +31,12 @@ int main(int argc, char* argv[])
     GpioPins gpio;
     gpio.open(appArgs.getGpioChip(), appArgs.getStartLine(), appArgs.getDropLine());
 
-    // ООП Handshake: викликаємо статичний метод ініціалізації
     dlink::AmmoCfg ammo{};
     dlink::DroneCfg cfg{};
 
     APP_LOG_MOD("Main", "START line raised high. Waiting for checker configuration packages...");
+
+    // Виклик виглядає точно так само, як у вашій першій версії коду
     if (!Autopilot::handshake(link, gpio, ammo, cfg, 2000)) {
       std::cerr << "student: handshake failed — checker did not respond\n";
       return 1;
@@ -38,20 +44,17 @@ int main(int argc, char* argv[])
 
     APP_LOG_MOD("Main", "SUCCESS | Handshake finalized. Loading ballistic solver...");
 
-    // Створення балістичного солвера
     auto solver = ComponentFactory::createSolver(SolverType::TABLE);
     if (!solver->initialize("data/ballistic_table.txt")) {
       throw std::runtime_error("Critical: Failed to initialize Ballistic Table Solver.");
     }
 
-    // Створюємо об'єкт автопілота
     Autopilot autopilot(link, gpio, std::move(solver), ammo, cfg);
 
     APP_LOG_MOD("Main", "student: flying...");
 
-    // Чистий Game Loop циклу польоту дрона
     while (autopilot.step()) {
-      // Усередині step() викликається link.pump() та обробляється телеметрія
+      // Усередині step() викликається link.pump()
     }
 
     APP_LOG_MOD("Main", "student: done (dropped={})", autopilot.dropped() ? "yes" : "no");

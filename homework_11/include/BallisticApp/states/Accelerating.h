@@ -1,12 +1,12 @@
 #pragma once
 #include "BallisticApp/interfaces/IDroneState.h"
 
-namespace BallisticApp {
+namespace BallisticApp::states {
 
-class StateTurning : public IDroneState {
+class StateAccelerating : public IDroneState {
 public:
   DroneStateType execute(float& speed, float& direction, float desiredDir, const DroneConfig& cfg) override;
   DroneStateType getType() const override;
 };
 
-}  // namespace BallisticApp
+}  // namespace BallisticApp::states

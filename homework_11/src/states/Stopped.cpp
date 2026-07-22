@@ -1,10 +1,10 @@
 // src/states/StateStopped.cpp
-#include "BallisticApp/states/StateStopped.h"
+#include "BallisticApp/states/Stopped.h"
 #include "BallisticApp/interfaces/IDroneState.h"
 #include "BallisticApp/utils/MathUtils.h"
 #include <cmath>
 
-namespace BallisticApp {
+namespace BallisticApp::states {
 
 DroneStateType StateStopped::execute(float& speed, float& direction, float desiredDir, const DroneConfig& cfg)
 {
@@ -28,4 +28,4 @@ DroneStateType StateStopped::getType() const
   return DroneStateType::STOPPED;
 }
 
-}  // namespace BallisticApp
+}  // namespace BallisticApp::states

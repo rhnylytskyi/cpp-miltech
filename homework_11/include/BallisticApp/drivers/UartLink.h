@@ -1,8 +1,10 @@
 #pragma once
-#include "third_party/drone_link.h"
-#include "BallisticApp/link/UartPort.h"
+#include "BallisticApp/drivers/UartPort.h"
+#include "drone_link.h"
 #include <functional>
 #include <string>
+
+namespace BallisticApp::sys {
 
 // Обгортка над UartPort + dlink::Parser: читає доступні байти, годує парсер,
 // і на кожному зібраному кадрі викликає відповідний callback.
@@ -14,12 +16,12 @@ public:
   using AmmoCb = std::function<void(const dlink::AmmoCfg &)>;
   using ConfigCb = std::function<void(const dlink::DroneCfg &)>;
 
-  void open(const std::string &device) { port_.open(device); }
+  void open(const std::string &device) { m_port.open(device); }
 
-  void onTelemetry(TelemetryCb cb) { onTelemetry_ = std::move(cb); }
-  void onTarget(TargetCb cb) { onTarget_ = std::move(cb); }
-  void onAmmo(AmmoCb cb) { onAmmo_ = std::move(cb); }
-  void onConfig(ConfigCb cb) { onConfig_ = std::move(cb); }
+  void onTelemetry(TelemetryCb cb) { m_onTelemetry = std::move(cb); }
+  void onTarget(TargetCb cb) { m_onTarget = std::move(cb); }
+  void onAmmo(AmmoCb cb) { m_onAmmo = std::move(cb); }
+  void onConfig(ConfigCb cb) { m_onConfig = std::move(cb); }
 
   // Прочитати все, що зараз доступне з порту, і розібрати на кадри.
   // Повертає кількість повністю зібраних (валідних) кадрів.
@@ -35,13 +37,15 @@ public:
   void sendControl(float accel, float turnRate);
 
 private:
-  UartPort port_;
-  dlink::Parser parser_;
+  UartPort m_port;
+  dlink::Parser m_parser;
 
-  TelemetryCb onTelemetry_;
-  TargetCb onTarget_;
-  AmmoCb onAmmo_;
-  ConfigCb onConfig_;
+  TelemetryCb m_onTelemetry;
+  TargetCb m_onTarget;
+  AmmoCb m_onAmmo;
+  ConfigCb m_onConfig;
 
   void dispatch(uint8_t type, const uint8_t *payload, uint8_t len);
 };
+
+}  // namespace BallisticApp::sys
