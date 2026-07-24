@@ -58,7 +58,6 @@ int main(int argc, char* argv[])
     APP_LOG_MOD("Main", "student: flying...");
 
     while (autopilot.step()) {
-      // Усередині step() викликається link.pump()
     }
 
     APP_LOG_MOD("Main", "student: done (dropped={})", autopilot.dropped() ? "yes" : "no");
