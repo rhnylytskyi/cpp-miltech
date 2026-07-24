@@ -8,6 +8,7 @@
 #include <span>
 #include <iostream>
 #include <memory>
+#include <thread>
 
 using namespace BallisticApp;
 
@@ -31,13 +32,16 @@ int main(int argc, char* argv[])
     GpioPins gpio;
     gpio.open(appArgs.getGpioChip(), appArgs.getStartLine(), appArgs.getDropLine());
 
+    for (int i = 0; i < 10; ++i) {
+      link.pump();
+      std::this_thread::sleep_for(std::chrono::milliseconds(5));
+    }
+
     dlink::AmmoCfg ammo{};
     dlink::DroneCfg cfg{};
 
-    APP_LOG_MOD("Main", "START line raised high. Waiting for checker configuration packages...");
-
-    // Виклик виглядає точно так само, як у вашій першій версії коду
-    if (!Autopilot::handshake(link, gpio, ammo, cfg, 2000)) {
+    std::cerr << "[DEBUG ARCH] Реальний розмір DroneCfg у пам'яті нашого студента: " << sizeof(dlink::DroneCfg) << " байт\n";
+    if (!mission::Autopilot::handshake(link, gpio, ammo, cfg, 5000)) {
       std::cerr << "student: handshake failed — checker did not respond\n";
       return 1;
     }

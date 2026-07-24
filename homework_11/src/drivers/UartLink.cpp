@@ -1,6 +1,7 @@
 #include "BallisticApp/drivers/UartLink.h"
 #include <chrono>
 #include <cstring>
+#include <iostream>
 #include <thread>
 
 using namespace dlink;
@@ -10,7 +11,7 @@ namespace BallisticApp::sys {
 int UartLink::pump()
 {
   uint8_t raw[256];
-  int n = m_port.read(raw, sizeof raw);
+  int n = m_port.read(raw, sizeof(raw));
   int frames = 0;
 
   for (int i = 0; i < n; ++i) {
@@ -27,6 +28,8 @@ int UartLink::pump()
 
 void UartLink::dispatch(uint8_t type, const uint8_t *payload, uint8_t len)
 {
+  std::cerr << "[DEBUG UART] Отримано пакет типу: " << (int)type << ", довжина: " << (int)len << "\n";
+
   switch (type) {
     case PKT_TELEMETRY:
       if (m_onTelemetry && len == sizeof(Telemetry)) {
@@ -53,22 +56,25 @@ void UartLink::dispatch(uint8_t type, const uint8_t *payload, uint8_t len)
       break;
 
     case PKT_CONFIG:
+      std::cerr << "[UART MATCH] Чекер прислав CONFIG з len = " << (int)len << ", а у нас sizeof = " << sizeof(dlink::DroneCfg) << "\n";
+
       if (m_onConfig && len == sizeof(DroneCfg)) {
         DroneCfg c;
         std::memcpy(&c, payload, sizeof c);
         m_onConfig(c);
       }
+      else {
+        std::cerr << "[DEBUG UART] КРИТИЧНО: Розмір пакета CONFIG не збігається з десеріалізацією!\n";
+      }
       break;
 
     default:
-      break;  // невідомий/непотрібний студенту тип (напр. PKT_RESULT) — ігноруємо
+      break;
   }
 }
 
 bool UartLink::waitFor(uint8_t type, int timeoutMs)
 {
-  // Ловимо потрібний тип кадру через тимчасовий callback-перехоплювач,
-  // не чіпаючи постійні callback'и, встановлені користувачем.
   bool got = false;
 
   TelemetryCb prevTel = m_onTelemetry;

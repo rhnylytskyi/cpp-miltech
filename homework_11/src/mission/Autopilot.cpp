@@ -30,22 +30,21 @@ bool Autopilot::handshake(sys::UartLink& link, sys::GpioPins& gpio, dlink::AmmoC
   link.onAmmo([&](const dlink::AmmoCfg& a) {
     outAmmo = a;
     haveAmmo = true;
-    std::cerr << "[autopilot] AMMO: " << a.name << " hitRadius=" << a.hitRadius << " nTargets=" << (int)a.nTargets << "\n";
+    std::cerr << "[autopilot] AMMO received: " << a.name << "\n";
   });
 
   link.onConfig([&](const dlink::DroneCfg& c) {
     outCfg = c;
     haveCfg = true;
-    std::cerr << "[autopilot] CONFIG: attackSpeed=" << c.attackSpeed << " turnThreshold=" << c.turnThreshold
-              << " angularSpeed=" << c.angularSpeed << "\n";
+    std::cerr << "[autopilot] CONFIG received! attackSpeed=" << c.attackSpeed << "\n";
   });
 
   gpio.setStart(true);
 
   auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(timeoutMs);
+
   while ((!haveAmmo || !haveCfg) && std::chrono::steady_clock::now() < deadline) {
     link.pump();
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
   }
 
   if (!haveAmmo || !haveCfg) {
