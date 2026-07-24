@@ -10,15 +10,12 @@ find_library(GPIOD_LIBRARY NAMES gpiod)
 find_path(GPIOD_INCLUDE_DIR NAMES gpiod.h)
 
 if(NOT GPIOD_LIBRARY OR NOT GPIOD_INCLUDE_DIR)
-    message(
-        STATUS
-            "Системну libgpiod не знайдено! Автоматично завантажуємо її з офіційного репозиторію..."
-    )
+    message(STATUS "Системну libgpiod не знайдено! Автоматично завантажуємо її з GitHub...")
 
     include(FetchContent)
     FetchContent_Declare(
         libgpiod
-        GIT_REPOSITORY https://kernel.org
+        GIT_REPOSITORY https://github.com
         GIT_TAG v1.6.3)
 
     set(gpiod_build_tools
