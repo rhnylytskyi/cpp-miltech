@@ -5,14 +5,13 @@
   // container user і workspace path збігалися з host-сесією.
   "build": {
     "dockerfile": "Dockerfile",
-    "args": {
-      "WORKSPACE_FOLDER": "${localEnv:HOME}/${localWorkspaceFolderBasename}",
-      "CONTAINER_USER": "${localEnv:USER}"
-    }
+    "options": [
+      "--network=host"
+    ]
   },
   // VS Code відкриває контейнер від імені того самого користувача, що й host.
   // Це зменшує проблеми з ownership файлів у bind mount.
-  "remoteUser": "${localEnv:USER}",
+  "remoteUser": "root",
   // Проєкт монтується у домашню директорію користувача всередині контейнера.
   // Так шляхи виглядають однаково на Linux, macOS і Windows+WSL.
   "workspaceMount": "source=${localWorkspaceFolder},target=${localEnv:HOME}/${localWorkspaceFolderBasename},type=bind",
@@ -96,5 +95,5 @@
       }
     }
   },
-  "postCreateCommand": "echo 'source /usr/share/bash-completion/completions/git' >> ~/.bashrc && chmod +x .devcontainer/scripts/check-quality && pip install clangd-tidy --break-system-packages"
+  "postCreateCommand": "echo 'source /usr/share/bash-completion/completions/git' >> ~/.bashrc"
 }
