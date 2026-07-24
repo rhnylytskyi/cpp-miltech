@@ -11,7 +11,27 @@ find_path(GPIOD_INCLUDE_DIR NAMES gpiod.h)
 
 if(NOT GPIOD_LIBRARY OR NOT GPIOD_INCLUDE_DIR)
     message(
-        FATAL_ERROR "libgpiod не знайдено! Виконайте в терміналі: sudo apt install libgpiod-dev")
+        STATUS
+            "Системну libgpiod не знайдено! Автоматично завантажуємо її з офіційного репозиторію..."
+    )
+
+    include(FetchContent)
+    FetchContent_Declare(
+        libgpiod
+        GIT_REPOSITORY https://kernel.org
+        GIT_TAG v1.6.3)
+
+    set(gpiod_build_tools
+        OFF
+        CACHE INTERNAL "")
+    set(gpiod_build_tests
+        OFF
+        CACHE INTERNAL "")
+
+    FetchContent_MakeAvailable(libgpiod)
+
+    set(GPIOD_LIBRARY gpiod)
+    set(GPIOD_INCLUDE_DIR ${libgpiod_SOURCE_DIR}/include)
 endif()
 
 file(GLOB_RECURSE SOURCES "src/*.cpp")
