@@ -6,32 +6,32 @@ sudo
 tzdata
 ssh
 git
-
+ 
 # C++ toolchain і language server для редактора.
 gcc
 clang
 clangd
 clang-tidy
-
+ 
 # Runtime-бібліотеки Clang sanitizer-ів і symbolizer для читабельного ASan/UBSan output.
 libclang-rt-18-dev
 llvm-18
-
+ 
 # Крос-тулчейн для ARM64-пристроїв: RPi4, Radxa ROCK 5B+, Jetson.
 g++-aarch64-linux-gnu
-
+ 
 # libgpiod: доступ до GPIO (START/DROP) з userspace на платі й у gpio-sim
 # симуляторі — заняття 4.4 (UART + GPIO).
 libgpiod-dev
-
+ 
 # socat: пара віртуальних UART-портів (pty) для симулятора чекера — заняття 4.4. socat
-
+ 
 # Інструменти для заняття 2.4: локальний і remote debug, memory diagnostics.
 gdb
 gdbserver
 gdb-multiarch
 valgrind
-
+ 
 # Інструменти збірки і форматери, які використовуються в лекціях та CI.
 make
 cmake

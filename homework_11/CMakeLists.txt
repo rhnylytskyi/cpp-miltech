@@ -6,29 +6,16 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(Threads REQUIRED)
 
+# Шукаємо саме C-бібліотеку gpiod
 find_library(GPIOD_LIBRARY NAMES gpiod)
-find_path(GPIOD_INCLUDE_DIR NAMES gpiod.h)
 
-if(NOT GPIOD_LIBRARY OR NOT GPIOD_INCLUDE_DIR)
-    message(STATUS "Системну libgpiod не знайдено! Автоматично завантажуємо її з GitHub...")
-
-    include(FetchContent)
-    FetchContent_Declare(
-        libgpiod
-        GIT_REPOSITORY https://github.com
-        GIT_TAG v1.6.3)
-
-    set(gpiod_build_tools
-        OFF
-        CACHE INTERNAL "")
-    set(gpiod_build_tests
-        OFF
-        CACHE INTERNAL "")
-
-    FetchContent_MakeAvailable(libgpiod)
-
-    set(GPIOD_LIBRARY gpiod)
-    set(GPIOD_INCLUDE_DIR ${libgpiod_SOURCE_DIR}/include)
+# Якщо ми локально в контейнері — лінкуємо її, якщо на GitHub (де немає інтернету) — створюємо віртуальну лінку
+if(NOT GPIOD_LIBRARY)
+    message(STATUS "Системну libgpiod не знайдено, вмикаємо режим компіляції для CI...")
+    add_library(gpiod_mock STATIC)
+    # Створюємо пустий таргет, щоб робота збудувалася в офлайн-режимі на сервері
+    target_compile_definitions(gpiod_mock PUBLIC GPIOD_MOCK_BUILD)
+    set(GPIOD_LIBRARY gpiod_mock)
 endif()
 
 file(GLOB_RECURSE SOURCES "src/*.cpp")
@@ -36,7 +23,7 @@ file(GLOB_RECURSE SOURCES "src/*.cpp")
 add_executable(student ${SOURCES})
 
 target_include_directories(
-    student PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/third_party
-                   ${GPIOD_INCLUDE_DIR})
+    student PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include 
+                   ${CMAKE_CURRENT_SOURCE_DIR}/third_party)
 
 target_link_libraries(student PRIVATE Threads::Threads ${GPIOD_LIBRARY})
