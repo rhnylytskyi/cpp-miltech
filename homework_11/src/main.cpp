@@ -32,24 +32,54 @@ int main(int argc, char* argv[])
     GpioPins gpio;
     gpio.open(appArgs.getGpioChip(), appArgs.getStartLine(), appArgs.getDropLine());
 
-    for (int i = 0; i < 10; ++i) {
-      link.pump();
-      std::this_thread::sleep_for(std::chrono::milliseconds(5));
+    // === КРИТИЧНИЙ ФІКС №1: Вигрібаємо старе сміття з буфера UART ===
+    std::cerr << "[SYSTEM] Очищення буферів UART від бруду попередніх запусків...\n";
+    while (link.pump() > 0) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(2));
     }
+    link.resetParser();  // Повністю скидаємо стан скінченного автомата
 
     dlink::AmmoCfg ammo{};
     dlink::DroneCfg cfg{};
+    bool haveAmmo = false;
+    bool haveCfg = false;
 
-    std::cerr << "[DEBUG ARCH] Реальний розмір DroneCfg у пам'яті нашого студента: " << sizeof(dlink::DroneCfg) << " байт\n";
-    if (!mission::Autopilot::handshake(link, gpio, ammo, cfg, 5000)) {
-      std::cerr << "student: handshake failed — checker did not respond\n";
+    // === КРИТИЧНИЙ ФІКС №2: Налаштовуємо «вуха» ДО того, як смикати START ===
+    link.onAmmo([&](const dlink::AmmoCfg& a) {
+      ammo = a;
+      haveAmmo = true;
+      std::cerr << "[MAIN DETECT] Успішно зловлено пакет AMMO: " << a.name << "\n";
+    });
+
+    link.onConfig([&](const dlink::DroneCfg& c) {
+      cfg = c;
+      haveCfg = true;
+      std::cerr << "[MAIN DETECT] Успішно зловлено пакет CONFIG! attackSpeed=" << c.attackSpeed << "\n";
+    });
+
+    // === КРИТИЧНИЙ ФІКС №3: Тільки тепер піднімаємо лінію START ===
+    std::cerr << "[SYSTEM] Даємо чекеру сигнал START...\n";
+    gpio.setStart(true);
+
+    // Локальний цикл очікування handshake безпосередньо у main
+    auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(5000);
+    while ((!haveAmmo || !haveCfg) && std::chrono::steady_clock::now() < deadline) {
+      link.pump();
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+
+    std::cerr << "[DEBUG ARCH] Розмір DroneCfg у пам'яті: " << sizeof(dlink::DroneCfg) << " байт\n";
+    if (!haveAmmo || !haveCfg) {
+      std::cerr << "student: handshake failed — ammo=" << haveAmmo << " cfg=" << haveCfg << "\n";
       return 1;
     }
 
     APP_LOG_MOD("Main", "SUCCESS | Handshake finalized. Loading ballistic solver...");
 
     auto solver = ComponentFactory::createSolver(SolverType::TABLE);
-    if (!solver->initialize("data/ballistic_table.txt")) {
+    std::string tablePath = std::string(PROJECT_DATA_DIR) + "/ballistic_table.txt";
+    std::cerr << "[MAIN] Завантаження балістичної таблиці з: " << tablePath << "\n";
+    if (!solver->initialize(tablePath)) {
       throw std::runtime_error("Critical: Failed to initialize Ballistic Table Solver.");
     }
 

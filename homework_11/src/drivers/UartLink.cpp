@@ -8,6 +8,13 @@ using namespace dlink;
 
 namespace BallisticApp::sys {
 
+void UartLink::resetParser()
+{
+  m_parser.st = Parser::S_M0;
+  m_parser.idx = 0;
+  m_parser.len = 0;
+}
+
 int UartLink::pump()
 {
   uint8_t raw[256];
@@ -15,14 +22,20 @@ int UartLink::pump()
   int frames = 0;
 
   for (int i = 0; i < n; ++i) {
-    uint8_t type, len, payload[260];
+    // === ТИМЧАСОВИЙ ДЕБАГ: Дивимось абсолютно ВСІ СИРІ БАЙТИ, які летять від чекера ===
+    static int byte_counter = 0;
+    // Якщо бачимо маркер пакета MAGIC0 (0xA5), виведемо наступні пару байтів
+    if (raw[i] == 0xA5 && (i + 1 < n)) {
+      std::cerr << "[RAW UART] Знайдено пакет! Наступний байт (MAGIC1): " << (int)raw[i + 1] << ", Тип пакету на дроті: " << (int)raw[i + 2]
+                << ", Довжина на дроті: " << (int)raw[i + 3] << "\n";
+    }
 
+    uint8_t type, len, payload[260];
     if (m_parser.feed(raw[i], type, payload, len)) {
       dispatch(type, payload, len);
       ++frames;
     }
   }
-
   return frames;
 }
 

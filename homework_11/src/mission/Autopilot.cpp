@@ -27,6 +27,7 @@ bool Autopilot::handshake(sys::UartLink& link, sys::GpioPins& gpio, dlink::AmmoC
 {
   bool haveAmmo = false, haveCfg = false;
 
+  // 1. Спочатку ЖОРСТКО підписуємось на порт, щоб нічого не пропустити
   link.onAmmo([&](const dlink::AmmoCfg& a) {
     outAmmo = a;
     haveAmmo = true;
@@ -39,12 +40,16 @@ bool Autopilot::handshake(sys::UartLink& link, sys::GpioPins& gpio, dlink::AmmoC
     std::cerr << "[autopilot] CONFIG received! attackSpeed=" << c.attackSpeed << "\n";
   });
 
+  // 2. Тільки тепер, коли вуха програми відкриті, даємо чекеру відмашку на старт!
+  std::cerr << "[autopilot] Вмикаємо START...\n";
   gpio.setStart(true);
 
+  // 3. Починаємо миттєво вигрібати буфер без жодних sleep_for перед цим
   auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(timeoutMs);
 
   while ((!haveAmmo || !haveCfg) && std::chrono::steady_clock::now() < deadline) {
     link.pump();
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));  // мінімальна пауза
   }
 
   if (!haveAmmo || !haveCfg) {

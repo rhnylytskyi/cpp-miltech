@@ -9,24 +9,31 @@ find_package(Threads REQUIRED)
 # Шукаємо саме C-бібліотеку gpiod
 find_library(GPIOD_LIBRARY NAMES gpiod)
 
-# Якщо ми локально в контейнері — лінкуємо її, якщо на GitHub (де немає інтернету) — створюємо віртуальну лінку
+# Створюємо змінну для додаткових шляхів інклудів
+set(GPIOD_INCLUDE_DIR "")
+
 if(NOT GPIOD_LIBRARY)
     message(STATUS "Системну libgpiod не знайдено, вмикаємо режим компіляції для CI...")
 
-    # Змінюємо STATIC на INTERFACE, щоб CMake не вимагав .cpp файлів
     add_library(gpiod_mock INTERFACE)
-
-    # Для INTERFACE бібліотек використовується ключеве слово INTERFACE замість PUBLIC
     target_compile_definitions(gpiod_mock INTERFACE GPIOD_MOCK_BUILD)
+
+    # Тільки для CI додаємо шлях до папки, де тепер захована заглушка:
+    target_include_directories(gpiod_mock INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include/mock)
+
     set(GPIOD_LIBRARY gpiod_mock)
+else()
+    message(STATUS "Знайдено реальну системну бібліотеку: ${GPIOD_LIBRARY}")
 endif()
 
 file(GLOB_RECURSE SOURCES "src/*.cpp")
-
 add_executable(student ${SOURCES})
 
-target_include_directories(
-    student PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/third_party)
+# Основні інклуди проекту
+target_include_directories(student PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
+                                          ${CMAKE_CURRENT_SOURCE_DIR}/third_party)
 
+# Лінкуємо Threads та gpiod (реальну або mock, яка сама підтягне свій include/mock якщо треба)
 target_link_libraries(student PRIVATE Threads::Threads ${GPIOD_LIBRARY})
+
+target_compile_definitions(student PRIVATE PROJECT_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data")

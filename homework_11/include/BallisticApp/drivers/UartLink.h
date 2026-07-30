@@ -23,6 +23,8 @@ public:
   void onAmmo(AmmoCb cb) { m_onAmmo = std::move(cb); }
   void onConfig(ConfigCb cb) { m_onConfig = std::move(cb); }
 
+  void resetParser();
+
   // Прочитати все, що зараз доступне з порту, і розібрати на кадри.
   // Повертає кількість повністю зібраних (валідних) кадрів.
   // Неблокуюче — призначене для виклику в основному циклі кожен такт.
