@@ -6,9 +6,6 @@
 
 namespace BallisticApp {
 
-/**
- * @brief Strongly typed flight profile state mapped byte-to-byte with the telemetry stream.
- */
 enum class DroneStateType : uint8_t { STOPPED = 0, MOVING = 1, ACCELERATING = 2, DECELERATING = 3, TURNING = 4 };
 
 }  // namespace BallisticApp

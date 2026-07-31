@@ -6,16 +6,13 @@
 
 namespace BallisticApp::sys {
 
-/**
- * @brief Structure representing aggregated processed target tracking state.
- */
 struct Target {
   Coord pos{0.0f, 0.0f};
   Coord velocity{0.0f, 0.0f};
 };
 
 /**
- * @brief Accumulates raw coordinate frames from UART and computes real-time target velocity tracking.
+ * @brief Accumulates UART coordinates and estimates target velocity vectors.
  */
 class UartTargetProvider {
 private:
@@ -32,24 +29,17 @@ public:
   UartTargetProvider() = default;
   ~UartTargetProvider() = default;
 
-  /* Target trackers manage specific dynamic heaps and must not be copied */
+  /* Prevent tracking storage duplication */
   UartTargetProvider(const UartTargetProvider&) = delete;
   UartTargetProvider& operator=(const UartTargetProvider&) = delete;
 
-  /**
-   * @brief Pre-allocates tracking slots based on the active weapon capability configuration.
-   */
+  /* State tracking and estimation math */
   void setExpectedCount(uint8_t n);
-
-  /**
-   * @brief Updates internal state metrics and performs numerical differentiation to estimate target velocity vectors.
-   */
   void update(const dlink::TargetPos& p, float nowSec);
 
+  /* Inspector metrics */
   [[nodiscard]] bool hasTarget(int index) const noexcept;
-
   [[nodiscard]] int getTargetCount() const noexcept;
-
   [[nodiscard]] Target getTarget(int index) const noexcept;
 };
 

@@ -22,17 +22,13 @@ else()
     message(STATUS "Found real system gpiod library: ${GPIOD_LIBRARY}")
 endif()
 
-# Automatically collect all source files from the src directory
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 add_executable(drone_autopilot ${SOURCES})
 
-# Core project include directories
 target_include_directories(drone_autopilot PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
                                                   ${CMAKE_CURRENT_SOURCE_DIR}/third_party)
 
-# Link threads interface and selected gpiod library target
 target_link_libraries(drone_autopilot PRIVATE Threads::Threads ${GPIOD_LIBRARY})
 
-# Preprocessor definitions
 target_compile_definitions(drone_autopilot
                            PRIVATE PROJECT_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data")

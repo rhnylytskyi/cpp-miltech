@@ -2,44 +2,29 @@
 
 #include <string>
 
-/* Forward declarations for libgpiod C-types to decouple compilation dependencies */
 struct gpiod_chip;
 struct gpiod_line;
 
 namespace BallisticApp::sys {
 
 /**
- * @brief Manages low-level hardware interaction with GPIO lines via libgpiod.
- * Controls critical handshake signals (START) and payload release mechanisms (DROP).
+ * @brief Hardware interaction layer with GPIO lines via libgpiod.
  */
 class GpioPins {
 public:
   GpioPins() = default;
   ~GpioPins() noexcept;
 
-  /* Strict resource gating: hardware pin descriptors must not be duplicated */
+  /* Prevent duplication of hardware pin descriptors */
   GpioPins(const GpioPins &) = delete;
   GpioPins &operator=(const GpioPins &) = delete;
 
-  /**
-   * @brief Opens the designated GPIO chip and initializes lines as output (default low).
-   * @throws std::runtime_error if hardware chip initialization or layout request fails.
-   */
+  /* Resource lifecycle and pin configuration */
   void open(const std::string &chipName, unsigned int startLine, unsigned int dropLine);
-
-  /**
-   * @brief Cleanly releases all requested line handles and closes the active chip context.
-   */
   void close() noexcept;
 
-  /**
-   * @brief Sets the state of the START line to signal simulation readiness to the checker.
-   */
+  /* Signal control interfaces */
   void setStart(bool value);
-
-  /**
-   * @brief Generates a blocking square pulse on the DROP line for safe weapon/pyro release.
-   */
   void pulseDrop(int durationMs = 80);
 
 private:

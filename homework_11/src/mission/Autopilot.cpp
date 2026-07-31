@@ -1,4 +1,5 @@
 #include "BallisticApp/mission/Autopilot.h"
+#include "BallisticApp/utils/Logger.h"
 #include "BallisticApp/utils/MathUtils.h"
 #include "BallisticApp/states/DroneStateRegistry.h"
 #include "BallisticApp/interfaces/IDroneState.h"
@@ -21,16 +22,16 @@ bool Autopilot::handshake(sys::UartLink& link, sys::GpioPins& gpio, dlink::AmmoC
   link.onAmmo([&](const dlink::AmmoCfg& a) {
     outAmmo = a;
     haveAmmo = true;
-    std::cerr << "[autopilot] AMMO received: " << a.name << "\n";
+    APP_LOG_MOD("Main", "autopilot: AMMO configuration package finalized: {}", a.name);
   });
 
   link.onConfig([&](const dlink::DroneCfg& c) {
     outCfg = c;
     haveCfg = true;
-    std::cerr << "[autopilot] CONFIG received: attackSpeed=" << c.attackSpeed << "\n";
+    APP_LOG_MOD("Main", "autopilot: CONFIG parameters verified. Speed={}", c.attackSpeed);
   });
 
-  std::cerr << "[autopilot] Set START line high...\n";
+  APP_LOG_MOD("Main", "autopilot: activating global hardware handshake (START->1)...");
   gpio.setStart(true);
 
   auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(timeoutMs);
@@ -194,11 +195,20 @@ void Autopilot::onTelemetry(const dlink::Telemetry& tel)
     float bombToTarget = bombLanding.distanceTo(futureTarget);
     float hitDist = dronePos.distanceTo(m_dropPoint);
 
-    bool goodHit = bombToTarget <= m_ammo.hitRadius;
-    bool passedApex = hitDist > m_prevHitDist && m_prevHitDist < m_ammo.hitRadius * 3.0f;
+    // Calculate current heading deviation to the target intercept trajectory
+    float currentDirToLead = std::atan2(lead.y - dronePos.y, lead.x - dronePos.x);
+    float currentHeadErr = std::fabs(Math::normalizeAngle(currentDirToLead - tel.dir));
+
+    // Strict alignment window: only allow drops if the drone is facing the target (max ~6 degrees error)
+    constexpr float kMaxHeadingErrorForDrop = 0.1f;
+    bool isAligned = currentHeadErr <= kMaxHeadingErrorForDrop;
+
+    // Apply alignment gate to both drop criteria
+    bool goodHit = (bombToTarget <= m_ammo.hitRadius) && isAligned;
+    bool passedApex = (hitDist > m_prevHitDist) && (m_prevHitDist < m_ammo.hitRadius * 3.0f) && isAligned;
 
     if (goodHit || passedApex) {
-      std::cerr << "[autopilot] DROP: target=" << m_currentTarget << " miss~" << bombToTarget << "m\n";
+      APP_LOG_MOD("Main", "autopilot: payload released (target={}, predicted miss={:.3f}m)", m_currentTarget, bombToTarget);
       m_gpio.pulseDrop(kDropPulseDurationMs);
       m_dropped = true;
     }

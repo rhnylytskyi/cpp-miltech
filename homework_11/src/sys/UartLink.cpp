@@ -1,6 +1,5 @@
 #include "BallisticApp/sys/UartLink.h"
-#include <cstring>
-#include <iostream>
+#include <cstring>\
 
 namespace BallisticApp::sys {
 

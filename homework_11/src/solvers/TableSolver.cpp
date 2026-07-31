@@ -65,7 +65,7 @@ bool TableSolver::BallisticTable::load(const std::filesystem::path& path)
     }
   }
 
-  APP_LOG_MOD("Ballistics", "{:.<15} [{}x{}x{}x{}x{}] ({} pts)", "GRID_SIZE", nZ, nV, nM, nD, nL, total);
+  // APP_LOG_MOD("Ballistics", "{:.<15} [{}x{}x{}x{}x{}] ({} pts)", "GRID_SIZE", nZ, nV, nM, nD, nL, total);
   return f.good() || f.eof();
 }
 
