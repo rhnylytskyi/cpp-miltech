@@ -1,4 +1,4 @@
-#include "BallisticApp/states/Moving.h"
+#include "BallisticApp/states/StateMoving.h"
 #include "BallisticApp/interfaces/IDroneState.h"
 #include "BallisticApp/utils/MathUtils.h"
 #include <cmath>
@@ -11,17 +11,17 @@ DroneStateType StateMoving::execute(float& speed, float& direction, float desire
   const float dt = cfg.timeStep;
   const float deltaAngle = Math::normalizeAngle(desiredDir - direction);
 
-  // Якщо відхилення занадто велике — негайно переходимо до гальмування для маневру
+  // If alignment deviation exceeds acceptable threshold, drop speed to prioritize vector authority
   if (std::fabs(deltaAngle) > cfg.turnThreshold) {
     return DroneStateType::DECELERATING;
   }
 
-  // Плавне підвертання на курс під час маршу
+  // Execute subtle continuous flight path adjustments during high-speed cruise
   const float maxTurnThisStep = cfg.angularSpeed * dt;
   const float actualTurn = std::clamp(deltaAngle, -maxTurnThisStep, maxTurnThisStep);
   direction = Math::normalizeAngle(direction + actualTurn);
 
-  // Підтримуємо максимальну швидкість атаки
+  // Maintain optimized target profile speed
   speed = cfg.attackSpeed;
 
   return DroneStateType::MOVING;

@@ -1,9 +1,9 @@
 #include "BallisticApp/states/DroneStateRegistry.h"
-#include "BallisticApp/states/Stopped.h"
-#include "BallisticApp/states/Turning.h"
-#include "BallisticApp/states/Accelerating.h"
-#include "BallisticApp/states/Moving.h"
-#include "BallisticApp/states/Decelerating.h"
+#include "BallisticApp/states/StateStopped.h"
+#include "BallisticApp/states/StateTurning.h"
+#include "BallisticApp/states/StateAccelerating.h"
+#include "BallisticApp/states/StateMoving.h"
+#include "BallisticApp/states/StateDecelerating.h"
 #include "BallisticApp/DroneStateType.h"
 #include <iostream>
 

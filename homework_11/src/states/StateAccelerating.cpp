@@ -1,4 +1,4 @@
-#include "BallisticApp/states/Accelerating.h"
+#include "BallisticApp/states/StateAccelerating.h"
 #include "BallisticApp/interfaces/IDroneState.h"
 #include "BallisticApp/utils/MathUtils.h"
 #include <cmath>
@@ -11,26 +11,27 @@ DroneStateType StateAccelerating::execute(float& speed, float& direction, float 
   const float dt = cfg.timeStep;
   const float deltaAngle = Math::normalizeAngle(desiredDir - direction);
 
-  // Якщо ціль під час розгону різко змістилася — ініціюємо гальмування для безпечного маневру
+  // If target shifts drastically during acceleration, trigger deceleration for safe maneuvering
   if (std::fabs(deltaAngle) > cfg.turnThreshold && speed > 0.01f) {
     return DroneStateType::DECELERATING;
   }
 
-  // Розрахунок прискорення на основі вашого детермінованого коефіцієнта 3.0f
+  // Calculate forward acceleration using the ballistic trajectory coefficient
   float acceleration = 0.0f;
-  if (cfg.accelerationPath > 1e-5f) {  // замість accelPath
-    acceleration = (cfg.attackSpeed * cfg.attackSpeed) / (3.0f * cfg.accelerationPath);
+  constexpr float kAccelerationWeightFactor = 3.0f;
+  if (cfg.accelerationPath > 1e-5f) {
+    acceleration = (cfg.attackSpeed * cfg.attackSpeed) / (kAccelerationWeightFactor * cfg.accelerationPath);
   }
 
-  // Нарощуємо швидкість через посилання
+  // Smoothly increment drone speed
   speed = std::clamp(speed + acceleration * dt, 0.0f, cfg.attackSpeed);
 
-  // Плавне підвертання на ціль під час розгону
+  // Apply course corrections while accelerating
   const float maxTurnThisStep = cfg.angularSpeed * dt;
   const float actualTurn = std::clamp(deltaAngle, -maxTurnThisStep, maxTurnThisStep);
   direction = Math::normalizeAngle(direction + actualTurn);
 
-  // При досягненні максимальної швидкості переходимо в режим маршу
+  // Transition to cruise profile once target speed is achieved
   if (speed >= cfg.attackSpeed) {
     return DroneStateType::MOVING;
   }

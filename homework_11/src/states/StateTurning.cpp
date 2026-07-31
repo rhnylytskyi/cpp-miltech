@@ -1,4 +1,4 @@
-#include "BallisticApp/states/Turning.h"
+#include "BallisticApp/states/StateTurning.h"
 #include "BallisticApp/interfaces/IDroneState.h"
 #include "BallisticApp/utils/MathUtils.h"
 #include <cmath>
@@ -9,21 +9,20 @@ namespace BallisticApp::states {
 DroneStateType StateTurning::execute(float& speed, float& direction, float desiredDir, const DroneConfig& cfg)
 {
   const float dt = cfg.timeStep;
-  speed = 0.0f;  // При розвороті на місці лінійна швидкість відсутня
+  speed = 0.0f;  // Linear translation is disabled during static axis re-alignment
 
-  // Обчислення похибки курсу
   const float deltaAngle = Math::normalizeAngle(desiredDir - direction);
 
-  // Максимальний кут повороту за поточний крок часу телеметрії
+  // Restrict tracking response step bounds using telemetry clock synchronization
   const float maxTurnThisStep = cfg.angularSpeed * dt;
   const float actualTurn = std::clamp(deltaAngle, -maxTurnThisStep, maxTurnThisStep);
 
-  // Змінюємо напрямок дрона напряму через посилання
   direction = Math::normalizeAngle(direction + actualTurn);
 
-  // Ваша фірмова підвищена точність (половина порогу) для стабілізації курсу
+  // Enforce a strict hysteresis margin to eliminate target alignment oscillation
   const float deviation = std::fabs(Math::normalizeAngle(desiredDir - direction));
-  if (deviation <= (cfg.turnThreshold * 0.5f)) {
+  constexpr float kHysteresisFactor = 0.5f;
+  if (deviation <= (cfg.turnThreshold * kHysteresisFactor)) {
     return DroneStateType::ACCELERATING;
   }
 

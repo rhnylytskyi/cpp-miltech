@@ -1,4 +1,4 @@
-#include "BallisticApp/states/Decelerating.h"
+#include "BallisticApp/states/StateDecelerating.h"
 #include "BallisticApp/interfaces/IDroneState.h"
 #include "BallisticApp/utils/MathUtils.h"
 #include <cmath>
@@ -10,29 +10,29 @@ DroneStateType StateDecelerating::execute(float& speed, float& direction, float 
 {
   const float dt = cfg.timeStep;
 
-  // Розрахунок уповільнення на основі вашої формули з детермінованим коефіцієнтом 3.0f
+  // Calculate deceleration rate based on active aerodynamic configuration
   float acceleration = 0.0f;
-  if (cfg.accelerationPath > 1e-5f) {  // замість accelPath
-    acceleration = (cfg.attackSpeed * cfg.attackSpeed) / (3.0f * cfg.accelerationPath);
+  constexpr float kDecelerationWeightFactor = 3.0f;
+  if (cfg.accelerationPath > 1e-5f) {
+    acceleration = (cfg.attackSpeed * cfg.attackSpeed) / (kDecelerationWeightFactor * cfg.accelerationPath);
   }
 
   const float prevSpeed = speed;
-  // Керуємо поточною швидкістю через посилання
+  // Reduce speed through reference modifier
   speed = std::clamp(speed - acceleration * dt, 0.0f, prevSpeed);
 
-  // Ваша фірмова зворотна залежність маневреності від швидкості
+  // Dynamic maneuverability scaling: angular rate increases as forward speed drops
   float frac = 1.0f - (speed / cfg.attackSpeed);
   float effectiveAngularSpeed = cfg.angularSpeed * frac;
 
-  // Поворот з урахуванням адаптивної кутової швидкості
+  // Apply tracking adjustments with adaptive angular speed limits
   const float deltaAngle = Math::normalizeAngle(desiredDir - direction);
   const float maxTurnThisStep = effectiveAngularSpeed * dt;
   const float actualTurn = std::clamp(deltaAngle, -maxTurnThisStep, maxTurnThisStep);
 
-  // Керуємо напрямком через посилання
   direction = Math::normalizeAngle(direction + actualTurn);
 
-  // Логіка повної зупинки
+  // Evaluate final braking state thresholds
   if (speed <= 0.0f) {
     speed = 0.0f;
 

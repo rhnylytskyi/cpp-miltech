@@ -4,7 +4,7 @@
 
 namespace BallisticApp {
 
-enum class DroneStateType;
+enum class DroneStateType : uint8_t;
 
 class IDroneState {
 public:

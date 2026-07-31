@@ -3,6 +3,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <string_view>
+#include <charconv>
 
 namespace BallisticApp {
 
@@ -13,22 +14,13 @@ AppArguments::AppArguments(std::span<const char* const> args)
 
 void AppArguments::printHelp() const
 {
-  std::cout << "===================================================================\n"
-            << "  BallisticApp Drone Autopilot Board CLI (HW-in-the-Loop Mode)\n"
-            << "===================================================================\n"
-            << "Usage:\n"
-            << "  ./student [options]\n\n"
+  std::cout << "Usage: ./student [options]\n\n"
             << "Options:\n"
-            << "  --uart <device>         Specify path to the UART device serial port\n"
-            << "                          (Default: /tmp/ttyA)\n"
-            << "  --gpiochip <name>       Specify GPIO chip control name\n"
-            << "                          (Default: gpiochip0)\n"
-            << "  --start-line <n>        Specify hardware line index for START handshake signal\n"
-            << "                          (Default: 24)\n"
-            << "  --drop-line <n>         Specify hardware line index for DROP pyrotechnic/weapon release\n"
-            << "                          (Default: 23)\n"
-            << "  -h, --help              Display this autopilot configuration help menu and exit\n"
-            << "===================================================================\n";
+            << "  --uart <device>         UART device serial port (Default: /tmp/ttyA)\n"
+            << "  --gpiochip <name>       GPIO chip control name (Default: gpiochip0)\n"
+            << "  --start-line <n>        START handshake signal line (Default: 24)\n"
+            << "  --drop-line <n>         DROP weapon release line (Default: 23)\n"
+            << "  -h, --help              Display help menu and exit\n";
 }
 
 void AppArguments::parse(std::span<const char* const> args)
@@ -42,7 +34,7 @@ void AppArguments::parse(std::span<const char* const> args)
 
   auto getAssociatedValue = [&](auto it, std::string_view flagName) -> std::string_view {
     if (std::next(it) == args.end()) {
-      throw std::runtime_error("Error: Missing associated parameter value for flag: " + std::string(flagName));
+      throw std::runtime_error("Error: Missing value for flag: " + std::string(flagName));
     }
     return *std::next(it);
   };
@@ -60,16 +52,16 @@ void AppArguments::parse(std::span<const char* const> args)
     }
     else if (arg == "--start-line") {
       std::string_view val = getAssociatedValue(it, "--start-line");
-      m_startLine = static_cast<unsigned int>(std::stoul(std::string(val)));
+      std::from_chars(val.data(), val.data() + val.size(), m_startLine);
       ++it;
     }
     else if (arg == "--drop-line") {
       std::string_view val = getAssociatedValue(it, "--drop-line");
-      m_dropLine = static_cast<unsigned int>(std::stoul(std::string(val)));
+      std::from_chars(val.data(), val.data() + val.size(), m_dropLine);
       ++it;
     }
     else if (it != args.begin()) {
-      throw std::runtime_error("Error: Unknown command line argument detected: " + std::string(arg));
+      throw std::runtime_error("Error: Unknown argument: " + std::string(arg));
     }
   }
 
@@ -79,32 +71,29 @@ void AppArguments::parse(std::span<const char* const> args)
 void AppArguments::validate() const
 {
   if (m_uart.empty()) {
-    throw std::runtime_error("Error: UART device path environment configuration cannot be empty!");
+    throw std::runtime_error("Error: UART device path cannot be empty!");
   }
   if (m_gpiochip.empty()) {
-    throw std::runtime_error("Error: GPIO chip controller descriptor target name cannot be empty!");
+    throw std::runtime_error("Error: GPIO chip name cannot be empty!");
   }
   if (m_startLine == m_dropLine) {
-    throw std::runtime_error("Error: Critical IO overlap! START line index cannot match DROP line index.");
+    throw std::runtime_error("Error: START line index cannot match DROP line index.");
   }
 }
 
-const std::string& AppArguments::getUart() const
+const std::string& AppArguments::getUart() const noexcept
 {
   return m_uart;
 }
-
-const std::string& AppArguments::getGpioChip() const
+const std::string& AppArguments::getGpioChip() const noexcept
 {
   return m_gpiochip;
 }
-
-unsigned int AppArguments::getStartLine() const
+unsigned int AppArguments::getStartLine() const noexcept
 {
   return m_startLine;
 }
-
-unsigned int AppArguments::getDropLine() const
+unsigned int AppArguments::getDropLine() const noexcept
 {
   return m_dropLine;
 }

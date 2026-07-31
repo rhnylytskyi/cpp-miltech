@@ -1,4 +1,5 @@
 #pragma once
+
 #include <span>
 #include <string>
 
@@ -17,11 +18,16 @@ private:
 
 public:
   explicit AppArguments(std::span<const char* const> args);
+  ~AppArguments() noexcept = default;
 
-  const std::string& getUart() const;
-  const std::string& getGpioChip() const;
-  unsigned int getStartLine() const;
-  unsigned int getDropLine() const;
+  /* Arguments parser configuration is immutable after initialization */
+  AppArguments(const AppArguments&) = default;
+  AppArguments& operator=(const AppArguments&) = default;
+
+  [[nodiscard]] const std::string& getUart() const noexcept;
+  [[nodiscard]] const std::string& getGpioChip() const noexcept;
+  [[nodiscard]] unsigned int getStartLine() const noexcept;
+  [[nodiscard]] unsigned int getDropLine() const noexcept;
 };
 
 }  // namespace BallisticApp

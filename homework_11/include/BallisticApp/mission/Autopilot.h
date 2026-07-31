@@ -1,19 +1,24 @@
 #ifndef BALLISTICAPP_MISSION_AUTOPILOT_H
 #define BALLISTICAPP_MISSION_AUTOPILOT_H
 
-#include "BallisticApp/drivers/UartLink.h"
-#include "BallisticApp/drivers/GpioPins.h"
-#include "BallisticApp/drivers/UartTargetProvider.h"
+#include "BallisticApp/DroneStateType.h"
+#include "BallisticApp/sys/UartLink.h"
+#include "BallisticApp/sys/GpioPins.h"
+#include "BallisticApp/sys/UartTargetProvider.h"
 #include "BallisticApp/mission/FlightController.h"
-#include "BallisticApp/interfaces/IBallisticSolver.h"
-#include "BallisticApp/types/Coord.h"
+#include "drone_link.h"
 #include <memory>
+
+namespace BallisticApp {
+class IBallisticSolver;
+struct Coord;
+}
 
 namespace BallisticApp::mission {
 
 class Autopilot {
 public:
-  static bool handshake(sys::UartLink& link, sys::GpioPins& gpio, dlink::AmmoCfg& outAmmo, dlink::DroneCfg& outCfg, int timeoutMs = 2000);
+  static bool handshake(sys::UartLink& link, sys::GpioPins& gpio, dlink::AmmoCfg& outAmmo, dlink::DroneCfg& outCfg, int timeoutMs = 5000);
 
   Autopilot(sys::UartLink& link,
             sys::GpioPins& gpio,
@@ -21,11 +26,18 @@ public:
             const dlink::AmmoCfg& ammo,
             const dlink::DroneCfg& cfg);
 
-  bool step();
-  bool dropped() const { return m_dropped; }
+  ~Autopilot() noexcept = default;
+
+  Autopilot(const Autopilot&) = delete;
+  Autopilot& operator=(const Autopilot&) = delete;
+
+  [[nodiscard]] bool step();
+  [[nodiscard]] bool dropped() const noexcept { return m_dropped; }
 
 private:
   void onTelemetry(const dlink::Telemetry& tel);
+
+  [[nodiscard]] Coord predictTargetIntercept(int targetIdx, const Coord& dronePos, float ballisticTime, float ballisticDist) const noexcept;
 
   sys::UartLink& m_link;
   sys::GpioPins& m_gpio;
@@ -46,7 +58,12 @@ private:
   float m_prevHitDist{1e9f};
   Coord m_dropPoint{0.0f, 0.0f};
 
-  static constexpr float kMaxMissionTimeSec = 22.0f;
+  // Instanced state instead of the static local variable anti-pattern
+  DroneStateType m_currentFsmState{DroneStateType::STOPPED};
+
+  static constexpr float kMaxMissionTimeSec = 180.0f;
+  static constexpr int kPredictionIterations = 8;
+  static constexpr int kDropPulseDurationMs = 80;
 };
 
 }  // namespace BallisticApp::mission

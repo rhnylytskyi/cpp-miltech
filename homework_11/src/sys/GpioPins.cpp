@@ -1,10 +1,15 @@
-#include "BallisticApp/drivers/GpioPins.h"
-#include <chrono>
+#include "BallisticApp/sys/GpioPins.h"
 #include <gpiod.h>
+#include <chrono>
 #include <stdexcept>
 #include <thread>
 
 namespace BallisticApp::sys {
+
+GpioPins::~GpioPins() noexcept
+{
+  close();
+}
 
 void GpioPins::open(const std::string &chipName, unsigned int startLine, unsigned int dropLine)
 {
@@ -32,7 +37,7 @@ void GpioPins::open(const std::string &chipName, unsigned int startLine, unsigne
   }
 }
 
-void GpioPins::close()
+void GpioPins::close() noexcept
 {
   if (m_startLine) {
     gpiod_line_release(m_startLine);
@@ -48,11 +53,6 @@ void GpioPins::close()
     gpiod_chip_close(m_chip);
     m_chip = nullptr;
   }
-}
-
-GpioPins::~GpioPins()
-{
-  close();
 }
 
 void GpioPins::setStart(bool value)

@@ -1,75 +1,52 @@
 #include "BallisticApp/mission/FlightController.h"
+#include "BallisticApp/utils/MathUtils.h"
+#include "BallisticApp/DroneStateType.h"
 #include <cmath>
 #include <algorithm>
-#include <numbers>
 
 namespace BallisticApp {
 
-float FlightController::clamp1(float v) const
-{
-  return std::max(-1.0f, std::min(1.0f, v));
-}
-
 dlink::Control FlightController::compute(
-  const dlink::Telemetry& tel, float desiredDir, DroneStateType stateType, float turnThreshold, float attackSpeed) const
+  const dlink::Telemetry& tel, float desiredDir, DroneStateType stateType, float turnThreshold, float attackSpeed) const noexcept
 {
-  float headingErr = desiredDir - tel.dir;
+  // Enforce unified high-performance std::fmod-based angle normalization
+  float headingErr = Math::normalizeAngle(desiredDir - tel.dir);
+  float turnRate = std::clamp(headingErr / m_turnSaturationRad, -1.0f, 1.0f);
 
-  // Використовуємо точні константи C++20 замість магічних чисел
-  constexpr float kPi = std::numbers::pi_v<float>;
-  constexpr float kTwoPi = 2.0f * kPi;
-
-  while (headingErr > kPi)
-    headingErr -= kTwoPi;
-  while (headingErr < -kPi)
-    headingErr += kTwoPi;
-
-  // Пропорційне керування з насиченням
-  float turnRate = clamp1(headingErr / m_turnSaturationRad);
-
-  // 2. РОЗРАХУНОК ПРИСКОРЕННЯ (accel)
-  float targetSpeed = tel.speed;  // fallback
+  float targetSpeed = tel.speed;  // Default fallback profile
 
   if (stateType == DroneStateType::MOVING || stateType == DroneStateType::ACCELERATING) {
-    // Курс рівний — прагнемо до максимальної швидкості атаки, переданої з конфігу чекера
     float speedFrac = 1.0f;
     float absErr = std::fabs(headingErr);
 
-    // Якщо кутова помилка велика, плавно знижуємо цільову швидкість для кращого маневру
+    // Smoothly scale down target cruise velocity during aggressive maneuvers
     if (absErr > turnThreshold) {
       float span = std::max(1e-3f, m_sharpTurnRad - turnThreshold);
-      float t = clamp1((absErr - turnThreshold) / span);
-      t = std::max(0.0f, t);
+      float t = std::clamp((absErr - turnThreshold) / span, 0.0f, 1.0f);
       speedFrac = 1.0f - t * (1.0f - m_minSpeedFrac);
     }
 
-    // ТЕПЕР ТУТ ПРАВИЛЬНА МАТЕМАТИКА: розганяємось до attackSpeed, зважаючи на кут!
     targetSpeed = attackSpeed * speedFrac;
   }
-  else if (stateType == DroneStateType::DECELERATING) {
-    // Смикаємо гальма до нуля
-    targetSpeed = 0.0f;
-  }
-  else {
-    // TURNING або STOPPED — стоїмо на місці
+  else if (stateType == DroneStateType::DECELERATING || stateType == DroneStateType::STOPPED) {
     targetSpeed = 0.0f;
   }
 
-  // Обчислюємо похибку швидкості
   float speedErr = targetSpeed - tel.speed;
 
-  // Якщо ми розганяємось, а швидкість замала — даємо повний вперед
+  // Under active acceleration with large velocity error, request full forward throttle
   if ((stateType == DroneStateType::ACCELERATING || stateType == DroneStateType::MOVING) && speedErr > 0.05f) {
     return dlink::Control{1.0f, turnRate};
   }
-  // Якщо гальмуємо — повний назад
+
+  // Under braking state profiles, request absolute full reverse acceleration
   if (stateType == DroneStateType::DECELERATING) {
     return dlink::Control{-1.0f, turnRate};
   }
 
-  // Пропорційне утримання швидкості у зоні m_accelBand
+  // Linear proportional velocity maintenance window logic
   float band = std::max(0.1f, tel.speed * m_accelBand);
-  float accel = clamp1(speedErr / band);
+  float accel = std::clamp(speedErr / band, -1.0f, 1.0f);
 
   return dlink::Control{accel, turnRate};
 }

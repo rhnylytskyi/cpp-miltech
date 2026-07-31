@@ -10,8 +10,6 @@ namespace BallisticApp::solvers {
 
 bool TableSolver::BallisticTable::load(const std::filesystem::path& path)
 {
-  APP_LOG_MOD("Ballistics", "{:.<15} {}", "FILE_PATH", path.string());
-
   std::ifstream f(path);
   if (!f.is_open()) {
     APP_LOG_MOD("Ballistics", "{:.<15} {}", "FILE_ERROR", "Failed to open ballistic table file!");

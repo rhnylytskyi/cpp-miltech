@@ -1,14 +1,16 @@
-#include "BallisticApp/drivers/UartPort.h"
+#include "BallisticApp/sys/UartPort.h"
 #include <cerrno>
 #include <cstring>
 #include <fcntl.h>
 #include <stdexcept>
 #include <termios.h>
 #include <unistd.h>
+#include <thread>
+#include <chrono>
 
 namespace BallisticApp::sys {
 
-UartPort::~UartPort()
+UartPort::~UartPort() noexcept
 {
   close();
 }
@@ -17,7 +19,7 @@ void UartPort::open(const std::string &device)
 {
   close();
 
-  // O_NONBLOCK: наступні read() повертають -1/EAGAIN замість блокування
+  // O_NONBLOCK: subsequent read() calls will return -1/EAGAIN instead of blocking
   m_fd = ::open(device.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK);
 
   if (m_fd < 0) {
@@ -30,7 +32,7 @@ void UartPort::open(const std::string &device)
     throw std::runtime_error("UartPort: tcgetattr failed: " + std::string(std::strerror(errno)));
   }
 
-  cfmakeraw(&tio);  // 8N1, без обробки символів (raw mode)
+  cfmakeraw(&tio);  // 8N1, raw mode without character processing
   cfsetispeed(&tio, B115200);
   cfsetospeed(&tio, B115200);
   tio.c_cflag |= (CLOCAL | CREAD);
@@ -40,7 +42,7 @@ void UartPort::open(const std::string &device)
   }
 }
 
-void UartPort::close()
+void UartPort::close() noexcept
 {
   if (m_fd >= 0) {
     ::close(m_fd);
@@ -58,13 +60,13 @@ int UartPort::read(uint8_t *buf, size_t maxLen)
 
   if (n < 0) {
     if (errno == EAGAIN || errno == EWOULDBLOCK) {
-      return 0;  // даних поки нема
+      return 0;  // No data available right now
     }
 
     throw std::runtime_error("UartPort::read failed: " + std::string(std::strerror(errno)));
   }
 
-  return (int)n;
+  return static_cast<int>(n);
 }
 
 void UartPort::write(const uint8_t *buf, size_t len)
@@ -80,13 +82,15 @@ void UartPort::write(const uint8_t *buf, size_t len)
 
     if (n < 0) {
       if (errno == EAGAIN || errno == EWOULDBLOCK) {
+        // Prevent 100% CPU busy loop spikes during temporary TX buffer saturation
+        std::this_thread::sleep_for(std::chrono::microseconds(100));
         continue;
       }
 
       throw std::runtime_error("UartPort::write failed: " + std::string(std::strerror(errno)));
     }
 
-    off += (size_t)n;
+    off += static_cast<size_t>(n);
   }
 }
 
