@@ -69,12 +69,12 @@ int main(int argc, char* argv[])
     if (appArgs.shouldPublish()) {
       APP_LOG_MOD("Network", "Initiating telemetry package transmission to the evaluation server...");
 
-      BallisticApp::HttpConfig config;
-      BallisticApp::HttpResultPublisher publisher(config);
+      HttpConfig config;
+      HttpResultPublisher publisher(config);
 
       auto report = publisher.publish({appArgs.getTestId()});
 
-      BallisticApp::printSummaryReport(report);
+      printSummaryReport(report);
     }
   }
   catch (const std::exception& e) {

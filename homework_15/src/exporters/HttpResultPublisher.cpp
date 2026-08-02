@@ -1,4 +1,5 @@
 #include "BallisticApp/exporters/HttpResultPublisher.h"
+#include "BallisticApp/utils/Logger.h"
 #include <httplib.h>
 #include <fstream>
 #include <sstream>
@@ -125,7 +126,7 @@ std::vector<PublishResult> HttpResultPublisher::publish(const std::vector<std::s
   reports.reserve(testIds.size());
 
   for (const auto& testId : testIds) {
-    std::cout << "[Network] Submitting telemetry package for target: " << testId << "...\n";
+    APP_LOG_MOD("Network", "Submitting telemetry package for target: {}", testId);
     auto res = publishSingleTest(testId);
 
     std::string statusLabel = "UNKNOWN";
@@ -140,7 +141,7 @@ std::vector<PublishResult> HttpResultPublisher::publish(const std::vector<std::s
     if (res.status == PublishStatus::FileNotFound)
       statusLabel = "FILE NOT FOUND";
 
-    std::cout << "          Execution status: " << statusLabel << " (Attempts: " << res.attempts << ")\n";
+    APP_LOG_MOD("Network", "Transaction status for {}: {} (Attempts: {})", testId, statusLabel, res.attempts);
     reports.push_back(res);
   }
 
