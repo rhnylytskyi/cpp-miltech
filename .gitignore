@@ -33,3 +33,4 @@ core.*
 Thumbs.db
 
 homework_*/**/simulation.json
+!homework_15/**/simulation.json
