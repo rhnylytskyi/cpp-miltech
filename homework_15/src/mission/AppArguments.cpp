@@ -25,13 +25,14 @@ void AppArguments::printHelp() const
             << "                          (Default: disabled, using dynamic multi-target scan)\n"
             << "  --solver <type>         Select solver engine: 'analytical' or 'table'\n"
             << "                          (Default: analytical)\n"
+            << "  --publish               Publish simulation results to the remote evaluation server\n"
             << "  -h, --help              Display this help menu documentation and exit\n"
             << "===================================================================\n";
 }
 
 void AppArguments::parse(std::span<const char* const> args)
 {
-  // 1. Intercept help command arguments instantly using standard search predicates
+  // Intercept help command arguments instantly using standard search predicates
   auto helpIt = std::find_if(args.begin(), args.end(), [](std::string_view arg) { return arg == "--help" || arg == "-h"; });
 
   if (helpIt != args.end()) {
@@ -39,12 +40,12 @@ void AppArguments::parse(std::span<const char* const> args)
     std::exit(0);  // Graceful termination upon manual documentation request
   }
 
-  // 2. Parse binary weapon target tracker lock persistence override flag
+  // Parse binary weapon target tracker lock persistence override flag
   auto lockIt = std::find_if(args.begin(), args.end(), [](std::string_view arg) { return arg == "--enable-lock"; });
 
   m_enableTargetLock = (lockIt != args.end());
 
-  // 2b. Parse selected ballistic solver type (--solver table / analytical)
+  // Parse selected ballistic solver type (--solver table / analytical)
   auto solverIt = std::find_if(args.begin(), args.end(), [](std::string_view arg) { return arg == "--solver"; });
   if (solverIt != args.end()) {
     if (std::next(solverIt) == args.end()) {
@@ -59,7 +60,11 @@ void AppArguments::parse(std::span<const char* const> args)
     }
   }
 
-  // 3. Extract the requested target scenario folder input path context
+  // Parse network result publication flag
+  auto publishIt = std::find_if(args.begin(), args.end(), [](std::string_view arg) { return arg == "--publish" || arg == "publish"; });
+  m_shouldPublish = (publishIt != args.end());
+
+  // Extract the requested target scenario folder input path context
   std::string_view scenarioArg = "";
   auto scenarioIt = std::find_if(args.begin(), args.end(), [](std::string_view arg) { return arg == "--scenario" || arg == "-s"; });
 
@@ -71,7 +76,7 @@ void AppArguments::parse(std::span<const char* const> args)
     scenarioArg = *std::next(scenarioIt);
   }
 
-  // 4. Resolve global input/output data package file environments
+  // Resolve global input/output data package file environments
   if (!scenarioArg.empty()) {
     std::filesystem::path inputPath(scenarioArg);
 
@@ -92,7 +97,7 @@ void AppArguments::parse(std::span<const char* const> args)
 
   m_configPath = m_configDir / "config.json";
   m_targetsPath = m_configDir / "targets.json";
-  m_simulationPath = m_dataDir / "simulation.json";
+  m_simulationPath = m_configDir / "simulation.json";
   m_tablePath = m_dataDir / "ballistic_table.txt";
 
   if (m_solverType == SolverType::TABLE) {

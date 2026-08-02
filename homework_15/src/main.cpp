@@ -1,3 +1,4 @@
+#include "BallisticApp/exporters/HttpResultPublisher.h"
 #include "BallisticApp/mission/MissionProcessor.h"
 #include "BallisticApp/mission/AppArguments.h"
 #include "BallisticApp/navigation/DronePhysics.h"
@@ -63,6 +64,17 @@ int main(int argc, char* argv[])
     }
     else {
       APP_LOG_MOD("Main", "WARNING | Simulation completed with empty history.");
+    }
+
+    if (appArgs.shouldPublish()) {
+      APP_LOG_MOD("Network", "Initiating telemetry package transmission to the evaluation server...");
+
+      BallisticApp::HttpConfig config;
+      BallisticApp::HttpResultPublisher publisher(config);
+
+      auto report = publisher.publish({appArgs.getTestId()});
+
+      BallisticApp::printSummaryReport(report);
     }
   }
   catch (const std::exception& e) {

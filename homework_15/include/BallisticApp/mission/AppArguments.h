@@ -3,6 +3,7 @@
 #include "BallisticApp/solvers/SolverType.h"
 #include <filesystem>
 #include <span>
+#include <string>
 
 namespace BallisticApp {
 
@@ -40,6 +41,18 @@ public:
    */
   SolverType getSolverType() const noexcept { return m_solverType; }
 
+  /**
+   * @brief Checks if the result publication to the remote server is requested.
+   * @return True if publication flag is present, false otherwise.
+   */
+  bool shouldPublish() const noexcept { return m_shouldPublish; }
+
+  /**
+   * @brief Extracts the test scenario case identifier from the configuration directory.
+   * @return The pure string folder name (e.g., "T01", "T02").
+   */
+  std::string getTestId() const { return m_configDir.filename().string(); }
+
 private:
   std::filesystem::path m_dataDir;
   std::filesystem::path m_configDir;
@@ -52,6 +65,8 @@ private:
 
   bool m_enableTargetLock{false};
   SolverType m_solverType{SolverType::ANALYTICAL};
+
+  bool m_shouldPublish{false};
 
   void parse(std::span<const char* const> args);
   void validate() const;
