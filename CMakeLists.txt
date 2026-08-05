@@ -14,8 +14,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # paths, defines і flags, що й реальна CMake-збірка.
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Вмикаємо підтримку CTest для автоматичного запуску тестів.
-enable_testing()
+# Demo-код для заняття 2.4: локальне і віддалене відлагодження через GDB.
+add_subdirectory(demos/lesson_2_4/debug_probe)
 
 # Домашні роботи. По мірі появи додаємо кожну окремим add_subdirectory.
 add_subdirectory(homework_04)
@@ -24,11 +24,18 @@ add_subdirectory(homework_06)
 add_subdirectory(homework_07)
 add_subdirectory(homework_08)
 add_subdirectory(homework_09)
-# add_subdirectory(homework_10)
+add_subdirectory(homework_10)
 add_subdirectory(homework_12)
 
-# Demo-код для заняття 2.4: локальне і віддалене відлагодження через GDB.
-add_subdirectory(demos/lesson_2_4/debug_probe)
+# Demo-код для заняття 5.1: Docker runtime для C++ сервісів.
+add_subdirectory(demos/lesson_5_1/01_multi_stage)
+add_subdirectory(demos/lesson_5_1/02_docker_build)
+add_subdirectory(demos/lesson_5_1/03_docker_run)
+add_subdirectory(demos/lesson_5_1/04_volume_layout)
+add_subdirectory(demos/lesson_5_1/05_healthcheck)
+
+# Вмикаємо підтримку CTest для автоматичного запуску тестів.
+enable_testing()
 
 include(FetchContent)
 
