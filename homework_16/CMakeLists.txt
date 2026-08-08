@@ -19,6 +19,10 @@ else()
     target_compile_options(homework_16 PRIVATE -Wall -Wextra -pedantic)
 endif()
 
-# Automatically copy the simulator library to the build directory for convenience
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libi2csim.so ${CMAKE_CURRENT_BINARY_DIR}/libi2csim.so
-               COPYONLY)
+# Automatically copy the simulator library ONLY if it exists locally
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/libi2csim.so")
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libi2csim.so
+                   ${CMAKE_CURRENT_BINARY_DIR}/libi2csim.so COPYONLY)
+else()
+    message(STATUS "libi2csim.so not found in source directory, skipping automatic copy")
+endif()
