@@ -1,14 +1,12 @@
 #include "BallisticApp/hardware/I2cDevice.h"
 #include "BallisticApp/hardware/Mpu6050.h"
 #include "BallisticApp/utils/Logger.h"
-
 #include <chrono>
 #include <iostream>
 #include <string>
 #include <thread>
 #include <span>
 #include <algorithm>
-#include <stdexcept>
 
 using namespace BallisticApp;
 
