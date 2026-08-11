@@ -1,13 +1,12 @@
 {
   // VS Code tasks виконуються з кореня workspace у devcontainer terminal.
-  // Тут лишаються тільки базові команди: configure/build і clean.
   "version": "2.0.0",
   "tasks": [
     {
-      // Default build task: Ctrl+Shift+B запускає debug preset, потім build.
-      "label": "CMake: configure and build",
+      // Задача за замовчуванням (Ctrl+Shift+B): тепер вона пропонує вибір між Debug та Release
+      "label": "CMake: configure and build (Select Variant)",
       "type": "shell",
-      "command": "cmake --preset debug && cmake --build --preset debug",
+      "command": "cmake --preset ${input:buildVariant} && cmake --build --preset ${input:buildVariant}",
       "group": {
         "kind": "build",
         "isDefault": true
@@ -22,7 +21,36 @@
       }
     },
     {
-      // Clean task навмисно простий: видаляється тільки локальна build директорія.
+      // Окрема швидка задача суто для Debug
+      "label": "CMake: build DEBUG",
+      "type": "shell",
+      "command": "cmake --preset debug && cmake --build --preset debug",
+      "group": "build",
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
+      // НОВА ЗАДАЧА: Суто для Release збірки
+      "label": "CMake: build RELEASE",
+      "type": "shell",
+      "command": "cmake --preset release && cmake --build --preset release",
+      "group": "build",
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
       "label": "CMake: clean build directory",
       "type": "shell",
       "command": "rm -rf build",
@@ -50,7 +78,7 @@
       "type": "shell",
       "command": "./.devcontainer/scripts/check-quality lint",
       "problemMatcher": [
-          "$gcc"
+        "$gcc"
       ]
     },
     {
@@ -58,6 +86,19 @@
       "type": "shell",
       "command": "./.devcontainer/scripts/check-quality test",
       "problemMatcher": []
-  }
+    }
+  ],
+  // Інтерактивне меню для вибору типу збірки при натисканні Ctrl+Shift+B
+  "inputs": [
+    {
+      "id": "buildVariant",
+      "type": "pickString",
+      "description": "Оберіть варіант збірки C++ програми:",
+      "default": "debug",
+      "options": [
+        "debug",
+        "release"
+      ]
+    }
   ]
 }
