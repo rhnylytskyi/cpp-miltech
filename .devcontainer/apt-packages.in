@@ -53,3 +53,4 @@ ros-jazzy-iceoryx-posh
 ros-jazzy-iceoryx-introspection
 
 python3-pip
+libgpiod-dev
