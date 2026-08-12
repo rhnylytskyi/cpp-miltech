@@ -47,12 +47,15 @@ Autopilot::Autopilot(sys::UartLink& link,
                      sys::GpioPins& gpio,
                      std::unique_ptr<IBallisticSolver> solver,
                      const dlink::AmmoCfg& ammo,
-                     const dlink::DroneCfg& cfg)
+                     const dlink::DroneCfg& cfg,
+                     const std::string& mavHost,
+                     uint16_t mavPort)
   : m_link(link)
   , m_gpio(gpio)
   , m_solver(std::move(solver))
   , m_ammo(ammo)
   , m_cfg(cfg)
+  , m_mavlink(mavHost, mavPort)
 {
   m_targets.setExpectedCount(m_ammo.nTargets);
 
@@ -89,6 +92,13 @@ Coord Autopilot::predictTargetIntercept(int targetIdx, const Coord& dronePos, fl
 bool Autopilot::step()
 {
   static_cast<void>(m_link.pump());
+
+  // Non-blocking single-loop cycle networking tasks
+  if (m_mavlink.isEnabled()) {
+    m_mavlink.processIncoming();
+    m_mavlink.processDropFsm(m_cfg.timeScale);
+  }
+
   std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
   if (m_missionStartSec >= 0.0f && (m_lastTSec - m_missionStartSec) > kMaxMissionTimeSec) {
@@ -96,13 +106,26 @@ bool Autopilot::step()
     return false;
   }
 
-  return !m_dropped;
+  // Await the MAVLink drop command acknowledgment before stopping execution
+  if (m_dropped) {
+    if (m_mavlink.isEnabled() && m_mavlink.isDropAckPending()) {
+      return true;
+    }
+    return false;
+  }
+
+  return true;
 }
 
 void Autopilot::onTelemetry(const dlink::Telemetry& tel)
 {
   if (m_missionStartSec < 0.0f) {
     m_missionStartSec = m_lastTSec;
+  }
+
+  // Safe data ingestion across independent network stack
+  if (m_mavlink.isEnabled()) {
+    m_mavlink.handleTelemetry(tel, m_cfg.timeScale);
   }
 
   if (m_dropped) {
@@ -211,6 +234,11 @@ void Autopilot::onTelemetry(const dlink::Telemetry& tel)
       APP_LOG_MOD("Main", "autopilot: payload released (target={}, predicted miss={:.3f}m)", m_currentTarget, bombToTarget);
       m_gpio.pulseDrop(kDropPulseDurationMs);
       m_dropped = true;
+
+      // Delegate drop management tasks entirely to decoupled FSM component
+      if (m_mavlink.isEnabled()) {
+        m_mavlink.triggerDrop(m_dropPoint.x, m_dropPoint.y, tel.z);
+      }
     }
     m_prevHitDist = hitDist;
   }

@@ -1,18 +1,19 @@
-#ifndef BALLISTICAPP_MISSION_AUTOPILOT_H
-#define BALLISTICAPP_MISSION_AUTOPILOT_H
+#pragma once
 
 #include "BallisticApp/DroneStateType.h"
 #include "BallisticApp/sys/UartLink.h"
 #include "BallisticApp/sys/GpioPins.h"
 #include "BallisticApp/sys/UartTargetProvider.h"
+#include "BallisticApp/sys/MavlinkManager.h"
 #include "BallisticApp/mission/FlightController.h"
 #include "drone_link.h"
 #include <memory>
+#include <string>
 
 namespace BallisticApp {
 class IBallisticSolver;
 struct Coord;
-}
+}  // namespace BallisticApp
 
 namespace BallisticApp::mission {
 
@@ -24,7 +25,9 @@ public:
             sys::GpioPins& gpio,
             std::unique_ptr<IBallisticSolver> solver,
             const dlink::AmmoCfg& ammo,
-            const dlink::DroneCfg& cfg);
+            const dlink::DroneCfg& cfg,
+            const std::string& mavHost = "127.0.0.1",
+            uint16_t mavPort = 14550);
 
   ~Autopilot() noexcept = default;
 
@@ -36,7 +39,6 @@ public:
 
 private:
   void onTelemetry(const dlink::Telemetry& tel);
-
   [[nodiscard]] Coord predictTargetIntercept(int targetIdx, const Coord& dronePos, float ballisticTime, float ballisticDist) const noexcept;
 
   sys::UartLink& m_link;
@@ -58,8 +60,9 @@ private:
   float m_prevHitDist{1e9f};
   Coord m_dropPoint{0.0f, 0.0f};
 
-  // Instanced state instead of the static local variable anti-pattern
   DroneStateType m_currentFsmState{DroneStateType::STOPPED};
+
+  sys::MavlinkManager m_mavlink;
 
   static constexpr float kMaxMissionTimeSec = 180.0f;
   static constexpr int kPredictionIterations = 8;
@@ -67,5 +70,3 @@ private:
 };
 
 }  // namespace BallisticApp::mission
-
-#endif  // BALLISTICAPP_MISSION_AUTOPILOT_H

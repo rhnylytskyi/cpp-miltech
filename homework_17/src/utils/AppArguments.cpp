@@ -20,6 +20,7 @@ void AppArguments::printHelp() const
             << "  --gpiochip <name>       GPIO chip control name (Default: gpiochip0)\n"
             << "  --start-line <n>        START handshake signal line (Default: 24)\n"
             << "  --drop-line <n>         DROP weapon release line (Default: 23)\n"
+            << "  --mavlink <host:port>   MAVLink target destination (Default: 127.0.0.1:14550)\n"
             << "  -h, --help              Display help menu and exit\n";
 }
 
@@ -60,6 +61,17 @@ void AppArguments::parse(std::span<const char* const> args)
       std::from_chars(val.data(), val.data() + val.size(), m_dropLine);
       ++it;
     }
+    else if (arg == "--mavlink") {
+      std::string_view val = getAssociatedValue(it, "--mavlink");
+      auto colon = val.rfind(':');
+      if (colon == std::string_view::npos) {
+        throw std::runtime_error("Error: --mavlink expects host:port format, got '" + std::string(val) + "'");
+      }
+      m_mavlinkHost = std::string(val.substr(0, colon));
+      std::string_view portStr = val.substr(colon + 1);
+      std::from_chars(portStr.data(), portStr.data() + portStr.size(), m_mavlinkPort);
+      ++it;
+    }
     else if (it != args.begin()) {
       throw std::runtime_error("Error: Unknown argument: " + std::string(arg));
     }
@@ -78,6 +90,9 @@ void AppArguments::validate() const
   }
   if (m_startLine == m_dropLine) {
     throw std::runtime_error("Error: START line index cannot match DROP line index.");
+  }
+  if (m_mavlinkHost.empty() || m_mavlinkPort == 0) {
+    throw std::runtime_error("Error: Invalid MAVLink host or port parameters.");
   }
 }
 

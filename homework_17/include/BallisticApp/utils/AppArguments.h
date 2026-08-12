@@ -2,6 +2,7 @@
 
 #include <span>
 #include <string>
+#include <cstdint>
 
 namespace BallisticApp {
 
@@ -11,6 +12,8 @@ private:
   std::string m_gpiochip = "gpiochip0";
   unsigned int m_startLine = 24;
   unsigned int m_dropLine = 23;
+  std::string m_mavlinkHost{"127.0.0.1"};
+  uint16_t m_mavlinkPort{14550};
 
   void parse(std::span<const char* const> args);
   void validate() const;
@@ -28,6 +31,8 @@ public:
   [[nodiscard]] const std::string& getGpioChip() const noexcept;
   [[nodiscard]] unsigned int getStartLine() const noexcept;
   [[nodiscard]] unsigned int getDropLine() const noexcept;
+  [[nodiscard]] const std::string& getMavlinkHost() const noexcept { return m_mavlinkHost; }
+  [[nodiscard]] uint16_t getMavlinkPort() const noexcept { return m_mavlinkPort; }
 };
 
 }  // namespace BallisticApp

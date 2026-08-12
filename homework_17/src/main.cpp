@@ -46,7 +46,7 @@ int main(int argc, char* argv[])
       throw std::runtime_error("Critical: Failed to initialize Ballistic Table Solver.");
     }
 
-    mission::Autopilot autopilot(link, gpio, std::move(solver), ammo, cfg);
+    mission::Autopilot autopilot(link, gpio, std::move(solver), ammo, cfg, appArgs.getMavlinkHost(), appArgs.getMavlinkPort());
     APP_LOG_MOD("Main", "autopilot: engaged, flying...");
 
     while (autopilot.step()) {
