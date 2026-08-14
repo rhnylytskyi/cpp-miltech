@@ -1,5 +1,5 @@
 #include "BallisticApp/sys/UartLink.h"
-#include <cstring>\
+#include <cstring>
 
 namespace BallisticApp::sys {
 
@@ -60,6 +60,14 @@ void UartLink::dispatch(uint8_t type, const uint8_t *payload, uint8_t len) noexc
         dlink::DroneCfg c;
         std::memcpy(&c, payload, sizeof(c));
         m_onConfig(c);
+      }
+      break;
+      
+    case dlink::PKT_RESULT:
+      if (m_onResult && len == sizeof(dlink::Result)) {
+        dlink::Result r;
+        std::memcpy(&r, payload, sizeof(r));
+        m_onResult(r);
       }
       break;
 

@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
     sys::GpioPins gpio;
     gpio.open(appArgs.getGpioChip(), appArgs.getStartLine(), appArgs.getDropLine());
 
-    // Silent background flush of the UART hardware buffers
+    /* Background flush to clear hardware OS input buffers before starting */
     while (link.pump() > 0) {
       std::this_thread::sleep_for(std::chrono::milliseconds(2));
     }
@@ -33,6 +33,7 @@ int main(int argc, char* argv[])
     dlink::AmmoCfg ammo{};
     dlink::DroneCfg cfg{};
 
+    /* Synchronous handshake sequence execution before spinning processing threads */
     constexpr int kHandshakeTimeoutMs = 5000;
     if (!mission::Autopilot::handshake(link, gpio, ammo, cfg, kHandshakeTimeoutMs)) {
       std::cerr << "autopilot: handshake failed (timeout)\n";
@@ -47,10 +48,34 @@ int main(int argc, char* argv[])
     }
 
     mission::Autopilot autopilot(link, gpio, std::move(solver), ammo, cfg);
-    APP_LOG_MOD("Main", "autopilot: engaged, flying...");
+    APP_LOG_MOD("Main", "autopilot: multi-threaded subsystems initializing...");
 
-    while (autopilot.step()) {
-      // Core continuous real-time flight loop execution
+    /* THREAD EXECUTION SETUP MAPPED FROM THE HOMEWORK 10 SPECIFICATIONS */
+    std::thread ioThread(&mission::Autopilot::runIO, &autopilot);
+    std::thread missionThread(&mission::Autopilot::runMission, &autopilot);
+
+    /* Hardware thread sync readiness barrier gate loop */
+    while (!autopilot.isThreadReady()) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+
+    /* Simultaneous background task execution trigger */
+    autopilot.start();
+    APP_LOG_MOD("Main", "autopilot: engaged multi-threading real-time loop!");
+
+    /* Polling reactor loop that awaits official simulation finalization packet */
+    while (!autopilot.isFinished()) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+
+    /* Cleanly stop and join all internal subsystem thread allocations */
+    autopilot.stop();
+
+    if (missionThread.joinable()) {
+      missionThread.join();
+    }
+    if (ioThread.joinable()) {
+      ioThread.join();
     }
 
     APP_LOG_MOD("Main", "autopilot: finished (dropped={})", autopilot.dropped() ? "yes" : "no");

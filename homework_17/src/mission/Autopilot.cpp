@@ -56,7 +56,6 @@ Autopilot::Autopilot(sys::UartLink& link,
 {
   m_targets.setExpectedCount(m_ammo.nTargets);
 
-  // Maintain persistent subscription callbacks so configurations aren't dropped post-handshake
   m_link.onAmmo([this](const dlink::AmmoCfg& a) {
     m_ammo = a;
     m_targets.setExpectedCount(m_ammo.nTargets);
@@ -64,49 +63,104 @@ Autopilot::Autopilot(sys::UartLink& link,
 
   m_link.onConfig([this](const dlink::DroneCfg& c) { m_cfg = c; });
 
-  m_link.onTarget([this](const dlink::TargetPos& p) { m_targets.update(p, m_lastTSec); });
+  m_link.onTarget([this](const dlink::TargetPos& p) { m_targets.update(p, m_lastTSec.load()); });
 
-  m_link.onTelemetry([this](const dlink::Telemetry& t) {
-    m_lastTSec = static_cast<float>(t.t_ms) / 1000.0f;
-    onTelemetry(t);
+  m_link.onTelemetry([this](const dlink::Telemetry& t) { onTelemetryReceived(t); });
+
+  m_link.onResult([this](const dlink::Result& r) {
+    APP_LOG_MOD("Main", "autopilot: final report received. Hit: {}, Miss: {:.2f}m", r.hit ? "YES" : "NO", r.miss_m);
+    m_missionFinished.store(true);
   });
 }
 
-Coord Autopilot::predictTargetIntercept(int targetIdx, const Coord& dronePos, float ballisticTime, float ballisticDist) const noexcept
+Autopilot::~Autopilot() noexcept
 {
-  float t_approximation = ballisticTime;
-  Coord predictedTgt{0.0f, 0.0f};
-
-  for (int iter = 0; iter < kPredictionIterations; ++iter) {
-    sys::Target futureTgt = m_targets.getTarget(targetIdx);
-    predictedTgt = futureTgt.pos + futureTgt.velocity * t_approximation;
-    float travelDist = std::max(0.0f, dronePos.distanceTo(predictedTgt) - ballisticDist);
-    t_approximation = travelDist / std::max(1.0f, m_cfg.attackSpeed) + ballisticTime;
-  }
-  return predictedTgt;
+  stop();
 }
 
-bool Autopilot::step()
+void Autopilot::start() noexcept
 {
-  static_cast<void>(m_link.pump());
-  std::this_thread::sleep_for(std::chrono::milliseconds(1));
-
-  if (m_missionStartSec >= 0.0f && (m_lastTSec - m_missionStartSec) > kMaxMissionTimeSec) {
-    std::cerr << "[autopilot] Mission timeout, stopping\n";
-    return false;
-  }
-
-  return !m_dropped;
+  m_isStarted.store(true);
 }
 
-void Autopilot::onTelemetry(const dlink::Telemetry& tel)
+void Autopilot::stop() noexcept
 {
-  if (m_missionStartSec < 0.0f) {
-    m_missionStartSec = m_lastTSec;
+  m_stopRequested.store(true);
+}
+
+bool Autopilot::isThreadReady() const noexcept
+{
+  return m_isIoReady.load() && m_isMissionReady.load();
+}
+
+/* ---------------- THREAD 1: SERIAL TRANSMISSION PUMP ---------------- */
+void Autopilot::runIO()
+{
+  m_isIoReady.store(true);
+  while (!m_stopRequested.load() && !m_isStarted.load()) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
   }
 
-  if (m_dropped) {
+  while (!m_stopRequested.load()) {
+    static_cast<void>(m_link.pump());
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));  // Stable 1ms pool pulse
+  }
+}
+
+/* ---------------- THREAD 2: MISSION SCHEDULER LOOP (HW10) ---------------- */
+void Autopilot::runMission()
+{
+  m_isMissionReady.store(true);
+  while (!m_stopRequested.load() && !m_isStarted.load()) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+
+  // Retrieve base trajectory simulation properties from config metrics
+  float dt = m_cfg.timeStep > 1e-4f ? m_cfg.timeStep : 0.1f;
+  float scale = m_cfg.timeScale > 1e-4f ? m_cfg.timeScale : 1.0f;
+
+  while (!m_stopRequested.load() && !m_missionFinished.load()) {
+    float lastTSecSnapshot = m_lastTSec.load();
+    float startSecSnapshot = m_missionStartSec.load();
+
+    if (startSecSnapshot >= 0.0f && (lastTSecSnapshot - startSecSnapshot) > kMaxMissionTimeSec) {
+      std::cerr << "[autopilot] Mission timeout, stopping\n";
+      break;
+    }
+
+    dlink::Telemetry telSnapshot{};
+    bool canProcess = false;
+
+    {
+      std::lock_guard<std::mutex> lock(m_telemetryMutex);
+      if (m_hasTelemetry) {
+        telSnapshot = m_latestTelemetry;
+        m_hasTelemetry = false;
+        canProcess = true;
+      }
+    }
+
+    if (canProcess) {
+      executeMissionStep(telSnapshot);
+    }
+
+    // Precise periodic baseline tracking interval sleep step matching Homework 10
+    const float sleepSeconds = dt / scale;
+    std::this_thread::sleep_for(std::chrono::duration<float>(sleepSeconds));
+  }
+}
+
+void Autopilot::executeMissionStep(const dlink::Telemetry& tel)
+{
+  /* FIX: No local locks here! We use 'tel' directly from the thread safe argument path */
+  float currentLastTSec = m_lastTSec.load();
+  if (m_missionStartSec.load() < 0.0f) {
+    m_missionStartSec.store(currentLastTSec);
+  }
+
+  if (m_dropped.load()) {
     dlink::Control c = m_flight.compute(tel, tel.dir, DroneStateType::MOVING, m_cfg.turnThreshold, m_cfg.attackSpeed);
+    std::lock_guard<std::mutex> uartLock(m_uartWriteMutex);
     m_link.sendControl(c.accel, c.turnRate);
     return;
   }
@@ -149,6 +203,7 @@ void Autopilot::onTelemetry(const dlink::Telemetry& tel)
 
   if (bestTarget < 0) {
     dlink::Control c = m_flight.compute(tel, tel.dir, DroneStateType::STOPPED, m_cfg.turnThreshold, m_cfg.attackSpeed);
+    std::lock_guard<std::mutex> uartLock(m_uartWriteMutex);
     m_link.sendControl(c.accel, c.turnRate);
     return;
   }
@@ -185,9 +240,13 @@ void Autopilot::onTelemetry(const dlink::Telemetry& tel)
   m_currentFsmState = fsmState->execute(speedArg, dirArg, desiredDir, droneCfg);
 
   dlink::Control c = m_flight.compute(tel, desiredDir, m_currentFsmState, m_cfg.turnThreshold, m_cfg.attackSpeed);
-  m_link.sendControl(c.accel, c.turnRate);
 
-  if (!m_dropped) {
+  {
+    std::lock_guard<std::mutex> uartLock(m_uartWriteMutex);
+    m_link.sendControl(c.accel, c.turnRate);
+  }
+
+  if (!m_dropped.load()) {
     Coord bombLanding = dronePos + Coord{std::cos(tel.dir), std::sin(tel.dir)} * ballisticDist;
     sys::Target tgt = m_targets.getTarget(m_currentTarget);
     Coord futureTarget = tgt.pos + tgt.velocity * ballisticTime;
@@ -195,25 +254,51 @@ void Autopilot::onTelemetry(const dlink::Telemetry& tel)
     float bombToTarget = bombLanding.distanceTo(futureTarget);
     float hitDist = dronePos.distanceTo(m_dropPoint);
 
-    // Calculate current heading deviation to the target intercept trajectory
     float currentDirToLead = std::atan2(lead.y - dronePos.y, lead.x - dronePos.x);
     float currentHeadErr = std::fabs(Math::normalizeAngle(currentDirToLead - tel.dir));
 
-    // Strict alignment window: only allow drops if the drone is facing the target (max ~6 degrees error)
     constexpr float kMaxHeadingErrorForDrop = 0.1f;
     bool isAligned = currentHeadErr <= kMaxHeadingErrorForDrop;
 
-    // Apply alignment gate to both drop criteria
     bool goodHit = (bombToTarget <= m_ammo.hitRadius) && isAligned;
     bool passedApex = (hitDist > m_prevHitDist) && (m_prevHitDist < m_ammo.hitRadius * 3.0f) && isAligned;
 
     if (goodHit || passedApex) {
       APP_LOG_MOD("Main", "autopilot: payload released (target={}, predicted miss={:.3f}m)", m_currentTarget, bombToTarget);
-      m_gpio.pulseDrop(kDropPulseDurationMs);
-      m_dropped = true;
+
+      m_dropped.store(true);
+
+      std::thread dropPulseThread([this]() {
+        m_gpio.pulseDrop(kDropPulseDurationMs);  // Safe standard 80ms duration
+      });
+      dropPulseThread.detach();
     }
+
     m_prevHitDist = hitDist;
   }
+}
+
+void Autopilot::onTelemetryReceived(const dlink::Telemetry& tel)
+{
+  m_lastTSec.store(static_cast<float>(tel.t_ms) / 1000.0f);
+
+  std::lock_guard<std::mutex> lock(m_telemetryMutex);
+  m_latestTelemetry = tel;
+  m_hasTelemetry = true;
+}
+
+Coord Autopilot::predictTargetIntercept(int targetIdx, const Coord& dronePos, float ballisticTime, float ballisticDist) const noexcept
+{
+  float t_approximation = ballisticTime;
+  Coord predictedTgt{0.0f, 0.0f};
+
+  for (int iter = 0; iter < kPredictionIterations; ++iter) {
+    sys::Target futureTgt = m_targets.getTarget(targetIdx);
+    predictedTgt = futureTgt.pos + futureTgt.velocity * t_approximation;
+    float travelDist = std::max(0.0f, dronePos.distanceTo(predictedTgt) - ballisticDist);
+    t_approximation = travelDist / std::max(1.0f, m_cfg.attackSpeed) + ballisticTime;
+  }
+  return predictedTgt;
 }
 
 }  // namespace BallisticApp::mission

@@ -16,6 +16,7 @@ public:
   using TargetCb = std::function<void(const dlink::TargetPos &)>;
   using AmmoCb = std::function<void(const dlink::AmmoCfg &)>;
   using ConfigCb = std::function<void(const dlink::DroneCfg &)>;
+  using ResultCb = std::function<void(const dlink::Result &)>;
 
   UartLink() = default;
   ~UartLink() noexcept = default;
@@ -31,6 +32,7 @@ public:
   void onTarget(TargetCb cb) { m_onTarget = std::move(cb); }
   void onAmmo(AmmoCb cb) { m_onAmmo = std::move(cb); }
   void onConfig(ConfigCb cb) { m_onConfig = std::move(cb); }
+  void onResult(ResultCb cb) { m_onResult = std::move(cb); }
 
   /* Stream processing handlers */
   void resetParser() noexcept;
@@ -47,6 +49,7 @@ private:
   TargetCb m_onTarget;
   AmmoCb m_onAmmo;
   ConfigCb m_onConfig;
+  ResultCb m_onResult;
 };
 
 }  // namespace BallisticApp::sys
