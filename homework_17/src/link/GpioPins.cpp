@@ -1,10 +1,10 @@
-#include "BallisticApp/sys/GpioPins.h"
+#include "BallisticApp/link/GpioPins.h"
 #include <gpiod.h>
 #include <chrono>
 #include <stdexcept>
 #include <thread>
 
-namespace BallisticApp::sys {
+namespace BallisticApp::link {
 
 GpioPins::~GpioPins() noexcept
 {
@@ -75,4 +75,4 @@ void GpioPins::pulseDrop(int durationMs)
   gpiod_line_set_value(m_dropLine, 0);
 }
 
-}  // namespace BallisticApp::sys
+}  // namespace BallisticApp::link

@@ -1,7 +1,7 @@
-#include "BallisticApp/sys/UartLink.h"
+#include "BallisticApp/link/UartLink.h"
 #include <cstring>
 
-namespace BallisticApp::sys {
+namespace BallisticApp::link {
 
 void UartLink::resetParser() noexcept
 {
@@ -84,4 +84,4 @@ void UartLink::sendControl(float accel, float turnRate)
   m_port.write(out, m);
 }
 
-}  // namespace BallisticApp::sys
+}  // namespace BallisticApp::link

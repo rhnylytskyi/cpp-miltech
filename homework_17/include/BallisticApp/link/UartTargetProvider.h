@@ -4,7 +4,7 @@
 #include "drone_link.h"
 #include <vector>
 
-namespace BallisticApp::sys {
+namespace BallisticApp::link {
 
 struct Target {
   Coord pos{0.0f, 0.0f};
@@ -43,4 +43,4 @@ public:
   [[nodiscard]] Target getTarget(int index) const noexcept;
 };
 
-}  // namespace BallisticApp::sys
+}  // namespace BallisticApp::link

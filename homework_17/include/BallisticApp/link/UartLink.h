@@ -1,11 +1,11 @@
 #pragma once
 
-#include "BallisticApp/sys/UartPort.h"
+#include "BallisticApp/link/UartPort.h"
 #include "drone_link.h"
 #include <functional>
 #include <string>
 
-namespace BallisticApp::sys {
+namespace BallisticApp::link {
 
 /**
  * @brief Protocol driver bridging UartPort hardware IO and dlink::Parser frames.
@@ -52,4 +52,4 @@ private:
   ResultCb m_onResult;
 };
 
-}  // namespace BallisticApp::sys
+}  // namespace BallisticApp::link

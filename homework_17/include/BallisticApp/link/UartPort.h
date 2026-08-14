@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <string>
 
-namespace BallisticApp::sys {
+namespace BallisticApp::link {
 
 /**
  * @brief RAII wrapper around a POSIX serial port file descriptor.
@@ -31,4 +31,4 @@ private:
   int m_fd = -1;
 };
 
-}  // namespace BallisticApp::sys
+}  // namespace BallisticApp::link

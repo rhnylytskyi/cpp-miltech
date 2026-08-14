@@ -5,7 +5,7 @@
 struct gpiod_chip;
 struct gpiod_line;
 
-namespace BallisticApp::sys {
+namespace BallisticApp::link {
 
 /**
  * @brief Hardware interaction layer with GPIO lines via libgpiod.
@@ -33,4 +33,4 @@ private:
   gpiod_line *m_dropLine = nullptr;
 };
 
-}  // namespace BallisticApp::sys
+}  // namespace BallisticApp::link

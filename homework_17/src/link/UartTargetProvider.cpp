@@ -1,8 +1,8 @@
-#include "BallisticApp/sys/UartTargetProvider.h"
+#include "BallisticApp/link/UartTargetProvider.h"
 #include <cmath>
 #include <mutex>
 
-namespace BallisticApp::sys {
+namespace BallisticApp::link {
 
 /* Shared synchronization primitives for thread-safe target container operations */
 static std::mutex s_targetsMutex;
@@ -64,4 +64,4 @@ Target UartTargetProvider::getTarget(int index) const noexcept
   return Target{e.pos, e.vel};
 }
 
-}  // namespace BallisticApp::sys
+}  // namespace BallisticApp::link

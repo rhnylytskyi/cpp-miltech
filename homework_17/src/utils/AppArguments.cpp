@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <string_view>
 #include <charconv>
+#include <cstdlib>
 
 namespace BallisticApp {
 
@@ -20,6 +21,7 @@ void AppArguments::printHelp() const
             << "  --gpiochip <name>       GPIO chip control name (Default: gpiochip0)\n"
             << "  --start-line <n>        START handshake signal line (Default: 24)\n"
             << "  --drop-line <n>         DROP weapon release line (Default: 23)\n"
+            << "  --mavlink <host:port>   MAVLink UDP broadcast target endpoint (Default: 127.0.0.1:14550)\n"
             << "  -h, --help              Display help menu and exit\n";
 }
 
@@ -60,6 +62,18 @@ void AppArguments::parse(std::span<const char* const> args)
       std::from_chars(val.data(), val.data() + val.size(), m_dropLine);
       ++it;
     }
+    else if (arg == "--mavlink") {
+      std::string_view hostPort = getAssociatedValue(it, "--mavlink");
+      ++it;
+      auto colon = hostPort.rfind(':');
+      if (colon == std::string_view::npos) {
+        m_mavlinkHost = std::string(hostPort);
+      }
+      else {
+        m_mavlinkHost = std::string(hostPort.substr(0, colon));
+        m_mavlinkPort = static_cast<uint16_t>(std::atoi(std::string(hostPort.substr(colon + 1)).c_str()));
+      }
+    }
     else if (it != args.begin()) {
       throw std::runtime_error("Error: Unknown argument: " + std::string(arg));
     }
@@ -79,6 +93,9 @@ void AppArguments::validate() const
   if (m_startLine == m_dropLine) {
     throw std::runtime_error("Error: START line index cannot match DROP line index.");
   }
+  if (m_mavlinkHost.empty()) {
+    throw std::runtime_error("Error: MAVLink UDP target host cannot be empty!");
+  }
 }
 
 const std::string& AppArguments::getUart() const noexcept
@@ -96,6 +113,14 @@ unsigned int AppArguments::getStartLine() const noexcept
 unsigned int AppArguments::getDropLine() const noexcept
 {
   return m_dropLine;
+}
+const std::string& AppArguments::getMavlinkHost() const noexcept
+{
+  return m_mavlinkHost;
+}
+uint16_t AppArguments::getMavlinkPort() const noexcept
+{
+  return m_mavlinkPort;
 }
 
 }  // namespace BallisticApp

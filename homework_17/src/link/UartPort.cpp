@@ -1,4 +1,4 @@
-#include "BallisticApp/sys/UartPort.h"
+#include "BallisticApp/link/UartPort.h"
 #include <cerrno>
 #include <cstring>
 #include <fcntl.h>
@@ -8,7 +8,7 @@
 #include <thread>
 #include <chrono>
 
-namespace BallisticApp::sys {
+namespace BallisticApp::link {
 
 UartPort::~UartPort() noexcept
 {
@@ -94,4 +94,4 @@ void UartPort::write(const uint8_t *buf, size_t len)
   }
 }
 
-}  // namespace BallisticApp::sys
+}  // namespace BallisticApp::link

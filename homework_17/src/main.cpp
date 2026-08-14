@@ -1,6 +1,7 @@
-#include "BallisticApp/mission/Autopilot.h"
-#include "BallisticApp/sys/GpioPins.h"
-#include "BallisticApp/sys/UartLink.h"
+#include "BallisticApp/link/Autopilot.h"
+#include "BallisticApp/link/GpioPins.h"
+#include "BallisticApp/link/UartLink.h"
+#include "BallisticApp/net/MavlinkTelemetry.h"
 #include "BallisticApp/utils/AppArguments.h"
 #include "BallisticApp/ComponentFactory.h"
 #include "BallisticApp/utils/Logger.h"
@@ -18,13 +19,12 @@ int main(int argc, char* argv[])
     std::span<const char* const> spanArgs(argv, argc);
     AppArguments appArgs(spanArgs);
 
-    sys::UartLink link;
+    link::UartLink link;
     link.open(appArgs.getUart());
 
-    sys::GpioPins gpio;
+    link::GpioPins gpio;
     gpio.open(appArgs.getGpioChip(), appArgs.getStartLine(), appArgs.getDropLine());
 
-    /* Background flush to clear hardware OS input buffers before starting */
     while (link.pump() > 0) {
       std::this_thread::sleep_for(std::chrono::milliseconds(2));
     }
@@ -33,7 +33,6 @@ int main(int argc, char* argv[])
     dlink::AmmoCfg ammo{};
     dlink::DroneCfg cfg{};
 
-    /* Synchronous handshake sequence execution before spinning processing threads */
     constexpr int kHandshakeTimeoutMs = 5000;
     if (!mission::Autopilot::handshake(link, gpio, ammo, cfg, kHandshakeTimeoutMs)) {
       std::cerr << "autopilot: handshake failed (timeout)\n";
@@ -47,37 +46,37 @@ int main(int argc, char* argv[])
       throw std::runtime_error("Critical: Failed to initialize Ballistic Table Solver.");
     }
 
-    mission::Autopilot autopilot(link, gpio, std::move(solver), ammo, cfg);
+    // Allocate and trigger network thread loops before configuring the mission flight computer
+    auto mavlink = std::make_shared<net::MavlinkTelemetry>(appArgs.getMavlinkHost(), appArgs.getMavlinkPort());
+    mavlink->start();
+    std::cout << "[Main] MAVLink network gateway active -> " << appArgs.getMavlinkHost() << ":" << appArgs.getMavlinkPort() << "\n";
+
+    // Build multi-threaded autopilot and inject shared network handler reference
+    mission::Autopilot autopilot(link, gpio, std::move(solver), ammo, cfg, mavlink);
     APP_LOG_MOD("Main", "autopilot: multi-threaded subsystems initializing...");
 
-    /* THREAD EXECUTION SETUP MAPPED FROM THE HOMEWORK 10 SPECIFICATIONS */
     std::thread ioThread(&mission::Autopilot::runIO, &autopilot);
     std::thread missionThread(&mission::Autopilot::runMission, &autopilot);
 
-    /* Hardware thread sync readiness barrier gate loop */
     while (!autopilot.isThreadReady()) {
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 
-    /* Simultaneous background task execution trigger */
     autopilot.start();
     APP_LOG_MOD("Main", "autopilot: engaged multi-threading real-time loop!");
-
-    /* Polling reactor loop that awaits official simulation finalization packet */
-    while (!autopilot.isFinished()) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    }
-
-    /* Cleanly stop and join all internal subsystem thread allocations */
-    autopilot.stop();
 
     if (missionThread.joinable()) {
       missionThread.join();
     }
+
+    autopilot.stop();
+
     if (ioThread.joinable()) {
       ioThread.join();
     }
 
+    // Safely spin down and detach network socket contexts post flight execution
+    mavlink->stop();
     APP_LOG_MOD("Main", "autopilot: finished (dropped={})", autopilot.dropped() ? "yes" : "no");
   }
   catch (const std::exception& e) {

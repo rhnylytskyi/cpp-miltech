@@ -1,4 +1,4 @@
-#include "BallisticApp/mission/FlightController.h"
+#include "BallisticApp/link/FlightController.h"
 #include "BallisticApp/utils/MathUtils.h"
 #include "BallisticApp/DroneStateType.h"
 #include <cmath>
