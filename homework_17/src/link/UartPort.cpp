@@ -1,25 +1,24 @@
 #include "BallisticApp/link/UartPort.h"
+#include <chrono>
 #include <cerrno>
 #include <cstring>
 #include <fcntl.h>
 #include <stdexcept>
 #include <termios.h>
-#include <unistd.h>
 #include <thread>
-#include <chrono>
+#include <unistd.h>
 
-namespace BallisticApp::link {
+namespace BallisticApp {
 
 UartPort::~UartPort() noexcept
 {
   close();
 }
 
-void UartPort::open(const std::string &device)
+void UartPort::open(const std::string& device)
 {
   close();
 
-  // O_NONBLOCK: subsequent read() calls will return -1/EAGAIN instead of blocking
   m_fd = ::open(device.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK);
 
   if (m_fd < 0) {
@@ -32,7 +31,7 @@ void UartPort::open(const std::string &device)
     throw std::runtime_error("UartPort: tcgetattr failed: " + std::string(std::strerror(errno)));
   }
 
-  cfmakeraw(&tio);  // 8N1, raw mode without character processing
+  cfmakeraw(&tio);
   cfsetispeed(&tio, B115200);
   cfsetospeed(&tio, B115200);
   tio.c_cflag |= (CLOCAL | CREAD);
@@ -50,7 +49,7 @@ void UartPort::close() noexcept
   }
 }
 
-int UartPort::read(uint8_t *buf, size_t maxLen)
+int UartPort::read(uint8_t* buf, size_t maxLen)
 {
   if (m_fd < 0) {
     throw std::runtime_error("UartPort::read: port not open");
@@ -60,7 +59,7 @@ int UartPort::read(uint8_t *buf, size_t maxLen)
 
   if (n < 0) {
     if (errno == EAGAIN || errno == EWOULDBLOCK) {
-      return 0;  // No data available right now
+      return 0;
     }
 
     throw std::runtime_error("UartPort::read failed: " + std::string(std::strerror(errno)));
@@ -69,7 +68,7 @@ int UartPort::read(uint8_t *buf, size_t maxLen)
   return static_cast<int>(n);
 }
 
-void UartPort::write(const uint8_t *buf, size_t len)
+void UartPort::write(const uint8_t* buf, size_t len)
 {
   if (m_fd < 0) {
     throw std::runtime_error("UartPort::write: port not open");
@@ -82,7 +81,6 @@ void UartPort::write(const uint8_t *buf, size_t len)
 
     if (n < 0) {
       if (errno == EAGAIN || errno == EWOULDBLOCK) {
-        // Prevent 100% CPU busy loop spikes during temporary TX buffer saturation
         std::this_thread::sleep_for(std::chrono::microseconds(100));
         continue;
       }
@@ -94,4 +92,4 @@ void UartPort::write(const uint8_t *buf, size_t len)
   }
 }
 
-}  // namespace BallisticApp::link
+}  // namespace BallisticApp

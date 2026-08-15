@@ -1,10 +1,10 @@
 #pragma once
 
 #include "BallisticApp/exporters/SimStep.h"
-#include <vector>
 #include <string>
+#include <vector>
 
-namespace BallisticApp::exporters {
+namespace BallisticApp {
 
 class JsonExporter {
 public:
@@ -21,4 +21,4 @@ private:
   std::vector<SimStep> m_steps;
 };
 
-} // namespace BallisticApp::exporters
+}  // namespace BallisticApp

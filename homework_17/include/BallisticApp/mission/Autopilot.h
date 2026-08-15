@@ -1,48 +1,43 @@
 #pragma once
 
-#include "BallisticApp/exporters/SimStep.h"
 #include "BallisticApp/DroneStateType.h"
+#include "BallisticApp/control/FlightController.h"
 #include "BallisticApp/exporters/SimStep.h"
-#include "BallisticApp/link/FlightController.h"
 #include "BallisticApp/link/GpioPins.h"
 #include "BallisticApp/link/UartLink.h"
 #include "BallisticApp/link/UartTargetProvider.h"
 #include "drone_link.h"
+#include <atomic>
 #include <memory>
 #include <mutex>
-#include <atomic>
 #include <vector>
 
-// Forward declaration of the new network module to avoid circular includes
-namespace BallisticApp::net {
-class MavlinkTelemetry;
-}
-
 namespace BallisticApp {
+class MavlinkTelemetry;
 class IBallisticSolver;
 struct Coord;
 }  // namespace BallisticApp
 
-namespace BallisticApp::mission {
+namespace BallisticApp {
 
 class Autopilot {
 public:
-  static bool handshake(link::UartLink& link, link::GpioPins& gpio, dlink::AmmoCfg& outAmmo, dlink::DroneCfg& outCfg, int timeoutMs = 5000);
+  static bool handshake(UartLink& link, GpioPins& gpio, dlink::AmmoCfg& outAmmo, dlink::DroneCfg& outCfg, int timeoutMs = 5000);
 
-  Autopilot(link::UartLink& link,
-            link::GpioPins& gpio,
+  Autopilot(UartLink& link,
+            GpioPins& gpio,
             std::unique_ptr<IBallisticSolver> solver,
             const dlink::AmmoCfg& ammo,
             const dlink::DroneCfg& cfg,
-            std::shared_ptr<net::MavlinkTelemetry> mavlink = nullptr);  // Added MAVLink pointer injection
+            std::shared_ptr<MavlinkTelemetry> mavlink = nullptr);
 
   ~Autopilot() noexcept;
 
   Autopilot(const Autopilot&) = delete;
   Autopilot& operator=(const Autopilot&) = delete;
 
-  void runIO();       // Thread 1: Continuous UART stream fetching
-  void runMission();  // Thread 2: Ballistics and FSM scheduling loop
+  void runIO();
+  void runMission();
 
   void start() noexcept;
   void stop() noexcept;
@@ -58,16 +53,16 @@ private:
 
   [[nodiscard]] Coord predictTargetIntercept(int targetIdx, const Coord& dronePos, float ballisticTime, float ballisticDist) const noexcept;
 
-  link::UartLink& m_link;
-  link::GpioPins& m_gpio;
+  UartLink& m_link;
+  GpioPins& m_gpio;
   std::unique_ptr<IBallisticSolver> m_solver;
 
   dlink::AmmoCfg m_ammo;
   dlink::DroneCfg m_cfg;
 
-  link::UartTargetProvider m_targets;
+  UartTargetProvider m_targets;
   FlightController m_flight;
-  std::shared_ptr<net::MavlinkTelemetry> m_mavlink;  // Core network telemetry module pointer
+  std::shared_ptr<MavlinkTelemetry> m_mavlink;
 
   std::atomic<float> m_lastTSec{0.0f};
   std::atomic<float> m_missionStartSec{-1.0f};
@@ -91,11 +86,11 @@ private:
   std::vector<SimStep> m_simSteps;
 
   std::mutex m_uartWriteMutex;
-  uint32_t m_simTimeMs{0};  // Keep track of relative simulation timestamps for MAVLink clocks
+  uint32_t m_simTimeMs{0};
 
   static constexpr float kMaxMissionTimeSec = 180.0f;
   static constexpr int kPredictionIterations = 8;
   static constexpr int kDropPulseDurationMs = 80;
 };
 
-}  // namespace BallisticApp::mission
+}  // namespace BallisticApp

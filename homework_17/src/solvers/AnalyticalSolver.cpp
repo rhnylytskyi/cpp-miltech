@@ -4,7 +4,7 @@
 #include <limits>
 #include <numbers>
 
-namespace BallisticApp::solvers {
+namespace BallisticApp {
 
 namespace {
 constexpr float g_gravity = 9.81f;
@@ -75,4 +75,4 @@ IBallisticSolver::Result AnalyticalSolver::calculate(float altitude, float speed
   return {.flightTime = t, .hDistance = hDist};
 }
 
-}  // namespace BallisticApp::solvers
+}  // namespace BallisticApp

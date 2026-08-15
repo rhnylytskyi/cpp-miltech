@@ -9,7 +9,7 @@
 #define ENABLE_LOG 1
 #define ENABLE_DEBUG 0
 
-namespace BallisticApp::Log {
+namespace BallisticApp {
 
 template <typename... Args>
 inline void log(std::format_string<Args...> format_str, Args&&... args) noexcept
@@ -67,10 +67,10 @@ inline void debug_with_mod([[maybe_unused]] std::string_view module,
 #endif
 }
 
-}  // namespace BallisticApp::Log
+}  // namespace BallisticApp
 
-#define APP_LOG_MOD(mod, fmt, ...) ::BallisticApp::Log::log_with_mod(mod, fmt __VA_OPT__(, ) __VA_ARGS__)
-#define APP_LOG(fmt, ...) ::BallisticApp::Log::log(fmt __VA_OPT__(, ) __VA_ARGS__)
+#define APP_LOG_MOD(mod, fmt, ...) ::BallisticApp::log_with_mod(mod, fmt __VA_OPT__(, ) __VA_ARGS__)
+#define APP_LOG(fmt, ...) ::BallisticApp::log(fmt __VA_OPT__(, ) __VA_ARGS__)
 
-#define APP_DEBUG_MOD(mod, fmt, ...) ::BallisticApp::Log::debug_with_mod(mod, fmt __VA_OPT__(, ) __VA_ARGS__)
-#define APP_DEBUG(fmt, ...) ::BallisticApp::Log::debug(fmt __VA_OPT__(, ) __VA_ARGS__)
+#define APP_DEBUG_MOD(mod, fmt, ...) ::BallisticApp::debug_with_mod(mod, fmt __VA_OPT__(, ) __VA_ARGS__)
+#define APP_DEBUG(fmt, ...) ::BallisticApp::debug(fmt __VA_OPT__(, ) __VA_ARGS__)

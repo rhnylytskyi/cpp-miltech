@@ -1,12 +1,14 @@
+#include "BallisticApp/utils/Logger.h"
 #define _USE_MATH_DEFINES
 #include "BallisticApp/net/MavlinkTelemetry.h"
+#include <common/mavlink.h>
+#include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <cstring>
 #include <iostream>
-#include <common/mavlink.h>
 
-namespace BallisticApp::net {
+namespace BallisticApp {
 
 constexpr double kLat0 = 50.4501;
 constexpr double kLon0 = 30.5234;
@@ -50,7 +52,7 @@ void MavlinkTelemetry::stop()
     return;
   m_running.store(false);
 
-  m_sock.close();  // Close descriptor to signal all pending network operations
+  m_sock.close();
   m_dropCv.notify_all();
   m_ackCv.notify_all();
 
@@ -207,7 +209,7 @@ void MavlinkTelemetry::sendDropCommandWithRetry(Coord dropPointLocal, float alti
     uint16_t len = mavlink_msg_to_send_buffer(buf, &msg);
     sendBuffer(buf, len);
 
-    std::cout << "[mavlink] DROP: COMMAND_LONG sent. Attempt " << attempt << "/" << kDropMaxAttempts << "\n";
+    APP_LOG_MOD("Mavlink", "autopilot: payload drop command transmitted (attempt {}/{})", attempt, kDropMaxAttempts);
 
     std::unique_lock<std::mutex> lock(m_ackMtx);
     got = m_ackCv.wait_for(lock, std::chrono::milliseconds(kDropAckTimeoutMs), [this] { return m_ackReceived || !m_running.load(); });
@@ -224,10 +226,10 @@ void MavlinkTelemetry::sendDropCommandWithRetry(Coord dropPointLocal, float alti
   }
 
   if (got) {
-    std::cout << "[mavlink] DROP: COMMAND_ACK received, result=" << static_cast<int>(result) << "\n";
+    APP_LOG_MOD("Mavlink", "autopilot: payload command acknowledged successfully (result={})", static_cast<int>(result));
   }
   else {
-    std::cout << "[mavlink] DROP: ACK timeout after " << kDropMaxAttempts << " attempts\n";
+    APP_LOG_MOD("Mavlink", "autopilot: payload command timeout after {} attempts", kDropMaxAttempts);
   }
 }
 
@@ -241,7 +243,7 @@ void MavlinkTelemetry::rxLoop()
     int n = m_sock.recv(buf, sizeof(buf), 200);
     if (n <= 0) {
       if (!m_running.load())
-        break;  // Exit loop layout if thread stop requested
+        break;
       continue;
     }
 
@@ -258,11 +260,11 @@ void MavlinkTelemetry::rxLoop()
         if (m_waitingAck && ack.command == m_expectedCommand) {
           m_ackReceived = true;
           m_ackResult = ack.result;
-          m_ackCv.notify_all();  // Instantly unblocks the command loop retry sequence
+          m_ackCv.notify_all();
         }
       }
     }
   }
 }
 
-}  // namespace BallisticApp::net
+}  // namespace BallisticApp

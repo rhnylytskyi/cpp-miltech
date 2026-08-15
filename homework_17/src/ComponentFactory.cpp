@@ -9,9 +9,9 @@ std::unique_ptr<IBallisticSolver> ComponentFactory::createSolver(SolverType type
 {
   switch (type) {
     case SolverType::ANALYTICAL:
-      return std::make_unique<solvers::AnalyticalSolver>();
+      return std::make_unique<AnalyticalSolver>();
     case SolverType::TABLE:
-      return std::make_unique<solvers::TableSolver>();
+      return std::make_unique<TableSolver>();
     default:
       throw std::invalid_argument("ComponentFactory: Unsupported or unknown SolverType.");
   }

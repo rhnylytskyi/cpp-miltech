@@ -3,12 +3,12 @@
 #include "BallisticApp/net/UdpSocket.h"
 #include "BallisticApp/utils/MathUtils.h"
 #include <atomic>
-#include <thread>
-#include <mutex>
 #include <condition_variable>
+#include <mutex>
 #include <string>
+#include <thread>
 
-namespace BallisticApp::net {
+namespace BallisticApp {
 
 class MavlinkTelemetry {
 public:
@@ -62,4 +62,4 @@ private:
   bool m_waitingAck{false};
 };
 
-}  // namespace BallisticApp::net
+}  // namespace BallisticApp

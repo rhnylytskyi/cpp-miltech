@@ -3,7 +3,7 @@
 #include <fstream>
 #include <iostream>
 
-namespace BallisticApp::exporters {
+namespace BallisticApp {
 
 using json = nlohmann::json;
 
@@ -33,8 +33,6 @@ bool JsonExporter::save(const std::string& path) const
 
     jStep["predictedTarget"]["x"] = step.predictedTarget.x;
     jStep["predictedTarget"]["y"] = step.predictedTarget.y;
-
-    // FIX: Extract perfectly matching real-time clock timestamps directly from step structure mapping
     jStep["timeSecSinceStart"] = step.timeSec;
 
     stepsArray.push_back(jStep);
@@ -54,4 +52,4 @@ bool JsonExporter::save(const std::string& path) const
   return true;
 }
 
-}  // namespace BallisticApp::exporters
+}  // namespace BallisticApp

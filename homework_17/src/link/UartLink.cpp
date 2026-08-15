@@ -1,7 +1,7 @@
 #include "BallisticApp/link/UartLink.h"
 #include <cstring>
 
-namespace BallisticApp::link {
+namespace BallisticApp {
 
 void UartLink::resetParser() noexcept
 {
@@ -28,7 +28,7 @@ int UartLink::pump() noexcept
   return frames;
 }
 
-void UartLink::dispatch(uint8_t type, const uint8_t *payload, uint8_t len) noexcept
+void UartLink::dispatch(uint8_t type, const uint8_t* payload, uint8_t len) noexcept
 {
   switch (type) {
     case dlink::PKT_TELEMETRY:
@@ -62,7 +62,7 @@ void UartLink::dispatch(uint8_t type, const uint8_t *payload, uint8_t len) noexc
         m_onConfig(c);
       }
       break;
-      
+
     case dlink::PKT_RESULT:
       if (m_onResult && len == sizeof(dlink::Result)) {
         dlink::Result r;
@@ -84,4 +84,4 @@ void UartLink::sendControl(float accel, float turnRate)
   m_port.write(out, m);
 }
 
-}  // namespace BallisticApp::link
+}  // namespace BallisticApp

@@ -1,7 +1,7 @@
 #pragma once
 #include "BallisticApp/interfaces/IDroneState.h"
 
-namespace BallisticApp::states {
+namespace BallisticApp {
 
 class StateAccelerating : public IDroneState {
 public:
@@ -9,4 +9,4 @@ public:
   DroneStateType getType() const override;
 };
 
-}  // namespace BallisticApp::states
+}  // namespace BallisticApp

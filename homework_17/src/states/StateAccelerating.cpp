@@ -4,7 +4,7 @@
 #include <cmath>
 #include <algorithm>
 
-namespace BallisticApp::states {
+namespace BallisticApp {
 
 DroneStateType StateAccelerating::execute(float& speed, float& direction, float desiredDir, const DroneConfig& cfg)
 {
@@ -44,4 +44,4 @@ DroneStateType StateAccelerating::getType() const
   return DroneStateType::ACCELERATING;
 }
 
-}  // namespace BallisticApp::states
+}  // namespace BallisticApp

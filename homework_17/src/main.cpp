@@ -1,16 +1,16 @@
+#include "BallisticApp/ComponentFactory.h"
 #include "BallisticApp/exporters/JsonExporter.h"
-#include "BallisticApp/link/Autopilot.h"
 #include "BallisticApp/link/GpioPins.h"
 #include "BallisticApp/link/UartLink.h"
+#include "BallisticApp/mission/Autopilot.h"
 #include "BallisticApp/net/MavlinkTelemetry.h"
 #include "BallisticApp/utils/AppArguments.h"
-#include "BallisticApp/ComponentFactory.h"
 #include "BallisticApp/utils/Logger.h"
+#include <chrono>
 #include <iostream>
 #include <memory>
-#include <thread>
-#include <chrono>
 #include <span>
+#include <thread>
 
 using namespace BallisticApp;
 
@@ -20,10 +20,10 @@ int main(int argc, char* argv[])
     std::span<const char* const> spanArgs(argv, argc);
     AppArguments appArgs(spanArgs);
 
-    link::UartLink link;
+    UartLink link;
     link.open(appArgs.getUart());
 
-    link::GpioPins gpio;
+    GpioPins gpio;
     gpio.open(appArgs.getGpioChip(), appArgs.getStartLine(), appArgs.getDropLine());
 
     while (link.pump() > 0) {
@@ -35,7 +35,7 @@ int main(int argc, char* argv[])
     dlink::DroneCfg cfg{};
 
     constexpr int kHandshakeTimeoutMs = 5000;
-    if (!mission::Autopilot::handshake(link, gpio, ammo, cfg, kHandshakeTimeoutMs)) {
+    if (!Autopilot::handshake(link, gpio, ammo, cfg, kHandshakeTimeoutMs)) {
       std::cerr << "autopilot: handshake failed (timeout)\n";
       return 1;
     }
@@ -47,17 +47,15 @@ int main(int argc, char* argv[])
       throw std::runtime_error("Critical: Failed to initialize Ballistic Table Solver.");
     }
 
-    // Allocate and trigger network thread loops before configuring the mission flight computer
-    auto mavlink = std::make_shared<net::MavlinkTelemetry>(appArgs.getMavlinkHost(), appArgs.getMavlinkPort());
+    auto mavlink = std::make_shared<MavlinkTelemetry>(appArgs.getMavlinkHost(), appArgs.getMavlinkPort());
     mavlink->start();
-    std::cout << "[Main] MAVLink network gateway active -> " << appArgs.getMavlinkHost() << ":" << appArgs.getMavlinkPort() << "\n";
+    APP_LOG_MOD("Main", "autopilot: MAVLink network gateway active -> {}:{}", appArgs.getMavlinkHost(), appArgs.getMavlinkPort());
 
-    // Build multi-threaded autopilot and inject shared network handler reference
-    mission::Autopilot autopilot(link, gpio, std::move(solver), ammo, cfg, mavlink);
+    Autopilot autopilot(link, gpio, std::move(solver), ammo, cfg, mavlink);
     APP_LOG_MOD("Main", "autopilot: multi-threaded subsystems initializing...");
 
-    std::thread ioThread(&mission::Autopilot::runIO, &autopilot);
-    std::thread missionThread(&mission::Autopilot::runMission, &autopilot);
+    std::thread ioThread(&Autopilot::runIO, &autopilot);
+    std::thread missionThread(&Autopilot::runMission, &autopilot);
 
     while (!autopilot.isThreadReady()) {
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -76,19 +74,17 @@ int main(int argc, char* argv[])
       ioThread.join();
     }
 
-    // Safely spin down and detach network socket contexts post flight execution
     mavlink->stop();
-    APP_LOG_MOD("Main", "autopilot: finished (dropped={})", autopilot.dropped() ? "yes" : "no");
+    APP_LOG_MOD("Main", "autopilot: core execution finished cleanly (dropped={})", autopilot.dropped() ? "yes" : "no");
 
-    // Stream collected vectors into simulation.json via JsonExporter arrays
-    exporters::JsonExporter exporter;
+    JsonExporter exporter;
     for (const auto& step : autopilot.getSimulationSteps()) {
       exporter.record(step);
     }
 
     std::string outputPath = std::string(PROJECT_DATA_DIR) + "/simulation.json";
     if (exporter.save(outputPath)) {
-      std::cout << "[Main] Mission flight logs successfully saved to -> " << outputPath << "\n";
+      APP_LOG_MOD("Main", "autopilot: mission track profile saved -> simulation.json");
     }
   }
   catch (const std::exception& e) {

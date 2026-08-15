@@ -2,9 +2,8 @@
 #include <cmath>
 #include <mutex>
 
-namespace BallisticApp::link {
+namespace BallisticApp {
 
-/* Shared synchronization primitives for thread-safe target container operations */
 static std::mutex s_targetsMutex;
 
 void UartTargetProvider::setExpectedCount(uint8_t n)
@@ -27,7 +26,7 @@ void UartTargetProvider::update(const dlink::TargetPos& p, float nowSec)
 
   if (e.known) {
     float dt = nowSec - e.lastT;
-    constexpr float kMinDeltaTimeSec = 1e-3f; /* Protect against division by near-zero step clocks */
+    constexpr float kMinDeltaTimeSec = 1e-3f;
     if (dt > kMinDeltaTimeSec) {
       e.vel = (newPos - e.pos) / dt;
     }
@@ -64,4 +63,4 @@ Target UartTargetProvider::getTarget(int index) const noexcept
   return Target{e.pos, e.vel};
 }
 
-}  // namespace BallisticApp::link
+}  // namespace BallisticApp

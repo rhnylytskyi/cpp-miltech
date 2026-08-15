@@ -2,7 +2,7 @@
 
 #include "BallisticApp/interfaces/IBallisticSolver.h"
 
-namespace BallisticApp::solvers {
+namespace BallisticApp {
 
 class AnalyticalSolver : public IBallisticSolver {
 public:
@@ -12,4 +12,4 @@ public:
   Result calculate(float altitude, float speed, const AmmoParams& ammo) override;
 };
 
-}  // namespace BallisticApp::solvers
+}  // namespace BallisticApp

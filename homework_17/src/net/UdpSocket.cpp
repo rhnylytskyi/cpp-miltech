@@ -8,14 +8,14 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-namespace BallisticApp::net {
+namespace BallisticApp {
 
 UdpSocket::~UdpSocket()
 {
   close();
 }
 
-void UdpSocket::open(const std::string &host, uint16_t port)
+void UdpSocket::open(const std::string& host, uint16_t port)
 {
   close();
 
@@ -32,7 +32,7 @@ void UdpSocket::open(const std::string &host, uint16_t port)
     addrinfo hints{};
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_DGRAM;
-    addrinfo *res = nullptr;
+    addrinfo* res = nullptr;
 
     if (::getaddrinfo(host.c_str(), nullptr, &hints, &res) != 0 || res == nullptr) {
       ::close(m_fd);
@@ -40,7 +40,7 @@ void UdpSocket::open(const std::string &host, uint16_t port)
       throw std::runtime_error("UdpSocket: failed to resolve address string '" + host + "'");
     }
 
-    m_remoteAddr.sin_addr = reinterpret_cast<sockaddr_in *>(res->ai_addr)->sin_addr;
+    m_remoteAddr.sin_addr = reinterpret_cast<sockaddr_in*>(res->ai_addr)->sin_addr;
     ::freeaddrinfo(res);
   }
 }
@@ -53,14 +53,14 @@ void UdpSocket::close()
   }
 }
 
-void UdpSocket::send(const uint8_t *buf, size_t len)
+void UdpSocket::send(const uint8_t* buf, size_t len)
 {
   if (m_fd < 0)
     return;
-  ::sendto(m_fd, buf, len, 0, reinterpret_cast<const sockaddr *>(&m_remoteAddr), sizeof(m_remoteAddr));
+  ::sendto(m_fd, buf, len, 0, reinterpret_cast<const sockaddr*>(&m_remoteAddr), sizeof(m_remoteAddr));
 }
 
-int UdpSocket::recv(uint8_t *buf, size_t maxLen, int timeoutMs)
+int UdpSocket::recv(uint8_t* buf, size_t maxLen, int timeoutMs)
 {
   if (m_fd < 0)
     return 0;
@@ -75,4 +75,4 @@ int UdpSocket::recv(uint8_t *buf, size_t maxLen, int timeoutMs)
   return n > 0 ? static_cast<int>(n) : 0;
 }
 
-}  // namespace BallisticApp::net
+}  // namespace BallisticApp

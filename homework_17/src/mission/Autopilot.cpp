@@ -1,21 +1,22 @@
+#include "BallisticApp/mission/Autopilot.h"
+#include "BallisticApp/DroneStateType.h"
 #include "BallisticApp/config/AmmoParams.h"
 #include "BallisticApp/config/DroneConfig.h"
 #include "BallisticApp/interfaces/IBallisticSolver.h"
 #include "BallisticApp/link/GpioPins.h"
 #include "BallisticApp/link/UartLink.h"
 #include "BallisticApp/net/MavlinkTelemetry.h"
-#include "BallisticApp/utils/Logger.h"
-#include "BallisticApp/link/Autopilot.h"
 #include "BallisticApp/states/DroneStateRegistry.h"
+#include "BallisticApp/utils/Logger.h"
+#include "BallisticApp/utils/MathUtils.h"
 #include <algorithm>
 #include <chrono>
 #include <cmath>
-#include <iostream>
 #include <thread>
 
-namespace BallisticApp::mission {
+namespace BallisticApp {
 
-bool Autopilot::handshake(link::UartLink& link, link::GpioPins& gpio, dlink::AmmoCfg& outAmmo, dlink::DroneCfg& outCfg, int timeoutMs)
+bool Autopilot::handshake(UartLink& link, GpioPins& gpio, dlink::AmmoCfg& outAmmo, dlink::DroneCfg& outCfg, int timeoutMs)
 {
   bool haveAmmo = false;
   bool haveCfg = false;
@@ -44,12 +45,12 @@ bool Autopilot::handshake(link::UartLink& link, link::GpioPins& gpio, dlink::Amm
   return haveAmmo && haveCfg;
 }
 
-Autopilot::Autopilot(link::UartLink& link,
-                     link::GpioPins& gpio,
+Autopilot::Autopilot(UartLink& link,
+                     GpioPins& gpio,
                      std::unique_ptr<IBallisticSolver> solver,
                      const dlink::AmmoCfg& ammo,
                      const dlink::DroneCfg& cfg,
-                     std::shared_ptr<net::MavlinkTelemetry> mavlink)
+                     std::shared_ptr<MavlinkTelemetry> mavlink)
   : m_link(link)
   , m_gpio(gpio)
   , m_solver(std::move(solver))
@@ -74,8 +75,6 @@ Autopilot::Autopilot(link::UartLink& link,
 Autopilot::~Autopilot() noexcept
 {
   stop();
-  if (m_mavlink) {
-  }
 }
 
 void Autopilot::start() noexcept
@@ -116,10 +115,9 @@ void Autopilot::runMission()
   float dt = m_cfg.timeStep > 1e-4f ? m_cfg.timeStep : 0.1f;
   float scale = m_cfg.timeScale > 1e-4f ? m_cfg.timeScale : 1.0f;
 
-  // FIX: Keep spinning loop stable until MAVLink officially receives the COMMAND_ACK frame
   while (!m_stopRequested.load()) {
     if (m_mavlink && m_mavlink->isAckReceived()) {
-      break;  // Clean exit ONLY when network checker accepts the drop state
+      break;
     }
 
     float lastTSecSnapshot = m_lastTSec.load();
@@ -142,7 +140,6 @@ void Autopilot::runMission()
       }
     }
 
-    // Keep updating control tracks so the physics engine never freezes mid flight
     if (canProcess) {
       executeMissionStep(telSnapshot);
     }
@@ -168,14 +165,14 @@ void Autopilot::executeMissionStep(const dlink::Telemetry& tel)
     m_missionStartSec.store(currentLastTSec);
   }
 
-  // FIX: Directly assign the native millisecond field from the teacher's packet
   m_simTimeMs = tel.t_ms;
 
-  // Stream current georeferenced telemetry arrays with perfectly aligned monotonic timestamps
   if (m_mavlink) {
     Coord currentSpeed{std::cos(tel.dir) * tel.speed, std::sin(tel.dir) * tel.speed};
     m_mavlink->feedTelemetry({tel.x, tel.y}, currentSpeed, tel.dir, tel.z, m_simTimeMs);
   }
+
+  Coord dronePos{tel.x, tel.y};
 
   if (m_dropped.load()) {
     dlink::Control c = m_flight.compute(tel, tel.dir, DroneStateType::MOVING, m_cfg.turnThreshold, m_cfg.attackSpeed);
@@ -184,9 +181,7 @@ void Autopilot::executeMissionStep(const dlink::Telemetry& tel)
     return;
   }
 
-  Coord dronePos{tel.x, tel.y};
   AmmoParams ammoParams{m_ammo.name, m_ammo.mass, m_ammo.drag, m_ammo.lift};
-
   auto bResult = m_solver->calculate(tel.z, tel.speed, ammoParams);
   float ballisticTime = bResult.flightTime;
   float ballisticDist = bResult.hDistance;
@@ -209,7 +204,6 @@ void Autopilot::executeMissionStep(const dlink::Telemetry& tel)
     float dist = dronePos.distanceTo(lead);
     float dirToLead = std::atan2(lead.y - dronePos.y, lead.x - dronePos.x);
     float headErr = std::fabs(Math::normalizeAngle(dirToLead - tel.dir));
-
     float total = dist / std::max(1.0f, m_cfg.attackSpeed) + ballisticTime + headErr / std::max(0.1f, m_cfg.angularSpeed);
 
     if (total < bestTotal) {
@@ -254,12 +248,10 @@ void Autopilot::executeMissionStep(const dlink::Telemetry& tel)
 
   DroneConfig droneCfg{
     m_cfg.attackSpeed, m_cfg.accelerationPath, m_cfg.angularSpeed, m_cfg.turnThreshold, m_cfg.timeStep, m_cfg.timeScale, m_ammo.hitRadius};
-
-  auto fsmState = states::DroneStateRegistry::getState(m_currentFsmState);
+  auto fsmState = DroneStateRegistry::getState(m_currentFsmState);
   m_currentFsmState = fsmState->execute(speedArg, dirArg, desiredDir, droneCfg);
 
   dlink::Control c = m_flight.compute(tel, desiredDir, m_currentFsmState, m_cfg.turnThreshold, m_cfg.attackSpeed);
-
   {
     std::lock_guard<std::mutex> uartLock(m_uartWriteMutex);
     m_link.sendControl(c.accel, c.turnRate);
@@ -267,7 +259,7 @@ void Autopilot::executeMissionStep(const dlink::Telemetry& tel)
 
   if (!m_dropped.load()) {
     Coord bombLanding = dronePos + Coord{std::cos(tel.dir), std::sin(tel.dir)} * ballisticDist;
-    link::Target tgt = m_targets.getTarget(m_currentTarget);
+    Target tgt = m_targets.getTarget(m_currentTarget);
     Coord futureTarget = tgt.pos + tgt.velocity * ballisticTime;
 
     float bombToTarget = bombLanding.distanceTo(futureTarget);
@@ -275,36 +267,28 @@ void Autopilot::executeMissionStep(const dlink::Telemetry& tel)
 
     float currentDirToLead = std::atan2(lead.y - dronePos.y, lead.x - dronePos.x);
     float currentHeadErr = std::fabs(Math::normalizeAngle(currentDirToLead - tel.dir));
-
-    constexpr float kMaxHeadingErrorForDrop = 0.1f;
-    bool isAligned = currentHeadErr <= kMaxHeadingErrorForDrop;
+    bool isAligned = currentHeadErr <= 0.1f;
 
     bool goodHit = (bombToTarget <= m_ammo.hitRadius) && isAligned;
     bool passedApex = (hitDist > m_prevHitDist) && (m_prevHitDist < m_ammo.hitRadius * 3.0f) && isAligned;
 
     if (goodHit || passedApex) {
       APP_LOG_MOD("Main", "autopilot: payload released (target={}, predicted miss={:.3f}m)", m_currentTarget, bombToTarget);
-
       m_dropped.store(true);
 
       if (m_mavlink) {
         m_mavlink->notifyDrop(m_dropPoint, tel.z);
       }
 
-      // Separate background hardware pulse task execution thread context
-      std::thread dropPulseThread([this]() { m_gpio.pulseDrop(kDropPulseDurationMs); });
-      dropPulseThread.detach();
+      m_gpio.pulseDrop(kDropPulseDurationMs);
     }
-
     m_prevHitDist = hitDist;
   }
 
-  // Record flight telemetry track arrays inside JsonExporter memory matrices
   SimStep stepSnapshot{};
   stepSnapshot.pos = dronePos;
   stepSnapshot.direction = tel.dir;
 
-  // Clean hardware mappings without any virtual states
   if (m_currentFsmState == DroneStateType::STOPPED)
     stepSnapshot.mode = "STOPPED";
   else if (m_currentFsmState == DroneStateType::ACCELERATING)
@@ -319,15 +303,12 @@ void Autopilot::executeMissionStep(const dlink::Telemetry& tel)
   stepSnapshot.currentTarget = m_currentTarget;
   stepSnapshot.dropPoint = m_dropPoint;
   stepSnapshot.aimPoint = m_dropPoint + Coord{std::cos(tel.dir), std::sin(tel.dir)} * ballisticDist;
-
-  // FIX: Save precise monotonic hardware seconds track inside step metadata
   stepSnapshot.timeSec = static_cast<float>(tel.t_ms) / 1000.0f;
 
   if (m_currentTarget >= 0) {
-    link::Target tgtView = m_targets.getTarget(m_currentTarget);
+    Target tgtView = m_targets.getTarget(m_currentTarget);
     stepSnapshot.predictedTarget = tgtView.pos + tgtView.velocity * ballisticTime;
   }
-
   m_simSteps.push_back(stepSnapshot);
 }
 
@@ -337,7 +318,7 @@ Coord Autopilot::predictTargetIntercept(int targetIdx, const Coord& dronePos, fl
   Coord predictedTgt{0.0f, 0.0f};
 
   for (int iter = 0; iter < kPredictionIterations; ++iter) {
-    link::Target futureTgt = m_targets.getTarget(targetIdx);
+    Target futureTgt = m_targets.getTarget(targetIdx);
     predictedTgt = futureTgt.pos + futureTgt.velocity * t_approximation;
     float travelDist = std::max(0.0f, dronePos.distanceTo(predictedTgt) - ballisticDist);
     t_approximation = travelDist / std::max(1.0f, m_cfg.attackSpeed) + ballisticTime;
@@ -350,4 +331,4 @@ bool Autopilot::isFinished() const noexcept
   return m_mavlink ? m_mavlink->isAckReceived() : m_dropped.load();
 }
 
-}  // namespace BallisticApp::mission
+}  // namespace BallisticApp

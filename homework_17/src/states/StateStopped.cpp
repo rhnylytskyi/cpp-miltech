@@ -3,7 +3,7 @@
 #include "BallisticApp/utils/MathUtils.h"
 #include <cmath>
 
-namespace BallisticApp::states {
+namespace BallisticApp {
 
 DroneStateType StateStopped::execute(float& speed, float& direction, float desiredDir, const DroneConfig& cfg)
 {
@@ -27,4 +27,4 @@ DroneStateType StateStopped::getType() const
   return DroneStateType::STOPPED;
 }
 
-}  // namespace BallisticApp::states
+}  // namespace BallisticApp

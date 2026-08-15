@@ -7,7 +7,7 @@
 #include "BallisticApp/DroneStateType.h"
 #include <iostream>
 
-namespace BallisticApp::states {
+namespace BallisticApp {
 
 IDroneState* DroneStateRegistry::getState(DroneStateType type)
 {
@@ -34,4 +34,4 @@ IDroneState* DroneStateRegistry::getState(DroneStateType type)
   }
 }
 
-}  // namespace BallisticApp::states
+}  // namespace BallisticApp

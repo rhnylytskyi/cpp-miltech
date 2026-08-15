@@ -1,17 +1,17 @@
 #include "BallisticApp/link/GpioPins.h"
-#include <gpiod.h>
 #include <chrono>
+#include <gpiod.h>
 #include <stdexcept>
 #include <thread>
 
-namespace BallisticApp::link {
+namespace BallisticApp {
 
 GpioPins::~GpioPins() noexcept
 {
   close();
 }
 
-void GpioPins::open(const std::string &chipName, unsigned int startLine, unsigned int dropLine)
+void GpioPins::open(const std::string& chipName, unsigned int startLine, unsigned int dropLine)
 {
   close();
 
@@ -75,4 +75,4 @@ void GpioPins::pulseDrop(int durationMs)
   gpiod_line_set_value(m_dropLine, 0);
 }
 
-}  // namespace BallisticApp::link
+}  // namespace BallisticApp
