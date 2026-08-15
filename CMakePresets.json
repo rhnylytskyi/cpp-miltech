@@ -88,7 +88,7 @@
     {
       "name": "relwithdebinfo",
       "displayName": "Build Release with Debug Info",
-      "description": "Зібрати release with debug info preset после configure.",
+      "description": "Зібрати release with debug info preset після configure.",
       "configurePreset": "relwithdebinfo"
     }
   ]
