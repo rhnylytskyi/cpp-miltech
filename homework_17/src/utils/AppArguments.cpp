@@ -15,7 +15,7 @@ AppArguments::AppArguments(std::span<const char* const> args)
 
 void AppArguments::printHelp() const
 {
-  std::cout << "Usage: ./student [options]\n\n"
+  std::cout << "Usage: ./drone_autopilot [options]\n\n"
             << "Options:\n"
             << "  --uart <device>         UART device serial port (Default: /tmp/ttyA)\n"
             << "  --gpiochip <name>       GPIO chip control name (Default: gpiochip0)\n"

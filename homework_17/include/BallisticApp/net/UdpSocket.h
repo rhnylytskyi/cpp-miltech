@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cstddef>
 #include <string>
+#include <netinet/in.h>  // Dynamic struct array mappings
 
 namespace BallisticApp::net {
 
@@ -23,6 +24,7 @@ public:
 
 private:
   int m_fd = -1;
+  sockaddr_in m_remoteAddr{};  // Core tracking structure handle location
 };
 
 }  // namespace BallisticApp::net

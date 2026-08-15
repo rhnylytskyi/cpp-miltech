@@ -45,7 +45,7 @@ public:
   void stop() noexcept;
   [[nodiscard]] bool isThreadReady() const noexcept;
   [[nodiscard]] bool dropped() const noexcept { return m_dropped.load(); }
-  [[nodiscard]] bool isFinished() const noexcept { return m_missionFinished.load(); }
+  [[nodiscard]] bool isFinished() const noexcept;
 
 private:
   void onTelemetryReceived(const dlink::Telemetry& tel);

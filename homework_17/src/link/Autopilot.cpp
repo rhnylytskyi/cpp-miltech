@@ -105,6 +105,7 @@ void Autopilot::runIO()
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
   }
 }
+
 void Autopilot::runMission()
 {
   m_isMissionReady.store(true);
@@ -114,11 +115,11 @@ void Autopilot::runMission()
 
   float dt = m_cfg.timeStep > 1e-4f ? m_cfg.timeStep : 0.1f;
   float scale = m_cfg.timeScale > 1e-4f ? m_cfg.timeScale : 1.0f;
-  const uint32_t stepMs = static_cast<uint32_t>(std::lround(dt * 1000.0f));
 
-  while (!m_stopRequested.load() && !m_missionFinished.load()) {
+  // FIX: Keep spinning loop stable until MAVLink officially receives the COMMAND_ACK frame
+  while (!m_stopRequested.load()) {
     if (m_mavlink && m_mavlink->isAckReceived()) {
-      break;  // Instantly break the loop as soon as the checker accepts the drop command
+      break;  // Clean exit ONLY when network checker accepts the drop state
     }
 
     float lastTSecSnapshot = m_lastTSec.load();
@@ -141,9 +142,9 @@ void Autopilot::runMission()
       }
     }
 
+    // Keep updating control tracks so the physics engine never freezes mid flight
     if (canProcess) {
       executeMissionStep(telSnapshot);
-      m_simTimeMs += stepMs;  // Increment synchronized real-time monotonic timestamp clocks
     }
 
     const float sleepSeconds = dt / scale;
@@ -167,7 +168,10 @@ void Autopilot::executeMissionStep(const dlink::Telemetry& tel)
     m_missionStartSec.store(currentLastTSec);
   }
 
-  // Stream current georeferenced telemetry arrays to MAVLink network listeners asynchronously
+  // FIX: Directly assign the native millisecond field from the teacher's packet
+  m_simTimeMs = tel.t_ms;
+
+  // Stream current georeferenced telemetry arrays with perfectly aligned monotonic timestamps
   if (m_mavlink) {
     Coord currentSpeed{std::cos(tel.dir) * tel.speed, std::sin(tel.dir) * tel.speed};
     m_mavlink->feedTelemetry({tel.x, tel.y}, currentSpeed, tel.dir, tel.z, m_simTimeMs);
@@ -278,8 +282,8 @@ void Autopilot::executeMissionStep(const dlink::Telemetry& tel)
     bool goodHit = (bombToTarget <= m_ammo.hitRadius) && isAligned;
     bool passedApex = (hitDist > m_prevHitDist) && (m_prevHitDist < m_ammo.hitRadius * 3.0f) && isAligned;
 
-    if (!m_dropped.load() && (goodHit || passedApex)) {
-      APP_LOG_MOD("Main", "autopilot: payload released...");
+    if (goodHit || passedApex) {
+      APP_LOG_MOD("Main", "autopilot: payload released (target={}, predicted miss={:.3f}m)", m_currentTarget, bombToTarget);
 
       m_dropped.store(true);
 
@@ -287,6 +291,7 @@ void Autopilot::executeMissionStep(const dlink::Telemetry& tel)
         m_mavlink->notifyDrop(m_dropPoint, tel.z);
       }
 
+      // Separate background hardware pulse task execution thread context
       std::thread dropPulseThread([this]() { m_gpio.pulseDrop(kDropPulseDurationMs); });
       dropPulseThread.detach();
     }
@@ -307,6 +312,11 @@ Coord Autopilot::predictTargetIntercept(int targetIdx, const Coord& dronePos, fl
     t_approximation = travelDist / std::max(1.0f, m_cfg.attackSpeed) + ballisticTime;
   }
   return predictedTgt;
+}
+
+bool Autopilot::isFinished() const noexcept
+{
+  return m_mavlink ? m_mavlink->isAckReceived() : m_dropped.load();
 }
 
 }  // namespace BallisticApp::mission

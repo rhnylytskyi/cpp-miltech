@@ -24,11 +24,11 @@ void UdpSocket::open(const std::string &host, uint16_t port)
     throw std::runtime_error(std::string("UdpSocket: socket() failed: ") + std::strerror(errno));
   }
 
-  sockaddr_in addr{};
-  addr.sin_family = AF_INET;
-  addr.sin_port = htons(port);
+  std::memset(&m_remoteAddr, 0, sizeof(m_remoteAddr));
+  m_remoteAddr.sin_family = AF_INET;
+  m_remoteAddr.sin_port = htons(port);
 
-  if (::inet_pton(AF_INET, host.c_str(), &addr.sin_addr) != 1) {
+  if (::inet_pton(AF_INET, host.c_str(), &m_remoteAddr.sin_addr) != 1) {
     addrinfo hints{};
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_DGRAM;
@@ -40,15 +40,8 @@ void UdpSocket::open(const std::string &host, uint16_t port)
       throw std::runtime_error("UdpSocket: failed to resolve address string '" + host + "'");
     }
 
-    addr.sin_addr = reinterpret_cast<sockaddr_in *>(res->ai_addr)->sin_addr;
+    m_remoteAddr.sin_addr = reinterpret_cast<sockaddr_in *>(res->ai_addr)->sin_addr;
     ::freeaddrinfo(res);
-  }
-
-  if (::connect(m_fd, reinterpret_cast<sockaddr *>(&addr), sizeof(addr)) != 0) {
-    int err = errno;
-    ::close(m_fd);
-    m_fd = -1;
-    throw std::runtime_error(std::string("UdpSocket: connect() failed: ") + std::strerror(err));
   }
 }
 
@@ -64,7 +57,7 @@ void UdpSocket::send(const uint8_t *buf, size_t len)
 {
   if (m_fd < 0)
     return;
-  ::send(m_fd, buf, len, 0);
+  ::sendto(m_fd, buf, len, 0, reinterpret_cast<const sockaddr *>(&m_remoteAddr), sizeof(m_remoteAddr));
 }
 
 int UdpSocket::recv(uint8_t *buf, size_t maxLen, int timeoutMs)
@@ -78,7 +71,7 @@ int UdpSocket::recv(uint8_t *buf, size_t maxLen, int timeoutMs)
   if (pr <= 0)
     return 0;
 
-  ssize_t n = ::recv(m_fd, buf, maxLen, 0);
+  ssize_t n = ::recvfrom(m_fd, buf, maxLen, 0, nullptr, nullptr);
   return n > 0 ? static_cast<int>(n) : 0;
 }
 
