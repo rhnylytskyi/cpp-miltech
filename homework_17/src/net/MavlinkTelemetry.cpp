@@ -1,12 +1,12 @@
-#include "BallisticApp/utils/Logger.h"
 #define _USE_MATH_DEFINES
+
 #include "BallisticApp/net/MavlinkTelemetry.h"
+#include "BallisticApp/utils/Logger.h"
 #include <common/mavlink.h>
 #include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <cstring>
-#include <iostream>
 
 namespace BallisticApp {
 
