@@ -1,6 +1,8 @@
 #pragma once
 
+#include "BallisticApp/exporters/SimStep.h"
 #include "BallisticApp/DroneStateType.h"
+#include "BallisticApp/exporters/SimStep.h"
 #include "BallisticApp/link/FlightController.h"
 #include "BallisticApp/link/GpioPins.h"
 #include "BallisticApp/link/UartLink.h"
@@ -9,6 +11,7 @@
 #include <memory>
 #include <mutex>
 #include <atomic>
+#include <vector>
 
 // Forward declaration of the new network module to avoid circular includes
 namespace BallisticApp::net {
@@ -47,6 +50,8 @@ public:
   [[nodiscard]] bool dropped() const noexcept { return m_dropped.load(); }
   [[nodiscard]] bool isFinished() const noexcept;
 
+  [[nodiscard]] const std::vector<SimStep>& getSimulationSteps() const noexcept { return m_simSteps; }
+
 private:
   void onTelemetryReceived(const dlink::Telemetry& tel);
   void executeMissionStep(const dlink::Telemetry& tel);
@@ -83,6 +88,7 @@ private:
   float m_prevHitDist{1e9f};
   Coord m_dropPoint{0.0f, 0.0f};
   DroneStateType m_currentFsmState{DroneStateType::STOPPED};
+  std::vector<SimStep> m_simSteps;
 
   std::mutex m_uartWriteMutex;
   uint32_t m_simTimeMs{0};  // Keep track of relative simulation timestamps for MAVLink clocks

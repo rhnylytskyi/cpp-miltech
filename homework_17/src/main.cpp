@@ -1,3 +1,4 @@
+#include "BallisticApp/exporters/JsonExporter.h"
 #include "BallisticApp/link/Autopilot.h"
 #include "BallisticApp/link/GpioPins.h"
 #include "BallisticApp/link/UartLink.h"
@@ -78,6 +79,17 @@ int main(int argc, char* argv[])
     // Safely spin down and detach network socket contexts post flight execution
     mavlink->stop();
     APP_LOG_MOD("Main", "autopilot: finished (dropped={})", autopilot.dropped() ? "yes" : "no");
+
+    // Stream collected vectors into simulation.json via JsonExporter arrays
+    exporters::JsonExporter exporter;
+    for (const auto& step : autopilot.getSimulationSteps()) {
+      exporter.record(step);
+    }
+
+    std::string outputPath = std::string(PROJECT_DATA_DIR) + "/simulation.json";
+    if (exporter.save(outputPath)) {
+      std::cout << "[Main] Mission flight logs successfully saved to -> " << outputPath << "\n";
+    }
   }
   catch (const std::exception& e) {
     std::cerr << "autopilot: error: " << e.what() << std::endl;

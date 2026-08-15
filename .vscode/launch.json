@@ -19,7 +19,7 @@
       "externalConsole": false,
       "MIMode": "gdb",
       "miDebuggerPath": "/usr/bin/gdb",
-      "preLaunchTask": "CMake: configure and build",
+      "preLaunchTask": "CMake: build DEBUG",
       "setupCommands": [
         {
           "description": "Увімкнути pretty-printing для STL типів у GDB.",
@@ -43,7 +43,7 @@
       "externalConsole": false,
       "MIMode": "gdb",
       "miDebuggerPath": "/usr/bin/gdb",
-      "preLaunchTask": "CMake: configure and build",
+      "preLaunchTask": "CMake: build DEBUG",
       "setupCommands": [
         {
           "description": "Увімкнути pretty-printing для STL типів у GDB.",
@@ -67,7 +67,7 @@
       "externalConsole": false,
       "MIMode": "gdb",
       "miDebuggerPath": "/usr/bin/gdb",
-      "preLaunchTask": "CMake: configure and build",
+      "preLaunchTask": "CMake: build DEBUG",
       "setupCommands": [
         {
           "description": "Увімкнути pretty-printing для STL типів у GDB.",
@@ -90,7 +90,7 @@
       "externalConsole": false,
       "MIMode": "gdb",
       "miDebuggerPath": "/usr/bin/gdb",
-      "preLaunchTask": "CMake: configure and build",
+      "preLaunchTask": "CMake: build DEBUG",
       "setupCommands": [
         {
           "description": "Увімкнути pretty-printing для STL типів у GDB.",
@@ -116,7 +116,7 @@
       "externalConsole": false,
       "MIMode": "gdb",
       "miDebuggerPath": "/usr/bin/gdb",
-      "preLaunchTask": "CMake: configure and build",
+      "preLaunchTask": "CMake: build DEBUG",
       "setupCommands": [
         {
           "description": "Увімкнути pretty-printing для STL типів у GDB.",
@@ -142,7 +142,7 @@
       "externalConsole": false,
       "MIMode": "gdb",
       "miDebuggerPath": "/usr/bin/gdb",
-      "preLaunchTask": "CMake: configure and build",
+      "preLaunchTask": "CMake: build DEBUG",
       "setupCommands": [
         {
           "description": "Увімкнути pretty-printing для STL типів у GDB.",
@@ -166,7 +166,7 @@
       "externalConsole": false,
       "MIMode": "gdb",
       "miDebuggerPath": "/usr/bin/gdb",
-      "preLaunchTask": "CMake: configure and build",
+      "preLaunchTask": "CMake: build DEBUG",
       "setupCommands": [
         {
           "description": "Увімкнути pretty-printing для STL типів у GDB.",
@@ -188,7 +188,7 @@
       "cwd": "${workspaceFolder}/homework_07",
       "MIMode": "gdb",
       "miDebuggerPath": "/usr/bin/gdb",
-      "preLaunchTask": "CMake: configure and build",
+      "preLaunchTask": "CMake: build DEBUG",
       "setupCommands": [
         {
           "text": "-enable-pretty-printing",
@@ -209,7 +209,7 @@
       "cwd": "${workspaceFolder}/homework_07",
       "MIMode": "gdb",
       "miDebuggerPath": "/usr/bin/gdb",
-      "preLaunchTask": "CMake: configure and build",
+      "preLaunchTask": "CMake: build DEBUG",
       "setupCommands": [
         {
           "text": "-enable-pretty-printing",
@@ -230,7 +230,7 @@
       "cwd": "${workspaceFolder}/homework_07",
       "MIMode": "gdb",
       "miDebuggerPath": "/usr/bin/gdb",
-      "preLaunchTask": "CMake: configure and build",
+      "preLaunchTask": "CMake: build DEBUG",
       "setupCommands": [
         {
           "text": "-enable-pretty-printing",
@@ -251,7 +251,7 @@
       "cwd": "${workspaceFolder}/homework_07",
       "MIMode": "gdb",
       "miDebuggerPath": "/usr/bin/gdb",
-      "preLaunchTask": "CMake: configure and build",
+      "preLaunchTask": "CMake: build DEBUG",
       "setupCommands": [
         {
           "text": "-enable-pretty-printing",
@@ -272,7 +272,7 @@
       "cwd": "${workspaceFolder}/homework_07",
       "MIMode": "gdb",
       "miDebuggerPath": "/usr/bin/gdb",
-      "preLaunchTask": "CMake: configure and build",
+      "preLaunchTask": "CMake: build DEBUG",
       "setupCommands": [
         {
           "text": "-enable-pretty-printing",
@@ -293,7 +293,7 @@
       "cwd": "${workspaceFolder}/homework_07",
       "MIMode": "gdb",
       "miDebuggerPath": "/usr/bin/gdb",
-      "preLaunchTask": "CMake: configure and build",
+      "preLaunchTask": "CMake: build DEBUG",
       "setupCommands": [
         {
           "text": "-enable-pretty-printing",
@@ -314,7 +314,7 @@
       "cwd": "${workspaceFolder}/homework_07",
       "MIMode": "gdb",
       "miDebuggerPath": "/usr/bin/gdb",
-      "preLaunchTask": "CMake: configure and build",
+      "preLaunchTask": "CMake: build DEBUG",
       "setupCommands": [
         {
           "text": "-enable-pretty-printing",
@@ -335,7 +335,7 @@
       "cwd": "${workspaceFolder}/homework_07",
       "MIMode": "gdb",
       "miDebuggerPath": "/usr/bin/gdb",
-      "preLaunchTask": "CMake: configure and build",
+      "preLaunchTask": "CMake: build DEBUG",
       "setupCommands": [
         {
           "text": "-enable-pretty-printing",
@@ -356,7 +356,7 @@
       "cwd": "${workspaceFolder}/homework_07",
       "MIMode": "gdb",
       "miDebuggerPath": "/usr/bin/gdb",
-      "preLaunchTask": "CMake: configure and build",
+      "preLaunchTask": "CMake: build DEBUG",
       "setupCommands": [
         {
           "text": "-enable-pretty-printing",
@@ -377,7 +377,7 @@
       "cwd": "${workspaceFolder}/homework_07",
       "MIMode": "gdb",
       "miDebuggerPath": "/usr/bin/gdb",
-      "preLaunchTask": "CMake: configure and build",
+      "preLaunchTask": "CMake: build DEBUG",
       "setupCommands": [
         {
           "text": "-enable-pretty-printing",

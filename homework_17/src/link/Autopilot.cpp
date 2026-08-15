@@ -298,6 +298,37 @@ void Autopilot::executeMissionStep(const dlink::Telemetry& tel)
 
     m_prevHitDist = hitDist;
   }
+
+  // Record flight telemetry track arrays inside JsonExporter memory matrices
+  SimStep stepSnapshot{};
+  stepSnapshot.pos = dronePos;
+  stepSnapshot.direction = tel.dir;
+
+  // Clean hardware mappings without any virtual states
+  if (m_currentFsmState == DroneStateType::STOPPED)
+    stepSnapshot.mode = "STOPPED";
+  else if (m_currentFsmState == DroneStateType::ACCELERATING)
+    stepSnapshot.mode = "ACCELERATING";
+  else if (m_currentFsmState == DroneStateType::DECELERATING)
+    stepSnapshot.mode = "DECELERATING";
+  else if (m_currentFsmState == DroneStateType::TURNING)
+    stepSnapshot.mode = "TURNING";
+  else if (m_currentFsmState == DroneStateType::MOVING)
+    stepSnapshot.mode = "MOVING";
+
+  stepSnapshot.currentTarget = m_currentTarget;
+  stepSnapshot.dropPoint = m_dropPoint;
+  stepSnapshot.aimPoint = m_dropPoint + Coord{std::cos(tel.dir), std::sin(tel.dir)} * ballisticDist;
+
+  // FIX: Save precise monotonic hardware seconds track inside step metadata
+  stepSnapshot.timeSec = static_cast<float>(tel.t_ms) / 1000.0f;
+
+  if (m_currentTarget >= 0) {
+    link::Target tgtView = m_targets.getTarget(m_currentTarget);
+    stepSnapshot.predictedTarget = tgtView.pos + tgtView.velocity * ballisticTime;
+  }
+
+  m_simSteps.push_back(stepSnapshot);
 }
 
 Coord Autopilot::predictTargetIntercept(int targetIdx, const Coord& dronePos, float ballisticTime, float ballisticDist) const noexcept

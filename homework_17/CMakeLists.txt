@@ -37,3 +37,5 @@ target_compile_definitions(homework_17 PRIVATE PROJECT_DATA_DIR="${CMAKE_CURRENT
 
 # Bind hardware libraries and thread packages to the application target
 target_link_libraries(homework_17 PRIVATE Threads::Threads ${GPIOD_LIBRARY})
+
+target_link_libraries(homework_17 PRIVATE nlohmann_json::nlohmann_json)
