@@ -13,7 +13,9 @@
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/debug",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_FLAGS": "-fsanitize=thread",
+        "CMAKE_EXE_LINKER_FLAGS": "-fsanitize=thread"
       }
     },
     {
@@ -60,7 +62,7 @@
       "displayName": "Build ARM64 Debug",
       "description": "Зібрати ARM64 debug preset після cross-configure.",
       "configurePreset": "aarch64-debug"
-    },  
+    },
     {
       "name": "release",
       "displayName": "Build Release",
@@ -72,6 +74,6 @@
       "displayName": "Build Release with Debug Info",
       "description": "Зібрати release with debug info preset після configure.",
       "configurePreset": "relwithdebinfo"
-    } 
+    }
   ]
 }
