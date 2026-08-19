@@ -30,7 +30,20 @@ def generate_launch_description():
         ],
     )
 
-    # Тут можна додати керуючі ноди або інший launch-файл з рішенням.
+    navigator_node = Node(
+        package='trench_crawler_solution',
+        executable='trench_navigator',
+        name='trench_navigator_node',
+        output='screen'
+    )
+    
+    weapon_node = Node(
+        package='trench_crawler_solution',
+        executable='weapon_action',
+        name='weapon_action_node',
+        output='screen'
+    )
+
     return LaunchDescription(
         [
             DeclareLaunchArgument(
@@ -44,5 +57,7 @@ def generate_launch_description():
                 description="Delay before applying queued move commands",
             ),
             world_node,
+            navigator_node,
+            weapon_node,
         ]
     )
