@@ -1,0 +1,9 @@
+services:
+  antidrone_turret:
+    build:
+      context: ./robot_ws
+      dockerfile: Dockerfile
+    container_name: antidrone_turret
+    stdin_open: true
+    tty: true
+    command: ["ros2", "launch", "antidrone_turret", "system.launch.py"]
