@@ -1,12 +1,10 @@
 {
-  // VS Code tasks виконуються з кореня workspace у devcontainer terminal.
   "version": "2.0.0",
   "tasks": [
     {
-      // Задача за замовчуванням (Ctrl+Shift+B): тепер вона пропонує вибір між Debug та Release
-      "label": "CMake: configure and build (Select Variant)",
+      "label": "CMake: configure and build",
       "type": "shell",
-      "command": "cmake --preset ${input:buildVariant} && cmake --build --preset ${input:buildVariant}",
+      "command": "cmake --preset debug && cmake --build --preset debug",
       "group": {
         "kind": "build",
         "isDefault": true
@@ -21,7 +19,20 @@
       }
     },
     {
-      // Окрема швидка задача суто для Debug
+      "label": "CMake: configure and build (Select Variant)",
+      "type": "shell",
+      "command": "cmake --preset ${input:buildVariant} && cmake --build --preset ${input:buildVariant}",
+      "group": "build",
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
       "label": "CMake: build DEBUG",
       "type": "shell",
       "command": "cmake --preset debug && cmake --build --preset debug",
@@ -36,7 +47,6 @@
       }
     },
     {
-      // НОВА ЗАДАЧА: Суто для Release збірки
       "label": "CMake: build RELEASE",
       "type": "shell",
       "command": "cmake --preset release && cmake --build --preset release",
@@ -88,7 +98,6 @@
       "problemMatcher": []
     }
   ],
-  // Інтерактивне меню для вибору типу збірки при натисканні Ctrl+Shift+B
   "inputs": [
     {
       "id": "buildVariant",
