@@ -147,7 +147,7 @@ extern "C" void app_main(void) {
     esp_timer_start_periodic(g_timer, (uint64_t)g_period_ms * 1000);
 
     // 4. Create Background Non-blocking UART Task
-    xTaskCreate(uart_rx_task, "uart_cmd", 2048, NULL, 5, NULL);
+    xTaskCreate(uart_rx_task, "uart_cmd", 4096, NULL, 5, NULL);
 
     printf("Device Ready. Commands: p <ms> | reset\n");
 
