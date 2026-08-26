@@ -9,9 +9,19 @@
     {
       "name": "debug",
       "displayName": "Debug",
-      "description": "Debug build для занять блоку 2: символи для GDB і зрозуміла структура build/debug.",
+      "description": "Debug build без санітайзерів для стабільної роботи на Ubuntu 24.04 (WSL).",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "debug-tsan",
+      "displayName": "Debug with ThreadSanitizer",
+      "description": "Debug build для багатопотокових ДЗ: увімкнено ThreadSanitizer для пошуку race conditions.",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/debug-tsan",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_CXX_FLAGS": "-fsanitize=thread",
@@ -56,6 +66,12 @@
       "displayName": "Build Debug",
       "description": "Зібрати debug preset після configure.",
       "configurePreset": "debug"
+    },
+    {
+      "name": "debug-tsan",
+      "displayName": "Build Debug with ThreadSanitizer",
+      "description": "Зібрати debug-tsan preset після configure.",
+      "configurePreset": "debug-tsan"
     },
     {
       "name": "aarch64-debug",

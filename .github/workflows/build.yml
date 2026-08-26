@@ -27,6 +27,8 @@ jobs:
       # Стандартний checkout коду. v4 - поточна стабільна major.
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       # devcontainers/ci - офіційний action від Microsoft, який запускає
       # build всередині devcontainer-а. Послідовність:

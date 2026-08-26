@@ -31,8 +31,9 @@ add_subdirectory(demos/lesson_5_1/05_healthcheck)
 # add_subdirectory(homework_07)
 # add_subdirectory(homework_08)
 # add_subdirectory(homework_09)
-# add_subdirectory(homework_10)
-add_subdirectory(homework_11)
+add_subdirectory(homework_10)
+# add_subdirectory(homework_11)
+add_subdirectory(homework_17)
 
 # Вмикаємо підтримку CTest для автоматичного запуску тестів.
 enable_testing()
