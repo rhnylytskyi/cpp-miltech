@@ -33,7 +33,7 @@ add_subdirectory(homework_08)
 # add_subdirectory(homework_09)
 add_subdirectory(homework_10)
 add_subdirectory(homework_11)
-add_subdirectory(homework_15)
+# add_subdirectory(homework_15)
 
 # Вмикаємо підтримку CTest для автоматичного запуску тестів.
 enable_testing()
