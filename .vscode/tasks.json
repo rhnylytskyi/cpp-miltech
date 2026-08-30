@@ -4,7 +4,7 @@
     {
       "label": "CMake: configure and build",
       "type": "shell",
-      "command": "cmake --preset debug && cmake --build --preset debug",
+      "command": "cmake --preset ${input:buildVariant} && cmake --build --preset ${input:buildVariant}",
       "group": {
         "kind": "build",
         "isDefault": true
