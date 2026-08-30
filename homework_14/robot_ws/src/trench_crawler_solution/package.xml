@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>trench_crawler_solution</name>
+  <version>1.0.0</version>
+  <description>Custom military autonomous robot driver for trench grid maps.</description>
+  <maintainer email="student@example.com">student</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>rclcpp</depend>
+  <depend>underground_world</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

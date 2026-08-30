@@ -100,6 +100,33 @@
       ],
     },
     {
+      "name": "🎯 ДЗ 15: Simulate & PUBLISH to Server",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/debug/homework_15/ballistic_app_15",
+      "args": [
+        "--solver",
+        "table",
+        "--scenario",
+        "${input:ballisticAppSelectT}",
+        "--publish"
+      ],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}/homework_15",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "miDebuggerPath": "/usr/bin/gdb",
+      "preLaunchTask": "CMake: configure and build",
+      "setupCommands": [
+        {
+          "description": "Увімкнути pretty-printing для STL типів у GDB.",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ]
+    },
+    {
       "name": "🎯 ДЗ 10: Multithreaded simulation",
       "type": "cppdbg",
       "request": "launch",
@@ -432,6 +459,54 @@
           "label": "Екстремальний (далеко, швидко)",
           "value": "t10_extreme",
         },
+      ],
+      "default": ""
+    },
+    {
+      "id": "ballisticAppSelectT",
+      "type": "pickString",
+      "description": "— оберіть сценарій ДЗ 15 (T01-T10) —",
+      "options": [
+        {
+          "label": "T01: Базовий тест (кола)",
+          "value": "T01"
+        },
+        {
+          "label": "T02: Еліптичні траєкторії",
+          "value": "T02"
+        },
+        {
+          "label": "T03: Вісімки (Ліссажу 1:2)",
+          "value": "T03"
+        },
+        {
+          "label": "T04: Квіткові (зіркові) траєкторії",
+          "value": "T04"
+        },
+        {
+          "label": "T05: Ліссажу (складні криві)",
+          "value": "T05"
+        },
+        {
+          "label": "T06: Швидкий дрон, повільні цілі",
+          "value": "T06"
+        },
+        {
+          "label": "T07: Важкі боєприпаси (RKG-3)",
+          "value": "T07"
+        },
+        {
+          "label": "T08: Планеруючі боєприпаси (GLIDING-VOG)",
+          "value": "T08"
+        },
+        {
+          "label": "T09: Кардіоїди та епітрохоїди",
+          "value": "T09"
+        },
+        {
+          "label": "T10: Екстремальний (далеко, швидко)",
+          "value": "T10"
+        }
       ],
       "default": ""
     }
